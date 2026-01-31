@@ -490,10 +490,9 @@ in
       };
     in
     mk-if cfg.enable {
-      cuda.nixpkgs = {
-        sdk = nvidia-sdk;
-        cutlass = cutlass-package;
-      };
+      # Expose SDK via nv.sdk options (readonly)
+      nv.sdk.sdk = nvidia-sdk;
+      nv.sdk.cutlass = cutlass-package;
 
       packages = {
         nvidia-sdk-cuda = nvidia-sdk;

@@ -99,21 +99,17 @@
         "aarch64-darwin"
       ];
       
-      # Import aleph-continuity flake modules for prelude, build, typed unix
-      # std module includes: formatter, lint, docs, std, devshell, prelude, nv-sdk, container
+      # Import aleph-continuity flake modules
+      # default module includes: formatter, lint, docs, std, devshell, prelude, nv-sdk, container
       # build module adds: Buck2 build infrastructure with toolchains
+      # shortlist module adds: Hermetic C++ libraries for Buck2
       # lre module adds: Local Remote Execution (NativeLink) for distributed builds
       # nativelink module adds: NativeLink container infrastructure
-      # devshell module adds: Development shell with GHC WASM and straylight-nix support
       imports = [ 
-        aleph-continuity.modules.flake.std
+        aleph-continuity.modules.flake.default
         aleph-continuity.modules.flake.build
         aleph-continuity.modules.flake.shortlist
         aleph-continuity.modules.flake.lre
-        aleph-continuity.modules.flake.devshell
-        aleph-continuity.modules.flake.docs
-        aleph-continuity.modules.flake.formatter
-        aleph-continuity.modules.flake.lint
         # nix2gpu must be imported before nativelink (provides perSystem.nix2gpu options)
         inputs.nix2gpu.flakeModule
         aleph-continuity.modules.flake.nativelink

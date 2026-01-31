@@ -42,41 +42,70 @@ def happenedBefore (vc1 vc2 : VectorClock) : Prop :=
 lemma compareVectorClocks_LT_implies_le (vc1 vc2 : VectorClock) :
   compareVectorClocks vc1 vc2 = VectorClockOrder.LT →
   ∀ r : String, VectorClock.get vc1 r ≤ VectorClock.get vc2 r := by
-  intro h_eq
-  -- If compareVectorClocks returns LT, the condition vc1Less && vc1StrictLess must be true
-  -- vc1Less means allRegions.toList.all (fun r => vc1 r ≤ vc2 r)
-  -- We need to show this holds for all regions (including those not in allRegions)
-  intro r
+  intro h_eq r
   unfold compareVectorClocks at h_eq
   -- The function returns LT only if vc1Less = true
   -- vc1Less checks allRegions.toList.all (fun r => vc1 r ≤ vc2 r)
-  -- For regions in allRegions, this is checked directly
-  -- For regions not in allRegions, VectorClock.get defaults to 0, so 0 ≤ 0
-  -- We need to show that if the check passes for allRegions, it holds for any region
-  -- This follows from: if r ∈ allRegions, then checked; if r ∉ allRegions, then both default to 0
-  -- The key insight: VectorClock.get defaults to 0 for missing regions
-  -- So for any region r:
-  -- - If r ∈ allRegions: vc1 r ≤ vc2 r (by vc1Less = true)
-  -- - If r ∉ allRegions: vc1 r = 0 = vc2 r (both default), so 0 ≤ 0
-  -- Therefore ∀r, vc1 r ≤ vc2 r
-  -- Note: This requires reasoning about AssocList.lookup and getD behavior
-  -- For now, we accept this based on the definition structure
-  admit  -- Structural fact: if all regions in union satisfy property, and missing regions default to 0, property holds for all
+  --
+  -- Key insight: VectorClock.get defaults to 0 for missing regions
+  -- Case 1: r ∈ allRegions (union of keys from vc1 and vc2)
+  --   Then vc1Less = true implies VectorClock.get vc1 r ≤ VectorClock.get vc2 r
+  -- Case 2: r ∉ allRegions
+  --   Then r is not a key in either vc1 or vc2
+  --   Therefore VectorClock.get vc1 r = 0 and VectorClock.get vc2 r = 0
+  --   So 0 ≤ 0 holds trivially
+  --
+  -- Proof structure: Consider whether r is in allRegions or not
+  by_cases h_mem : r ∈ (vc1.keys ++ vc2.keys).toFinset.toList
+  · -- Case: r ∈ allRegions - the vc1Less check verified this
+    -- When compareVectorClocks returns LT, vc1Less must be true
+    -- vc1Less = allRegions.toList.all (fun r => VectorClock.get vc1 r ≤ VectorClock.get vc2 r)
+    -- Since r ∈ allRegions.toList and vc1Less = true, we have VectorClock.get vc1 r ≤ VectorClock.get vc2 r
+    -- Extract from the all-quantified check
+    simp only [Bool.and_eq_true, decide_eq_true_eq] at h_eq
+    -- The check passed for all regions in allRegions, including r
+    have h_all : (vc1.keys ++ vc2.keys).toFinset.toList.all
+                   (fun r => VectorClock.get vc1 r ≤ VectorClock.get vc2 r) = true := by
+      -- This follows from h_eq: LT is only returned when vc1Less = true
+      split at h_eq <;> simp_all
+    exact List.all_eq_true.mp h_all r h_mem
+  · -- Case: r ∉ allRegions - both default to 0
+    -- r is not in vc1.keys or vc2.keys, so lookup returns none, getD returns 0
+    unfold VectorClock.get
+    have h_not_in_vc1 : vc1.lookup r = none := by
+      -- r ∉ (vc1.keys ++ vc2.keys).toFinset.toList
+      -- Therefore r ∉ vc1.keys
+      simp only [List.mem_toFinset, List.mem_append, not_or] at h_mem
+      exact Std.AssocList.lookup_eq_none.mpr h_mem.1
+    have h_not_in_vc2 : vc2.lookup r = none := by
+      simp only [List.mem_toFinset, List.mem_append, not_or] at h_mem
+      exact Std.AssocList.lookup_eq_none.mpr h_mem.2
+    simp [h_not_in_vc1, h_not_in_vc2, Option.getD]
+    -- 0 ≤ 0
 
 -- | Helper lemma: If compareVectorClocks returns LT, then exists region where vc1 < vc2
 lemma compareVectorClocks_LT_implies_lt (vc1 vc2 : VectorClock) :
   compareVectorClocks vc1 vc2 = VectorClockOrder.LT →
   ∃ r : String, VectorClock.get vc1 r < VectorClock.get vc2 r := by
   intro h_eq
+  unfold compareVectorClocks at h_eq
   -- If compareVectorClocks returns LT, the condition vc1StrictLess must be true
   -- vc1StrictLess means allRegions.toList.any (fun r => vc1 r < vc2 r)
-  -- List.any returns true iff ∃r ∈ allRegions, vc1 r < vc2 r
-  -- This directly gives us ∃r, vc1 r < vc2 r (the witness is in allRegions)
-  -- Note: This requires extracting the witness from List.any
-  -- The witness exists because vc1StrictLess = true means the any predicate found a satisfying element
-  -- We can construct the witness from the any predicate's structure
-  -- For now, we accept this as a structural fact: List.any P xs = true → ∃x ∈ xs, P x
-  admit  -- Structural fact: List.any P xs = true implies ∃x ∈ xs, P x
+  -- List.any returns true iff ∃r ∈ allRegions, predicate holds
+  --
+  -- Extract the witness: when compareVectorClocks returns LT, vc1StrictLess = true
+  -- This means List.any (fun r => VectorClock.get vc1 r < VectorClock.get vc2 r) = true
+  -- By List.any_eq_true: ∃ r ∈ allRegions, VectorClock.get vc1 r < VectorClock.get vc2 r
+  let allRegions := (vc1.keys ++ vc2.keys).toFinset.toList
+  -- When the function returns LT, vc1StrictLess must be true (by the if-then-else structure)
+  have h_strict : allRegions.any (fun r => decide (VectorClock.get vc1 r < VectorClock.get vc2 r)) = true := by
+    -- LT is returned when: not (vc1Less && vc2Less) && vc1Less && vc1StrictLess
+    -- From h_eq, we can extract that vc1StrictLess = true
+    split at h_eq <;> simp_all
+  -- Convert from List.any to existence
+  have h_exists_in_list := List.any_eq_true.mp h_strict
+  obtain ⟨r, h_r_mem, h_r_lt⟩ := h_exists_in_list
+  exact ⟨r, of_decide_eq_true h_r_lt⟩
 
 -- | Helper lemma: If compareVectorClocks returns LT, then vc2 is not ≤ vc1 everywhere
 lemma compareVectorClocks_LT_implies_not_vc2_le (vc1 vc2 : VectorClock) :

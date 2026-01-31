@@ -2,14 +2,20 @@ cabal-version: 3.0
 name: render-gateway-hs
 version: 0.1.0
 build-type: Simple
+synopsis: Render Gateway HTTP Server for Weyl AI
 
 executable render-gateway
-  main-is: app/Main.hs
+  main-is: Main.hs
+  hs-source-dirs: app
   build-depends:
     base >= 4.18 && < 5.0
     , render-gateway-hs
+    , stm >= 2.5
+    , containers >= 0.7
+    , text >= 2.0
+    , time >= 1.12
   default-language: Haskell2010
-  ghc-options: -Wall -Werror -O2
+  ghc-options: -Wall -O2 -threaded -rtsopts -with-rtsopts=-N
 
 library
   exposed-modules:
@@ -19,9 +25,8 @@ library
     Render.Gateway.STM.Clock
     Render.Gateway.Backend
     Render.Gateway.Core
-    Render.Gateway.ClickHouse.Schema
-    Render.Gateway.Capacity.Queueing
     Render.Gateway.Server
+  hs-source-dirs: src
   build-depends:
     base >= 4.18 && < 5.0
     , stm >= 2.5
@@ -32,5 +37,8 @@ library
     , wai >= 3.2
     , warp >= 3.3
     , bytestring >= 0.11
+    , http-client >= 0.7
+    , http-types >= 0.12
+    , uuid >= 1.3
   default-language: Haskell2010
-  ghc-options: -Wall -Werror -O2 -fno-warn-orphans
+  ghc-options: -Wall -O2

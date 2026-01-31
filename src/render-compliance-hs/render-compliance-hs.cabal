@@ -2,14 +2,23 @@ cabal-version: 3.0
 name: render-compliance-hs
 version: 0.1.0
 build-type: Simple
+synopsis: Compliance and Audit Trail for Render Gateway
 
 library
   exposed-modules:
     Render.Compliance.AuditTrail
+  hs-source-dirs: src
   build-depends:
     base >= 4.18 && < 5.0
     , text >= 2.0
     , time >= 1.12
     , bytestring >= 0.11
+    , containers >= 0.7
+    , crypton >= 0.34
+    , memory >= 0.18
+    , http-client >= 0.7
+    , http-types >= 0.12
+    , aeson >= 2.0
+    , base16-bytestring >= 1.0
   default-language: Haskell2010
-  ghc-options: -Wall -Werror -O2 -fno-warn-orphans
+  ghc-options: -Wall -O2

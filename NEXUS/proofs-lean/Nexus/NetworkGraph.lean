@@ -1,108 +1,192 @@
 -- | NEXUS Network Graph Consistency Proofs
--- | Prove that network graph maintains consistency invariants
+-- | Mathematically proven properties about network graphs
+-- |
+-- | Strategy: Encode graph operations that maintain invariants by construction.
+-- | Invariant-preserving operations are the only way to build graphs.
 
 import Lean
+import Std.Data.List.Lemmas
 
 -- | Node ID
 structure NodeId where
   id : String
+  deriving DecidableEq, BEq, Repr
 
 -- | Edge ID
 structure EdgeId where
   id : String
+  deriving DecidableEq, BEq, Repr
 
 -- | Network node
 structure Node where
   id : NodeId
   nodeType : String
   label : String
+  deriving DecidableEq, Repr
 
--- | Network edge
+-- | Network edge with validated weight
 structure Edge where
   id : EdgeId
   sourceId : NodeId
   targetId : NodeId
   weight : Float
+  h_weight_lower : 0.0 ≤ weight := by native_decide
+  h_weight_upper : weight ≤ 1.0 := by native_decide
+  h_no_self_loop : sourceId ≠ targetId := by decide
+  deriving Repr
 
--- | Network graph
+-- | BEq instance for Edge (ignoring proofs)
+instance : BEq Edge where
+  beq e1 e2 := e1.id == e2.id && e1.sourceId == e2.sourceId &&
+               e1.targetId == e2.targetId && e1.weight == e2.weight
+
+-- | Network graph with consistency invariant encoded in type
+-- | The invariant: every edge's source and target must exist in nodes
 structure NetworkGraph where
   nodes : List Node
   edges : List Edge
+  h_consistent : ∀ e ∈ edges,
+    (∃ n ∈ nodes, n.id = e.sourceId) ∧
+    (∃ n ∈ nodes, n.id = e.targetId)
 
--- | Add a node to the graph
-def addNode (graph : NetworkGraph) (node : Node) : NetworkGraph :=
-  { graph with nodes := node :: graph.nodes }
+/-!
+## Graph Construction
 
--- | Add an edge to the graph
-def addEdge (graph : NetworkGraph) (edge : Edge) : NetworkGraph :=
-  { graph with edges := edge :: graph.edges }
+We provide smart constructors that maintain invariants by construction.
+-/
 
--- | Graph consistency property
--- | All edges reference nodes that exist in the graph
-theorem graph_consistency (graph : NetworkGraph) :
-  ∀ edge ∈ graph.edges,
-    (∃ node ∈ graph.nodes, node.id = edge.sourceId) ∧
-    (∃ node ∈ graph.nodes, node.id = edge.targetId) := by
-  -- All edges must have source and target nodes in the graph
-  -- This is an invariant that must be maintained by graph operations
-  -- The proof would require showing that all graph construction/modification
-  -- operations preserve this property, which is verified at runtime
-  admit  -- Runtime invariant: verified by graph operations (addNode, addEdge validate this)
+-- | Empty graph (trivially consistent)
+def emptyGraph : NetworkGraph where
+  nodes := []
+  edges := []
+  h_consistent := by intro e h; exact False.elim (List.not_mem_nil e h)
 
--- | Edge weight bounds property
--- | All edge weights are in [0.0, 1.0]
-theorem edge_weight_bounds (graph : NetworkGraph) :
-  ∀ edge ∈ graph.edges,
-    0.0 ≤ edge.weight ∧ edge.weight ≤ 1.0 := by
-  -- Edge weights are validated when edges are added
-  admit  -- Runtime assumption: edge creation validates weight bounds
-
--- | No self-loops property
--- | No edge has source == target
-theorem no_self_loops (graph : NetworkGraph) :
-  ∀ edge ∈ graph.edges,
-    edge.sourceId ≠ edge.targetId := by
-  -- Self-loops are prevented during edge creation
-  admit  -- Runtime assumption: edge creation validates source ≠ target
-
--- | Graph add node preserves consistency
-theorem add_node_preserves_consistency (graph : NetworkGraph) (node : Node) :
-  graph_consistency graph →
-  graph_consistency (addNode graph node) := by
-  -- Adding a node doesn't affect edge consistency
-  intro h_consistent
-  unfold addNode
-  unfold graph_consistency
-  -- The edges remain the same, only nodes change (node is prepended to nodes list)
-  -- Since edges are unchanged, and h_consistent shows all edges are consistent,
-  -- the consistency is preserved
-  intro edge h_edge
-  -- edge is in graph.edges (unchanged), so h_consistent applies
-  -- The new node doesn't affect existing edges' consistency
-  apply h_consistent
-  exact h_edge
-
--- | Graph add edge preserves consistency
-theorem add_edge_preserves_consistency (graph : NetworkGraph) (edge : Edge) :
-  graph_consistency graph →
-  (∃ node ∈ graph.nodes, node.id = edge.sourceId) →
-  (∃ node ∈ graph.nodes, node.id = edge.targetId) →
-  graph_consistency (addEdge graph edge) := by
-  -- Adding edge with valid source/target preserves consistency
-  intro h_consistent h_source h_target
-  unfold addEdge
-  unfold graph_consistency
-  intro e h_e
-  -- e is either the new edge (edge) or an existing edge from graph.edges
-  -- Since addEdge prepends edge to graph.edges, h_e means e ∈ edge :: graph.edges
-  cases h_e with
-  | head =>  -- e = edge (new edge, at head of list)
-    -- We have h_source and h_target showing source and target exist in graph.nodes
-    -- Since nodes are unchanged, they still exist after addEdge
+-- | Add a node to the graph (preserves consistency)
+def addNode (graph : NetworkGraph) (node : Node) : NetworkGraph where
+  nodes := node :: graph.nodes
+  edges := graph.edges
+  h_consistent := by
+    intro e h_e
+    have ⟨h_source, h_target⟩ := graph.h_consistent e h_e
     constructor
-    · exact h_source
-    · exact h_target
-  | tail _ h_e_tail =>  -- e is in graph.edges (existing edge, in tail)
-    -- Existing edges remain consistent by h_consistent
-    -- The new edge doesn't affect existing edges' consistency
-    exact h_consistent e h_e_tail
+    · obtain ⟨n, h_n_mem, h_n_eq⟩ := h_source
+      exact ⟨n, List.mem_cons_of_mem node h_n_mem, h_n_eq⟩
+    · obtain ⟨n, h_n_mem, h_n_eq⟩ := h_target
+      exact ⟨n, List.mem_cons_of_mem node h_n_mem, h_n_eq⟩
+
+-- | Check if a node exists in the graph
+def hasNode (graph : NetworkGraph) (nodeId : NodeId) : Bool :=
+  graph.nodes.any (·.id == nodeId)
+
+-- | Lemma: hasNode returns true iff node exists
+lemma hasNode_iff (graph : NetworkGraph) (nodeId : NodeId) :
+  hasNode graph nodeId = true ↔ ∃ n ∈ graph.nodes, n.id = nodeId := by
+  unfold hasNode
+  simp [List.any_eq_true]
+  constructor
+  · intro ⟨n, h_mem, h_eq⟩
+    exact ⟨n, h_mem, beq_eq_true_iff_eq.mp h_eq⟩
+  · intro ⟨n, h_mem, h_eq⟩
+    exact ⟨n, h_mem, beq_eq_true_iff_eq.mpr h_eq⟩
+
+-- | Add an edge with validation (returns Option for safety)
+def addEdge (graph : NetworkGraph) (edge : Edge)
+  (h_source : ∃ n ∈ graph.nodes, n.id = edge.sourceId)
+  (h_target : ∃ n ∈ graph.nodes, n.id = edge.targetId) : NetworkGraph where
+  nodes := graph.nodes
+  edges := edge :: graph.edges
+  h_consistent := by
+    intro e h_e
+    cases List.mem_cons.mp h_e with
+    | inl h_eq =>
+      rw [h_eq]
+      exact ⟨h_source, h_target⟩
+    | inr h_in_old =>
+      exact graph.h_consistent e h_in_old
+
+-- | Try to add an edge (returns Option)
+def tryAddEdge (graph : NetworkGraph) (edge : Edge) : Option NetworkGraph :=
+  if h_source : ∃ n ∈ graph.nodes, n.id = edge.sourceId then
+    if h_target : ∃ n ∈ graph.nodes, n.id = edge.targetId then
+      some (addEdge graph edge h_source h_target)
+    else
+      none
+  else
+    none
+
+/-!
+## Proven Properties
+
+All properties follow mathematically from the type-level invariants.
+-/
+
+-- | Theorem: Graph consistency is always maintained
+-- | This is immediate from the type - h_consistent is required for any NetworkGraph
+theorem graph_consistency (graph : NetworkGraph) :
+  ∀ e ∈ graph.edges,
+    (∃ n ∈ graph.nodes, n.id = e.sourceId) ∧
+    (∃ n ∈ graph.nodes, n.id = e.targetId) := graph.h_consistent
+
+-- | Theorem: All edge weights are bounded
+-- | This is immediate from the Edge type's h_weight_lower and h_weight_upper
+theorem edge_weight_bounds (graph : NetworkGraph) :
+  ∀ e ∈ graph.edges, 0.0 ≤ e.weight ∧ e.weight ≤ 1.0 := by
+  intro e _
+  exact ⟨e.h_weight_lower, e.h_weight_upper⟩
+
+-- | Theorem: No self-loops
+-- | This is immediate from the Edge type's h_no_self_loop
+theorem no_self_loops (graph : NetworkGraph) :
+  ∀ e ∈ graph.edges, e.sourceId ≠ e.targetId := by
+  intro e _
+  exact e.h_no_self_loop
+
+-- | Theorem: Adding a node preserves all edges
+theorem add_node_preserves_edges (graph : NetworkGraph) (node : Node) :
+  (addNode graph node).edges = graph.edges := rfl
+
+-- | Theorem: Adding a node increases node count
+theorem add_node_increases_nodes (graph : NetworkGraph) (node : Node) :
+  (addNode graph node).nodes.length = graph.nodes.length + 1 := by
+  simp [addNode]
+
+-- | Theorem: New node is in graph after adding
+theorem new_node_in_graph (graph : NetworkGraph) (node : Node) :
+  node ∈ (addNode graph node).nodes := by
+  simp [addNode]
+
+-- | Theorem: Existing nodes preserved after adding new node
+theorem existing_nodes_preserved (graph : NetworkGraph) (node newNode : Node) :
+  node ∈ graph.nodes → node ∈ (addNode graph newNode).nodes := by
+  intro h
+  simp [addNode, h]
+
+-- | Theorem: Empty graph has no edges
+theorem empty_graph_no_edges : emptyGraph.edges = [] := rfl
+
+-- | Theorem: Empty graph has no nodes
+theorem empty_graph_no_nodes : emptyGraph.nodes = [] := rfl
+
+-- | Theorem: tryAddEdge succeeds iff both endpoints exist
+theorem tryAddEdge_succeeds_iff (graph : NetworkGraph) (edge : Edge) :
+  (tryAddEdge graph edge).isSome = true ↔
+    (∃ n ∈ graph.nodes, n.id = edge.sourceId) ∧
+    (∃ n ∈ graph.nodes, n.id = edge.targetId) := by
+  unfold tryAddEdge
+  constructor
+  · intro h
+    simp only [Option.isSome_iff_exists] at h
+    split at h <;> simp_all
+    split at h <;> simp_all
+  · intro ⟨h_source, h_target⟩
+    simp [h_source, h_target]
+
+-- | Theorem: Subgraph relation - if edges are subset, consistency preserved
+theorem subgraph_consistent (graph : NetworkGraph) (edges' : List Edge)
+  (h_subset : ∀ e ∈ edges', e ∈ graph.edges) :
+  ∀ e ∈ edges',
+    (∃ n ∈ graph.nodes, n.id = e.sourceId) ∧
+    (∃ n ∈ graph.nodes, n.id = e.targetId) := by
+  intro e h_e
+  exact graph.h_consistent e (h_subset e h_e)
+
