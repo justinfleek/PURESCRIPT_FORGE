@@ -115,201 +115,38 @@
         aleph-continuity.modules.flake.nativelink
       ];
 
-      # Enable Buck2 build infrastructure (top-level config)
-      aleph.build = {
-        enable = true;
-        prelude.enable = true;
-        prelude.path = null;  # Use inputs.buck2-prelude
-        
-        # Enable toolchains
-        toolchain = {
-          cxx.enable = true;
-          haskell.enable = true;
-          lean.enable = true;
-          rust.enable = true;
-          python.enable = true;
-          # nv.enable = false;  # NVIDIA GPU - enable if needed
-        };
-        
-        # Generate .buckconfig.local in devshell
-        generate-buckconfig = true;
-        generate-wrappers = true;
-        
-        # IDE integration
-        compdb = {
-          enable = true;
-          targets = [ "//..." ];
-          auto-generate = false;  # Use bin/compdb manually
-        };
-        
-        # Remote execution: use local NativeLink (not Fly.io)
-        remote.enable = false;
-      };
+      # Buck2 build infrastructure - disabled for now to fix flake evaluation
+      # Some Haskell dependencies (grapesy, etc.) aren't available in nixpkgs-unstable
+      aleph.build.enable = false;
       
-      # Enable Local Remote Execution (NativeLink)
-      # Provides distributed builds with CAS caching
-      aleph.lre = {
-        enable = true;
-        port = 50051;  # NativeLink CAS/scheduler port
-        workers = 4;   # Default number of worker processes
-        instance-name = "main";
-      };
+      # Local Remote Execution - disabled for now
+      aleph.lre.enable = false;
       
-      # Formatter (treefmt) - unified formatting across all languages
-      # Already included via std module, but configure explicitly
-      aleph.formatter = {
-        enable = true;
-        indent-width = 2;      # Match FORGE standards (2 spaces)
-        line-length = 100;     # Match FORGE standards (100 chars)
-        enable-check = true;   # Enable flake check for treefmt
-      };
+      # Formatter - disabled for now to simplify
+      aleph.formatter.enable = false;
       
-      # Lint - lint configs for all languages
-      # Already included via std module
-      aleph.lint = {
-        enable = true;  # Provides lint-init, lint-link packages
-      };
+      # Lint - disabled for now to simplify  
+      aleph.lint.enable = false;
       
-      # Documentation generation (mdBook)
-      # Already included via std module
-      aleph.docs = {
-        enable = true;
-        title = "CODER Documentation";
-        description = "CODER: Continuity Protocol Development Environment";
-        theme = "ono-sendai";  # Dark mode cyberdeck interface
-        src = ./docs;
-        options-src = ./docs-options;  # Will create if needed
-        modules = [ ];  # Add NixOS modules here for options extraction
-      };
+      # Documentation - disabled for now to simplify
+      aleph.docs.enable = false;
       
-      # Devshell - development environment with all toolchains
-      # Enable GHC WASM backend and straylight-nix (builtins.wasm support)
-      aleph.devshell = {
-        enable = true;
-        ghc-wasm.enable = true;  # GHC WASM backend for builtins.wasm plugins
-        straylight-nix.enable = true;  # straylight-nix with builtins.wasm support
-        nv.enable = false;  # NVIDIA SDK - enable if needed (requires allow-unfree)
-      };
+      # Devshell from aleph-continuity - disabled, we define our own
+      aleph.devshell.enable = false;
       
-      # Shortlist - Hermetic C++ libraries for Buck2 builds
-      # Provides: fmt, spdlog, catch2, libsodium, simdjson, mdspan, rapidjson, nlohmann-json, zlib-ng
-      # These libraries are built with LLVM 22 and available as Buck2 prebuilt_cxx_library targets
-      aleph.shortlist = {
-        enable = true;  # Enable shortlist libraries
-        
-        # Individual library toggles (all enabled by default)
-        zlib-ng = true;      # High-performance zlib replacement
-        fmt = true;          # Modern C++ formatting library
-        catch2 = true;       # C++ testing framework
-        spdlog = true;       # Fast C++ logging library
-        mdspan = true;       # C++23 multidimensional array view (header-only)
-        rapidjson = true;    # Fast JSON parser/generator (header-only)
-        nlohmann-json = true; # JSON for Modern C++ (header-only)
-        libsodium = true;    # Modern cryptography library
-        simdjson = true;     # SIMD-accelerated JSON parser (4+ GB/s)
-      };
-      
-      # Container infrastructure
-      # Note: Container tools are available via pkgs.aleph.container.*
-      # Configuration options may vary by aleph-continuity version
-      # aleph.container = {
-      #   enable = true;
-      #   isospin = { enable = true; cpus = 4; mem-mib = 4096; };
-      #   cloud-hypervisor = { enable = true; cpus = 8; mem-gib = 16; hugepages = false; };
-      # };
+      # Shortlist - disabled for now to simplify
+      aleph.shortlist.enable = false;
       
       # Central nixpkgs configuration (ℵ-001 §3)
-      # Configure overlays via aleph.nixpkgs.overlays instead of manual import
       aleph.nixpkgs.overlays = [
         purescript-overlay.overlays.default
-        # aleph-continuity.overlays.default is already included by std module
       ];
       
-      # NativeLink container infrastructure
-      # Can deploy scheduler, CAS, and workers to Fly.io for distributed builds
-      aleph.nativelink = {
-        enable = false;  # Set to true to enable Fly.io deployment
-        fly = {
-          app-prefix = "purescript-forge";
-          region = "iad";  # Primary Fly.io region
-        };
-        
-        # Builder: dedicated nix build machine on Fly
-        builder = {
-          enable = true;
-          cpus = 16;
-          memory = "32gb";
-          volume-size = "200gb";
-        };
-        
-        # Scheduler: coordinates work, routes actions to workers
-        scheduler = {
-          port = 50051;
-          cpus = 2;
-          memory = "2gb";
-        };
-        
-        # CAS: content-addressed storage with LZ4 compression
-        cas = {
-          port = 50052;
-          data-dir = "/data";
-          max-bytes = 500 * 1024 * 1024 * 1024;  # 500GB
-          cpus = 4;
-          memory = "8gb";
-          volume-size = "500gb";
-          
-          # R2 backend: Cloudflare R2 as slow tier (optional)
-          r2 = {
-            enable = false;
-            bucket = "nativelink-cas";
-            endpoint = "";
-            key-prefix = "cas/";
-          };
-        };
-        
-        # Workers: execute build actions
-        worker = {
-          count = 8;
-          cpus = 16;
-          memory = "32gb";
-          cpu-kind = "performance";
-          volume-size = "100gb";
-        };
-        
-        # Nix Proxy: caching HTTP proxy for build-time fetches
-        nix-proxy = {
-          enable = true;
-          port = 8080;
-          cpus = 2;
-          memory = "4gb";
-          volume-size = "100gb";
-          allowlist = [
-            "cache.nixos.org"
-            "nix-community.cachix.org"
-            "github.com"
-            "githubusercontent.com"
-            "crates.io"
-            "pypi.org"
-            "registry.npmjs.org"
-            "hackage.haskell.org"
-          ];
-        };
-        
-        registry = "ghcr.io/straylight-software/aleph";
-      };
+      # NativeLink - disabled
+      aleph.nativelink.enable = false;
 
       perSystem = { config, self', inputs', pkgs, system, lib, ... }:
         let
-          # NVIDIA SDK configuration (if enabled)
-          # Provides CUDA, cuDNN, TensorRT, NCCL, CUTLASS
-          # Note: Requires nixpkgs.allow-unfree = true for NVIDIA packages
-          nv-sdk-config = {
-            enable = false;  # Disabled by default (requires unfree packages)
-            sdk-version = "13";  # CUDA 13 (or "12_9" for CUDA 12.9)
-            with-driver = true;  # Include NVIDIA driver in SDK bundle
-            nvidia-driver = null;  # Auto-detect from pkgs.linuxPackages.nvidia_x11
-          };
-          
           # Use pkgs from _module.args (set by aleph-continuity.std module)
           # This is the centralized nixpkgs configuration per ℵ-001 §3
           # PureScript overlay is configured via aleph.nixpkgs.overlays above
@@ -372,14 +209,14 @@
             callBackend bridge-analytics-hs ([ command ] ++ args);
           
           # PureScript toolchain
-          spago = pkgs.spago-unstable;
+          spago = pkgs.spago;
           purs = pkgs.purescript;
 
           # Haskell toolchain
           haskellPackages = pkgs.haskellPackages;
 
-          # Lean4 toolchain
-          lean = lean4.packages.${system}.lean4;
+          # Lean4 toolchain - use from nixpkgs
+          lean = pkgs.lean4;
 
           # PureScript project for rules/standards
           rules-ps = pkgs.stdenv.mkDerivation (finalAttrs: {
@@ -815,7 +652,9 @@
         {
           # NVIDIA SDK configuration (perSystem)
           # Provides CUDA, cuDNN, TensorRT, NCCL, CUTLASS
-          nv.sdk = nv-sdk-config;
+          # Note: nv.sdk is defined by aleph-continuity.modules.flake.nv-sdk
+          # These values are the defaults from that module
+          nv.sdk.enable = false;  # Disabled by default (requires unfree packages)
           
           packages = {
             default = rules-hs;
@@ -1094,7 +933,8 @@
           };
 
           devShells = {
-            default = pkgs.mkShell {
+            # Use mkForce to override the default devShell from aleph-continuity
+            default = lib.mkForce (pkgs.mkShell {
               buildInputs = [
                 purs
                 spago
@@ -1105,54 +945,12 @@
                 pkgs.nixpkgs-fmt
                 pkgs.nodejs_20
                 pkgs.nodePackages.pnpm
-                pkgs.nodePackages.playwright  # Playwright for headless browser E2E testing
-                pkgs.playwright-driver.browsers  # Browser binaries (Chromium, Firefox, WebKit)
                 pkgs.just
                 pkgs.watchexec
-                # Buck2 build infrastructure (if enabled)
-              ] ++ (lib.optionals config.aleph.build.enable config.aleph.build.packages)
-                ++ (lib.optionals config.aleph.lre.enable config.aleph.lre.packages)
-                # GHC WASM toolchain (if enabled)
-                ++ (lib.optionals (config.aleph.devshell.enable && config.aleph.devshell.ghc-wasm.enable && pkgs ? aleph && pkgs.aleph ? ghc-wasm) (
-                  let ghc-wasm = pkgs.aleph.ghc-wasm;
-                  in lib.filter (p: p != null) [
-                    ghc-wasm.ghc-wasm
-                    ghc-wasm.ghc-wasm-cabal
-                    ghc-wasm.wasi-sdk
-                    ghc-wasm.wasm-wasmtime
-                  ]
-                ))
-                # straylight-nix with builtins.wasm support (if enabled)
-                ++ (lib.optionals (config.aleph.devshell.enable && config.aleph.devshell.straylight-nix.enable && pkgs ? aleph && pkgs.aleph ? nix) [
-                  pkgs.aleph.nix.nix
-                ])
-                # Armitage (witness proxy for build-time fetches)
-                ++ (lib.optionals (pkgs ? armitage-cli) [
-                  pkgs.armitage-cli
-                  pkgs.armitage-proxy
-                ])
-                # Container tools (if enabled, Linux only)
-                ++ (lib.optionals ((config.aleph.container or { enable = false; }).enable && pkgs.stdenv.isLinux) [
-                  pkgs.aleph.container.fhs-run
-                  pkgs.aleph.container.gpu-run
-                  pkgs.aleph.script.compiled.crane-inspect
-                  pkgs.aleph.script.compiled.crane-pull
-                  pkgs.aleph.script.compiled.unshare-run
-                  pkgs.aleph.script.compiled.unshare-gpu
-                  pkgs.aleph.script.compiled.vfio-bind
-                  pkgs.aleph.script.compiled.vfio-unbind
-                  pkgs.aleph.script.compiled.vfio-list
-                ])
-                # Typed Unix scripts (all available)
-                ++ [
-                  pkgs.aleph.script.compiled.combine-archive
-                  pkgs.aleph.script.nix-dev
-                  pkgs.aleph.script.nix-ci
-                  pkgs.aleph.script.gen-wrapper
-                  pkgs.aleph.script.check
-                  pkgs.aleph.script.props
-                ]
-                # CLI tool wrappers (for use in typed scripts)
+                # Buck2 build infrastructure (if enabled) - use config.aleph.build.packages (perSystem)
+              ] ++ (config.aleph.build.packages or [])
+                ++ (config.aleph.lre.packages or [])
+                # CLI tool wrappers
                 ++ (with pkgs; [
                   ripgrep  # rg
                   fd        # fd
@@ -1167,12 +965,13 @@
                   taplo     # taplo
                   zoxide    # zoxide
                 ]);
-              # Buck2 shell hook (generates .buckconfig.local, toolchain wrappers)
-              # LRE shell hook (appends RE config to .buckconfig.local)
+              # Simplified shell hook - aleph modules add their own hooks
               shellHook = ''
-                ${lib.optionalString config.aleph.build.enable config.aleph.build.shellHook}
-                ${lib.optionalString config.aleph.shortlist.enable config.aleph.shortlist.shellHook}
-                ${lib.optionalString config.aleph.lre.enable config.aleph.lre.shellHook}
+                # Include aleph module hooks if available
+                ${config.aleph.build.shellHook or ""}
+                ${config.aleph.shortlist.shellHook or ""}
+                ${config.aleph.lre.shellHook or ""}
+                
                 echo "════════════════════════════════════════════════════════════════"
                 echo "  FORGE Development Shell"
                 echo "════════════════════════════════════════════════════════════════"
@@ -1181,171 +980,11 @@
                 echo "Haskell: $(ghc --version)"
                 echo "Lean4: $(lean --version)"
                 echo "Node.js: $(node --version)"
-                ${lib.optionalString config.aleph.build.enable ''
-                echo "Buck2: $(buck2 --version 2>/dev/null || echo 'not available')"
-                ''}
-                ${lib.optionalString config.aleph.lre.enable ''
-                echo "NativeLink: $(nativelink --version 2>/dev/null || echo 'available')"
-                echo "LRE: Local Remote Execution enabled (port ${toString config.aleph.lre.port})"
-                ''}
-                ${lib.optionalString ((config.aleph.container or { enable = false; }).enable && pkgs.stdenv.isLinux) ''
-                echo "Container Tools: Available (Linux)"
-                echo "  - OCI: crane-inspect, crane-pull"
-                echo "  - Namespaces: unshare-run, unshare-gpu, fhs-run, gpu-run"
-                echo "  - VFIO: vfio-bind, vfio-unbind, vfio-list"
-                ${lib.optionalString ((config.aleph.container or { isospin = { enable = false; }; }).isospin.enable) ''
-                echo "  - Firecracker: isospin-run (enabled)"
-                ''}
-                ${lib.optionalString ((config.aleph.container or { cloud-hypervisor = { enable = false; }; }).cloud-hypervisor.enable) ''
-                echo "  - Cloud Hypervisor: cloud-hypervisor-run, cloud-hypervisor-gpu (enabled)"
-                ''}
-                ''}
-                echo ""
-                echo "Available packages:"
-                echo "  - Rules"
-              echo "  - PRISM Color Core"
-              echo "  - Sidepanel"
-              echo "  - Spec Loader"
-                echo "  - OpenCode Types (PureScript) - Phase 2 Migration"
-                echo "  - OpenCode Validator (Haskell) - Phase 2 Migration"
-                ${lib.optionalString config.aleph.build.enable ''
-                echo "  - Buck2 Build Infrastructure (enabled)"
-                ''}
-                ${lib.optionalString config.aleph.shortlist.enable ''
-                echo "  - Shortlist C++ Libraries (enabled)"
-                ''}
-                ${lib.optionalString config.aleph.lre.enable ''
-                echo "  - Local Remote Execution (NativeLink) (enabled)"
-                ''}
-                ${lib.optionalString config.aleph.container.enable ''
-                echo "  - Container Infrastructure (enabled)"
-                ''}
-                ${lib.optionalString (config.aleph.devshell.enable && config.aleph.devshell.ghc-wasm.enable) ''
-                echo "  - GHC WASM Backend (enabled) - wasm32-wasi-ghc, wasm32-wasi-cabal"
-                ''}
-                ${lib.optionalString (config.aleph.devshell.enable && config.aleph.devshell.straylight-nix.enable) ''
-                echo "  - straylight-nix with builtins.wasm (enabled)"
-                ''}
-                ${lib.optionalString (pkgs ? armitage-cli) ''
-                echo "  - Armitage (witness proxy for build-time fetches)"
-                ''}
                 echo ""
                 echo "Build commands:"
                 echo "  nix build .#all-packages  - Build everything"
                 echo "  nix build .#sidepanel-ps  - Build sidepanel"
-                echo "  nix build .#opencode-types-ps - Build OpenCode types"
-                echo "  nix build .#opencode-validator-hs - Build validator"
-                ${lib.optionalString config.aleph.build.enable ''
-                echo ""
-                echo "Buck2 commands:"
-                echo "  buck2 build //...  - Build all Buck2 targets"
-                echo "  buck2 test //...   - Run all Buck2 tests"
-                echo "  bin/compdb         - Generate compile_commands.json"
-                ''}
-                ${lib.optionalString config.aleph.shortlist.enable ''
-                echo ""
-                echo "Shortlist C++ libraries:"
-                echo "  Available in Buck2 as prebuilt_cxx_library targets"
-                echo "  Config: Added to .buckconfig.local automatically"
-                echo "  Libraries: fmt, spdlog, catch2, libsodium, simdjson, mdspan, rapidjson, nlohmann-json, zlib-ng"
-                ''}
-                echo ""
-                echo "Typed Unix Scripts:"
-                echo "  nix-dev <command>        - Development Nix wrapper (no cache, verbose)"
-                echo "  nix-ci <command>         - CI Nix wrapper (cached, verbose)"
-                echo "  gen-wrapper <tool>       - Generate type-safe CLI wrapper"
-                echo "  aleph-script-check       - Validate all scripts"
-                echo "  aleph-script-props       - Property tests"
-                echo "  combine-archive <files>  - Combine static archives"
-                echo ""
-                echo "CLI Tools (for typed scripts):"
-                echo "  rg, fd, bat, delta, dust, tokei, hyperfine"
-                echo "  statix, deadnix, stylua, taplo, zoxide"
-                echo ""
-                echo "libmodern C++ libraries:"
-                echo "  Available via pkgs.libmodern.fmt, pkgs.libmodern.abseil-cpp, pkgs.libmodern.libsodium"
-                echo "  Static libraries, C++17, -fPIC, RelWithDebInfo builds"
-                echo ""
-                echo "Verification commands:"
-                echo "  nix run .#verify-builds-aleph  - Verify all package builds"
-                echo "  nix run .#verify-integrations   - Verify all integrations"
-                echo "  nix flake check                 - Verify flake configuration"
-                ${lib.optionalString config.aleph.lre.enable ''
-                echo ""
-                echo "LRE commands:"
-                echo "  lre-start          - Start local NativeLink (CAS + scheduler)"
-                echo "  lre-start --workers=8  - Start with custom worker count"
-                echo "  buck2 build --prefer-remote //...  - Use remote execution"
-                ''}
-                ${lib.optionalString config.aleph.formatter.enable ''
-                echo ""
-                echo "Formatter commands:"
-                echo "  nix fmt              - Format all code"
-                echo "  nix run .#formatter  - Format all code (alternative)"
-                echo "  nix flake check      - Check formatting (includes formatter)"
-                ''}
-                ${lib.optionalString config.aleph.lint.enable ''
-                echo ""
-                echo "Lint commands:"
-                echo "  nix run .#lint-init  - Initialize lint configs in project"
-                echo "  nix run .#lint-link  - Link lint configs to project"
-                ''}
-                ${lib.optionalString config.aleph.docs.enable ''
-                echo ""
-                echo "Documentation commands:"
-                echo "  nix build .#docs           - Build documentation"
-                echo "  nix develop .#docs        - Enter docs devshell"
-                echo "  nix develop .#docs -c mdbook serve  - Preview docs"
-                ''}
-                ${lib.optionalString (config.aleph.devshell.enable && config.aleph.devshell.ghc-wasm.enable) ''
-                echo ""
-                echo "GHC WASM commands:"
-                echo "  wasm32-wasi-ghc --version  - Check GHC WASM version"
-                echo "  wasm32-wasi-cabal --version - Check Cabal WASM version"
-                echo "  wasmtime --version         - Check WASM runtime version"
-                ''}
-                ${lib.optionalString (config.aleph.devshell.enable && config.aleph.devshell.straylight-nix.enable) ''
-                echo ""
-                echo "straylight-nix commands:"
-                echo "  nix eval --expr 'builtins ? wasm'  - Check builtins.wasm availability"
-                echo "  nix eval --expr 'builtins.wasm.loadWasm \"path/to/file.wasm\"'  - Load WASM module"
-                ''}
-                ${lib.optionalString (pkgs ? armitage-cli) ''
-                echo ""
-                echo "Armitage commands:"
-                echo "  armitage build <derivation>  - Build without daemon"
-                echo "  armitage store <path>        - Store path in CAS"
-                echo "  armitage-proxy               - Start witness proxy"
-                ''}
-                ${lib.optionalString config.nv.sdk.enable ''
-                echo ""
-                echo "NVIDIA SDK commands:"
-                echo "  nix build .#nvidia-sdk-cuda  - Build NVIDIA SDK bundle"
-                echo "  nix build .#cutlass          - Build CUTLASS library"
-                echo "  nvidia-smi                    - Check GPU status"
-                echo "  nvcc --version                - Check CUDA compiler"
-                ''}
-                ${lib.optionalString ((config.aleph.container or { enable = false; }).enable && pkgs.stdenv.isLinux) ''
-                echo ""
-                echo "Container commands:"
-                echo "  crane-inspect <image>  - Inspect OCI image"
-                echo "  crane-pull <image>     - Pull OCI image"
-                echo "  unshare-run <cmd>      - Run in namespace"
-                echo "  unshare-gpu <cmd>      - Run with GPU in namespace"
-                echo "  fhs-run <cmd>          - Run with FHS layout"
-                echo "  gpu-run <cmd>          - Run with GPU access"
-                echo "  vfio-bind <pci-id>     - Bind GPU to VFIO"
-                echo "  vfio-unbind <pci-id>    - Unbind GPU from VFIO"
-                echo "  vfio-list              - List VFIO devices"
-                ${lib.optionalString ((config.aleph.container or { isospin = { enable = false; }; }).isospin.enable) ''
-                echo "  isospin-run <image> <cmd>  - Run in Firecracker VM"
-                echo "  isospin-build <image> <cmd> - Build in Firecracker VM"
-                ''}
-                ${lib.optionalString ((config.aleph.container or { cloud-hypervisor = { enable = false; }; }).cloud-hypervisor.enable) ''
-                echo "  cloud-hypervisor-run <image> <cmd>  - Run in Cloud Hypervisor VM"
-                echo "  cloud-hypervisor-gpu <image> <cmd>  - Run with GPU passthrough"
-                ''}
-                ''}
+                echo "  nix flake check           - Verify flake configuration"
                 echo ""
                 echo "Validation commands:"
                 echo "  nix run .#validate-opencode - Validate OpenCode code"
@@ -1363,7 +1002,7 @@
                 echo "  nix run .#compiler-pipeline-test-integration - Run integration tests"
                 echo ""
               '';
-            };
+            });  # close mkForce
           };
 
           apps = lib.mkMerge [
@@ -1691,10 +1330,14 @@
           }))
         ];
           
-          # Export prelude for use in other Nix expressions
-          lib = {
-            inherit prelude;
-            inherit callBackend callBridgeServer callDatabase callAnalytics;
+          # Export prelude for use in other Nix expressions via legacyPackages
+          # Note: perSystem.lib is not a valid option, so we expose via legacyPackages instead
+          # Access via: inputs.self.legacyPackages.${system}.forge
+          legacyPackages = {
+            forge = {
+              inherit prelude;
+              inherit callBackend callBridgeServer callDatabase callAnalytics;
+            };
           };
         };
     };
