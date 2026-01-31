@@ -1,0 +1,122 @@
+{
+  "name": "straylight-prism",
+  "displayName": "Straylight Prism Generator",
+  "description": "Generate beautiful monochromatic themes from a single hue using OKLCH color science. Includes 38 curated presets with WCAG-verified contrast.",
+  "version": "1.0.0",
+  "publisher": "straylight-software",
+  "author": {
+    "name": "Straylight Software",
+    "url": "https://straylight.software"
+  },
+  "contributors": [
+    {
+      "name": "@b7r6",
+      "url": "https://github.com/b7r6"
+    },
+    {
+      "name": "@j-pyxal",
+      "url": "https://github.com/j-pyxal"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/straylight-software/prism"
+  },
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.74.0",
+    "@vscode/vsce": "^2.22.0",
+    "typescript": "^5.3.0"
+  },
+  "categories": ["Themes", "Other"],
+  "keywords": [
+    "theme", "color theme", "generator", "monochromatic", "211",
+    "WCAG", "OKLCH", "accessible", "dark theme", "light theme",
+    "straylight", "prism"
+  ],
+  "galleryBanner": {
+    "color": "#0a0a0a",
+    "theme": "dark"
+  },
+  "icon": "media/icon.png",
+  "contributes": {
+    "commands": [
+      {
+        "command": "prismTheme.open211Generator",
+        "title": "Straylight: Open Prism 211° Generator",
+        "icon": "$(symbol-color)"
+      },
+      {
+        "command": "prismTheme.openGallery",
+        "title": "Straylight: Browse Theme Gallery"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        { "command": "prismTheme.open211Generator", "group": "straylight" }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "prismTheme.open211Generator",
+        "key": "ctrl+alt+2",
+        "mac": "cmd+alt+2"
+      }
+    ],
+    "themes": [
+      { "label": "Tuned", "uiTheme": "vs-dark", "path": "./themes/prism-tuned.json" },
+      { "label": "Memphis", "uiTheme": "vs-dark", "path": "./themes/prism-memphis.json" },
+      { "label": "Github Dark", "uiTheme": "vs-dark", "path": "./themes/prism-github.json" },
+      { "label": "Neoform", "uiTheme": "vs", "path": "./themes/prism-neoform.json" },
+      { "label": "Biopic", "uiTheme": "vs", "path": "./themes/prism-biopic.json" },
+      { "label": "Ghost", "uiTheme": "vs", "path": "./themes/prism-ghost.json" },
+      { "label": "Tessier", "uiTheme": "vs", "path": "./themes/prism-tessier.json" },
+      { "label": "Fleek Gold", "uiTheme": "vs-dark", "path": "./themes/prism-fleek_gold.json" },
+      { "label": "Fleek Gradient", "uiTheme": "vs-dark", "path": "./themes/prism-fleek_gradient.json" },
+      { "label": "Blood Moon", "uiTheme": "vs-dark", "path": "./themes/prism-blood_moon.json" },
+      { "label": "Minimal", "uiTheme": "vs", "path": "./themes/prism-minimal.json" },
+      { "label": "Rose Gold", "uiTheme": "vs-dark", "path": "./themes/prism-rose_gold.json" },
+      { "label": "Coastal", "uiTheme": "vs-dark", "path": "./themes/prism-coastal.json" },
+      { "label": "Inferno", "uiTheme": "vs-dark", "path": "./themes/prism-inferno.json" },
+      { "label": "Faded Glory", "uiTheme": "vs", "path": "./themes/prism-faded_glory.json" },
+      { "label": "Sunset", "uiTheme": "vs-dark", "path": "./themes/prism-sunset.json" },
+      { "label": "Forest", "uiTheme": "vs-dark", "path": "./themes/prism-forest.json" },
+      { "label": "Ocean", "uiTheme": "vs-dark", "path": "./themes/prism-ocean.json" },
+      { "label": "Grape", "uiTheme": "vs-dark", "path": "./themes/prism-grape.json" },
+      { "label": "Mint", "uiTheme": "vs", "path": "./themes/prism-mint.json" },
+      { "label": "Tropical", "uiTheme": "vs-dark", "path": "./themes/prism-tropical.json" },
+      { "label": "Arctic", "uiTheme": "vs-dark", "path": "./themes/prism-arctic.json" },
+      { "label": "Vesper", "uiTheme": "vs", "path": "./themes/prism-vesper.json" },
+      { "label": "Vaporwave", "uiTheme": "vs-dark", "path": "./themes/prism-vaporwave.json" },
+      { "label": "Rose", "uiTheme": "vs-dark", "path": "./themes/prism-rose.json" },
+      { "label": "Synthwave", "uiTheme": "vs-dark", "path": "./themes/prism-synthwave.json" },
+      { "label": "Acid Rain", "uiTheme": "vs-dark", "path": "./themes/prism-acid_rain.json" },
+      { "label": "Catppuccin Mocha", "uiTheme": "vs-dark", "path": "./themes/prism-catppuccin_mocha.json" },
+      { "label": "Cobalt2", "uiTheme": "vs-dark", "path": "./themes/prism-cobalt2.json" },
+      { "label": "Dracula Pro", "uiTheme": "vs-dark", "path": "./themes/prism-dracula_pro.json" },
+      { "label": "Gruvbox Material", "uiTheme": "vs-dark", "path": "./themes/prism-gruvbox_material.json" },
+      { "label": "Holographic", "uiTheme": "vs-dark", "path": "./themes/prism-holographic.json" },
+      { "label": "Night Owl", "uiTheme": "vs-dark", "path": "./themes/prism-night_owl.json" },
+      { "label": "Nord Aurora", "uiTheme": "vs-dark", "path": "./themes/prism-nord_aurora.json" },
+      { "label": "One Dark Pro", "uiTheme": "vs-dark", "path": "./themes/prism-one_dark_pro.json" },
+      { "label": "Rose Pine", "uiTheme": "vs-dark", "path": "./themes/prism-rose_pine.json" },
+      { "label": "Synthwave 84", "uiTheme": "vs-dark", "path": "./themes/prism-synthwave_84.json" },
+      { "label": "Ultraviolet", "uiTheme": "vs-dark", "path": "./themes/prism-ultraviolet.json" }
+    ]
+  }
+}

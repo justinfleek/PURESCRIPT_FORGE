@@ -1,0 +1,30 @@
+# Prism Theme: fleek
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on fleek
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #3cb878)"
+# error_symbol = "[❯](bold #ff6b35)"
+
+# [directory]
+# style = "bold #3cb878"
+
+# [git_branch]
+# style = "bold #b8a078"
+
+# [git_status]
+# style = "#ffd93d"
+
+# Color reference:
+# background: #0a0a0a
+# foreground: #f0ece0
+# accent: #3cb878
+# keyword: #ff6b35
+# string: #3cb878
+# function: #00a0e4
+# comment: #4a4540
+# number: #ffd93d
+# type: #3cb878

@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  verify-rules:
+    name: Verify Rule Implementations
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Nix
+        uses: cachix/install-nix-action@v25
+        with:
+          nix-path: nixpkgs=channel:nixos-unstable
+          extra-nix-config: |
+            experimental-features = nix-command flakes
+            
+      - name: Verify Flake
+        run: nix flake check
+        
+      - name: Build PureScript Rules
+        run: nix build .#rules-ps
+        
+      - name: Build Haskell Rules
+        run: nix build .#rules-hs
+        
+      - name: Build Lean4 Rules (Proofs)
+        run: nix build .#rules-lean
+        
+      - name: Run Haskell Property Tests
+        run: nix build .#rules-hs.tests.rules-test
+      
+      - name: Build Bridge Server PureScript
+        run: nix build .#bridge-server-ps
+        
+      - name: Build Bridge Database Haskell
+        run: nix build .#bridge-database-hs
+      
+      - name: Run Bridge Database Tests
+        run: nix build .#bridge-database-hs.tests.bridge-database-test
+      
+      - name: Run Bridge Database Benchmarks
+        run: nix build .#bridge-database-hs.benchmarks.bridge-database-benchmarks
+        
+      - name: Verify All Rules
+        run: nix run .#check-rules
+
+  verify-proofs:
+    name: Verify Lean4 Proofs
+    runs-on: ubuntu-latest
+    needs: verify-rules
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Nix
+        uses: cachix/install-nix-action@v25
+        with:
+          nix-path: nixpkgs=channel:nixos-unstable
+          extra-nix-config: |
+            experimental-features = nix-command flakes
+            
+      - name: Build and Verify Lean4 Proofs
+        run: |
+          nix build .#rules-lean
+          echo "All proofs verified"
+      
+      - name: Verify Authentication Properties
+        run: |
+          cd src/rules-lean
+          lake build Bridge.Auth.Properties
+      
+      - name: Verify Security Invariants
+        run: |
+          cd src/rules-lean
+          lake build Bridge.Security.Invariants

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scheme name="Prism gruvbox-material" version="142" parent_scheme="Darcula">
+  <metaInfo>
+    <property name="created">Prism Theme Generator</property>
+    <property name="ideVersion">2024.1</property>
+    <property name="modified">Prism Theme Generator</property>
+  </metaInfo>
+  <colors>
+    <option name="CARET_COLOR" value="D8A657" />
+    <option name="CARET_ROW_COLOR" value="282B2C" />
+    <option name="CONSOLE_BACKGROUND_KEY" value="1D2021" />
+    <option name="GUTTER_BACKGROUND" value="1D2021" />
+    <option name="LINE_NUMBERS_COLOR" value="7C6F64" />
+    <option name="SELECTION_BACKGROUND" value="44475A" />
+    <option name="SELECTION_FOREGROUND" value="D4BE98" />
+  </colors>
+  <attributes>
+    <option name="DEFAULT_KEYWORD">
+      <value>
+        <option name="FOREGROUND" value="EA6962" />
+        <option name="FONT_TYPE" value="1" />
+      </value>
+    </option>
+    <option name="DEFAULT_STRING">
+      <value>
+        <option name="FOREGROUND" value="A9B665" />
+      </value>
+    </option>
+    <option name="DEFAULT_FUNCTION_DECLARATION">
+      <value>
+        <option name="FOREGROUND" value="A9B665" />
+      </value>
+    </option>
+    <option name="DEFAULT_FUNCTION_CALL">
+      <value>
+        <option name="FOREGROUND" value="A9B665" />
+      </value>
+    </option>
+    <option name="DEFAULT_LINE_COMMENT">
+      <value>
+        <option name="FOREGROUND" value="7C6F64" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_BLOCK_COMMENT">
+      <value>
+        <option name="FOREGROUND" value="7C6F64" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_DOC_COMMENT">
+      <value>
+        <option name="FOREGROUND" value="7C6F64" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_NUMBER">
+      <value>
+        <option name="FOREGROUND" value="D3869B" />
+      </value>
+    </option>
+    <option name="DEFAULT_CLASS_NAME">
+      <value>
+        <option name="FOREGROUND" value="D8A657" />
+      </value>
+    </option>
+    <option name="DEFAULT_INTERFACE_NAME">
+      <value>
+        <option name="FOREGROUND" value="D8A657" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_CONSTANT">
+      <value>
+        <option name="FOREGROUND" value="D3869B" />
+        <option name="FONT_TYPE" value="1" />
+      </value>
+    </option>
+    <option name="DEFAULT_IDENTIFIER">
+      <value>
+        <option name="FOREGROUND" value="D4BE98" />
+      </value>
+    </option>
+  </attributes>
+</scheme>

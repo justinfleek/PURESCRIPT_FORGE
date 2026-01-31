@@ -1,0 +1,22 @@
+{
+  "name": "Prism Coastal",
+  "background": "#001219",
+  "foreground": "#E9D8A6",
+  "cursorColor": "#0A9396",
+  "black": "#001219",
+  "red": "#005F73",
+  "green": "#94D2BD",
+  "yellow": "#0A9396",
+  "blue": "#005F73",
+  "purple": "#0A9396",
+  "cyan": "#94D2BD",
+  "white": "#E9D8A6",
+  "brightBlack": "#001219",
+  "brightRed": "#005F73",
+  "brightGreen": "#94D2BD",
+  "brightYellow": "#0A9396",
+  "brightBlue": "#005F73",
+  "brightPurple": "#0A9396",
+  "brightCyan": "#94D2BD",
+  "brightWhite": "#E9D8A6"
+}

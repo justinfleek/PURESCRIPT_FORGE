@@ -1,0 +1,26 @@
+cabal-version: 3.0
+name: nexus-semantic-memory-distributed-hs
+version: 0.1.0.0
+synopsis: Nexus Distributed Semantic Memory - CRDT Merge Logic
+description: CRDT merge operations for distributed semantic cells with vector clocks
+license: MIT
+license-file: LICENSE
+author: Nexus Team
+maintainer: nexus@example.com
+build-type: Simple
+
+library
+  exposed-modules:
+    Nexus.SemanticMemory.CRDT
+    Nexus.SemanticMemory.Replication
+  build-depends:
+    base >= 4.14 && < 5,
+    aeson >= 2.0 && < 3.0,
+    text >= 2.0 && < 3.0,
+    time >= 1.9 && < 2.0,
+    vector >= 0.13 && < 0.14,
+    unordered-containers >= 0.2 && < 0.3,
+    postgresql-simple >= 0.7 && < 0.8,
+    nexus-database-layer-hs
+  default-language: Haskell2010
+  ghc-options: -Wall -Werror

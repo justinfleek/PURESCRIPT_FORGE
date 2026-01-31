@@ -1,0 +1,45 @@
+{
+  "name": "Prism fleek-light",
+  "variables": {
+    "bg": "#fafaf8",
+    "fg": "#1a1a18"
+  },
+  "globals": {
+    "background": "#fafaf8",
+    "foreground": "#1a1a18",
+    "caret": "#2a9860",
+    "selection": "#44475a",
+    "line_highlight": "#fafaf8"
+  },
+  "rules": [
+    {
+      "scope": "comment",
+      "foreground": "#9a9a98",
+      "font_style": "italic"
+    },
+    {
+      "scope": "keyword",
+      "foreground": "#d85030"
+    },
+    {
+      "scope": "string",
+      "foreground": "#2a9860"
+    },
+    {
+      "scope": "entity.name.function",
+      "foreground": "#0088c8"
+    },
+    {
+      "scope": "constant.numeric",
+      "foreground": "#b08010"
+    },
+    {
+      "scope": "entity.name.type, support.type",
+      "foreground": "#2a9860"
+    },
+    {
+      "scope": "variable",
+      "foreground": "#1a1a18"
+    }
+  ]
+}

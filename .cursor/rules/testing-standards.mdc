@@ -1,0 +1,81 @@
+---
+description: Testing standards - property tests, validation, deterministic tests
+alwaysApply: true
+---
+
+# Testing Standards
+
+## Test Types
+
+### Unit Tests
+- Test individual functions/modules
+- Fast, isolated, deterministic
+- File pattern: `*.test.ts`, `*Test.hs`
+
+### Property Tests
+- Test invariants hold across inputs
+- QuickCheck for Haskell
+- Catch edge cases automatically
+- Example: Protocol compliance, type round-trips
+
+### Integration Tests
+- Test component interactions
+- Post-build validation
+- Sanity checks
+- Example: Engine inference, API endpoints
+
+### E2E Tests
+- Test full workflows
+- Playwright for web apps
+- Deterministic, no flakiness
+
+## Test Requirements
+
+### Deterministic
+- No random failures
+- Fixed seeds for randomness
+- No time-dependent behavior
+- No network dependencies (use mocks)
+
+### Fast
+- Unit tests: <100ms each
+- Property tests: configurable (default 100)
+- Integration tests: <5s each
+
+### Comprehensive
+- Cover all code paths
+- Test error cases
+- Test edge cases
+- Minimum 70% coverage (Python)
+
+## Property Test Pattern (Haskell)
+
+```haskell
+-- QuickCheck property test
+prop_responseStructure :: Request -> Property
+prop_responseStructure req = monadicIO $ do
+  resp <- run $ makeRequest req
+  assert $ isValidResponse resp
+  assert $ hasRequiredFields resp
+```
+
+## Validation Pattern
+
+```python
+# Post-build sanity check
+def sanity_check(engine_dir: str) -> bool:
+    """Quick inference test to catch garbage output."""
+    llm = LLM(model=engine_dir)
+    output = llm.generate(["What is 2+2?"])
+    return "4" in output or "four" in output.lower()
+```
+
+## Test Checklist
+
+Before marking tests complete:
+- [ ] All tests deterministic
+- [ ] Property tests cover invariants
+- [ ] Integration tests validate behavior
+- [ ] Coverage meets minimum (70% for Python)
+- [ ] No flaky tests
+- [ ] Fast execution (<5s for integration)

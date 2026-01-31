@@ -1,0 +1,63 @@
+---
+description: Debugging protocol - reproduce first, trace systematically, prove the fix
+alwaysApply: true
+---
+
+# Debugging Protocol
+
+## Core Principle
+
+```
+REPRODUCE FIRST
+TRACE SYSTEMATICALLY
+PROVE THE FIX
+NEVER GUESS
+```
+
+## Phase 1: Reproduce
+
+Before ANY investigation:
+1. Capture exact reproduction steps
+2. Create minimal reproduction
+3. Verify reproduction is deterministic
+
+**BANNED:** Attempting fixes before reliable reproduction exists.
+
+## Phase 2: Trace
+
+Systematic elimination, not guessing:
+- Binary search for regression point
+- Data flow tracing
+- State inspection checkpoints
+
+Document your trace with file:line references.
+
+## Phase 3: Isolate
+
+Prove the bug location before fixing:
+1. Write a failing test that captures the exact bug
+2. Verify isolation
+3. Understand the mechanism
+
+## Phase 4: Fix
+
+Minimal, proven fix:
+1. Change ONLY what is necessary
+2. Fix must have proof
+3. Verify fix doesn't break other things
+
+## Phase 5: Verify
+
+Prove the bug is fixed:
+1. Original reproduction now passes
+2. New test case passes
+3. All existing tests still pass
+4. No new warnings introduced
+
+## Phase 6: Prevent
+
+Ensure bug cannot recur:
+1. Add regression test
+2. Strengthen types to make bug unrepresentable
+3. Add proof if invariant is critical
+4. Document in KNOWN_BUGS.md if pattern could exist elsewhere

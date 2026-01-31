@@ -1,0 +1,24 @@
+# Prism Ultraviolet - Alacritty
+[colors.primary]
+background = "#1a0a2e"
+foreground = "#50fa7b"
+
+[colors.normal]
+black = "#1a0a2e"
+red = "#bd93f9"
+green = "#8be9fd"
+yellow = "#ff79c6"
+blue = "#bd93f9"
+magenta = "#ff79c6"
+cyan = "#8be9fd"
+white = "#50fa7b"
+
+[colors.bright]
+black = "#1a0a2e"
+red = "#bd93f9"
+green = "#8be9fd"
+yellow = "#ff79c6"
+blue = "#bd93f9"
+magenta = "#ff79c6"
+cyan = "#8be9fd"
+white = "#50fa7b"

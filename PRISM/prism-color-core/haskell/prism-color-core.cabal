@@ -1,0 +1,69 @@
+cabal-version: 3.0
+name:          prism-color-core
+version:       0.1.0.0
+synopsis:      Formally verified color science for theme generation
+description:   
+  A color science library implementing perceptually uniform color spaces
+  (OKLAB/OKLCH) for generating accessible Base16 color themes.
+  
+  Mathematical foundations are proven in Lean4.
+
+license:       MIT
+license-file:  LICENSE
+author:        Prism Compositor
+maintainer:    dev@weyl.ai
+category:      Graphics, Color
+build-type:    Simple
+
+extra-doc-files:
+  README.md
+  CHANGELOG.md
+
+common warnings
+  ghc-options: -Wall -Wextra -Wcompat -Widentities
+               -Wincomplete-record-updates -Wincomplete-uni-patterns
+               -Wpartial-fields -Wredundant-constraints
+
+library
+  import:           warnings
+  exposed-modules:
+    PrismColor
+    PrismColor.Types
+    PrismColor.SRGB
+    PrismColor.OKLAB
+    PrismColor.Contrast
+    PrismColor.Palette
+    PrismColor.FFI
+  build-depends:
+    base >= 4.17 && < 5,
+    aeson >= 2.0,
+    bytestring >= 0.11,
+    text >= 2.0,
+    vector >= 0.13,
+    scientific >= 0.3
+  hs-source-dirs:   src
+  default-language: GHC2021
+
+executable prism-theme-generator
+  import:           warnings
+  main-is:          Main.hs
+  build-depends:
+    base >= 4.17 && < 5,
+    prism-color-core,
+    aeson >= 2.0,
+    bytestring >= 0.11,
+    text >= 2.0,
+    optparse-applicative >= 0.17
+  hs-source-dirs:   app
+  default-language: GHC2021
+
+test-suite prism-color-test
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  main-is:          Spec.hs
+  build-depends:
+    base >= 4.17 && < 5,
+    prism-color-core,
+    QuickCheck >= 2.14
+  hs-source-dirs:   test
+  default-language: GHC2021

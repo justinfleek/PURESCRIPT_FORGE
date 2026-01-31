@@ -1,0 +1,51 @@
+---
+description: Continuity protocol - session state, build reproducibility, type safety continuity
+alwaysApply: true
+---
+
+# Continuity Protocol
+
+## Core Principle
+
+```
+SESSION CONTINUITY
+BUILD REPRODUCIBILITY
+TYPE SAFETY CONTINUITY
+DOCUMENTATION CONTINUITY
+```
+
+## Session Continuity
+
+- Preserve state across operations
+- Maintain working directory context
+- Track dependencies and transitive dependencies
+- Document state transitions
+
+## Build Reproducibility
+
+- Use Nix flakes for reproducible builds
+- All dependencies pinned in `flake.lock`
+- Build artifacts are deterministic
+- Post-build validation ensures correctness
+
+## Type Safety Continuity
+
+- No type escapes across module boundaries
+- Types describe code truthfully
+- Type changes propagate through dependency graph
+- All callers updated when types change
+
+## Documentation Continuity
+
+- Every operation updates documentation
+- Changes tracked in changelog
+- ADRs document architectural decisions
+- MASTER.md kept current
+
+## Verification
+
+Before any operation completes:
+- [ ] Session state preserved
+- [ ] Build reproducible (Nix flake check passes)
+- [ ] Type safety maintained
+- [ ] Documentation updated

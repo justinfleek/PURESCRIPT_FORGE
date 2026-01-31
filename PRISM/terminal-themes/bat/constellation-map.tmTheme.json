@@ -1,0 +1,45 @@
+{
+  "name": "Prism constellation-map",
+  "variables": {
+    "bg": "#050608",
+    "fg": "#e8f0ff"
+  },
+  "globals": {
+    "background": "#050608",
+    "foreground": "#e8f0ff",
+    "caret": "#ffd700",
+    "selection": "#44475a",
+    "line_highlight": "#0c0d0f"
+  },
+  "rules": [
+    {
+      "scope": "comment",
+      "foreground": "#283040",
+      "font_style": "italic"
+    },
+    {
+      "scope": "keyword",
+      "foreground": "#a78bfa"
+    },
+    {
+      "scope": "string",
+      "foreground": "#4ade80"
+    },
+    {
+      "scope": "entity.name.function",
+      "foreground": "#60a5fa"
+    },
+    {
+      "scope": "constant.numeric",
+      "foreground": "#fbbf24"
+    },
+    {
+      "scope": "entity.name.type, support.type",
+      "foreground": "#ffd700"
+    },
+    {
+      "scope": "variable",
+      "foreground": "#e8f0ff"
+    }
+  ]
+}

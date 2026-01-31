@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+  <!-- Fleek Circuit Pattern - Square Banner -->
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#121211"/>
+  
+  <!-- Circuit Lines - Dense Grid Pattern -->
+  <g opacity="0.5">
+    <!-- Horizontal lines -->
+    <path d="M0 100 H200 V180 H400 V100 H600 V180 H800" stroke="#696256" stroke-width="1" fill="none"/>
+    <path d="M0 280 H150 V360 H350 V280 H550 V360 H800" stroke="#696256" stroke-width="1" fill="none"/>
+    <path d="M0 440 H250 V520 H450 V440 H650 V520 H800" stroke="#696256" stroke-width="1" fill="none"/>
+    <path d="M0 620 H100 V700 H300 V620 H500 V700 H700 V620 H800" stroke="#696256" stroke-width="1" fill="none"/>
+    
+    <!-- Vertical connectors -->
+    <path d="M200 0 V180" stroke="#696256" stroke-width="1"/>
+    <path d="M400 0 V100" stroke="#696256" stroke-width="1"/>
+    <path d="M600 0 V180" stroke="#696256" stroke-width="1"/>
+    <path d="M150 180 V360" stroke="#696256" stroke-width="1"/>
+    <path d="M350 180 V360" stroke="#696256" stroke-width="1"/>
+    <path d="M550 180 V360" stroke="#696256" stroke-width="1"/>
+    <path d="M250 360 V520" stroke="#696256" stroke-width="1"/>
+    <path d="M450 360 V520" stroke="#696256" stroke-width="1"/>
+    <path d="M650 360 V520" stroke="#696256" stroke-width="1"/>
+    <path d="M100 520 V700" stroke="#696256" stroke-width="1"/>
+    <path d="M300 520 V700" stroke="#696256" stroke-width="1"/>
+    <path d="M500 520 V700" stroke="#696256" stroke-width="1"/>
+    <path d="M700 520 V700" stroke="#696256" stroke-width="1"/>
+    
+    <!-- Connection nodes -->
+    <circle cx="200" cy="100" r="4" fill="#696256"/>
+    <circle cx="200" cy="180" r="4" fill="#696256"/>
+    <circle cx="400" cy="100" r="4" fill="#696256"/>
+    <circle cx="400" cy="180" r="4" fill="#696256"/>
+    <circle cx="600" cy="100" r="4" fill="#696256"/>
+    <circle cx="600" cy="180" r="4" fill="#696256"/>
+    <circle cx="150" cy="280" r="4" fill="#696256"/>
+    <circle cx="150" cy="360" r="4" fill="#696256"/>
+    <circle cx="350" cy="280" r="4" fill="#696256"/>
+    <circle cx="350" cy="360" r="4" fill="#696256"/>
+    <circle cx="550" cy="280" r="4" fill="#696256"/>
+    <circle cx="550" cy="360" r="4" fill="#696256"/>
+    <circle cx="250" cy="440" r="4" fill="#696256"/>
+    <circle cx="250" cy="520" r="4" fill="#696256"/>
+    <circle cx="450" cy="440" r="4" fill="#696256"/>
+    <circle cx="450" cy="520" r="4" fill="#696256"/>
+    <circle cx="650" cy="440" r="4" fill="#696256"/>
+    <circle cx="650" cy="520" r="4" fill="#696256"/>
+    <circle cx="100" cy="620" r="4" fill="#696256"/>
+    <circle cx="100" cy="700" r="4" fill="#696256"/>
+    <circle cx="300" cy="620" r="4" fill="#696256"/>
+    <circle cx="300" cy="700" r="4" fill="#696256"/>
+    <circle cx="500" cy="620" r="4" fill="#696256"/>
+    <circle cx="500" cy="700" r="4" fill="#696256"/>
+    <circle cx="700" cy="620" r="4" fill="#696256"/>
+    <circle cx="700" cy="700" r="4" fill="#696256"/>
+  </g>
+  
+  <!-- Rainbow accent dots -->
+  <circle cx="320" cy="140" r="7" fill="#0090ff"/>
+  <circle cx="450" cy="320" r="7" fill="#32e48e"/>
+  <circle cx="180" cy="480" r="7" fill="#ffe629"/>
+  <circle cx="600" cy="660" r="7" fill="#f76b15"/>
+</svg>
+

@@ -1,0 +1,45 @@
+{
+  "name": "Prism one-dark-pro",
+  "variables": {
+    "bg": "#1e2127",
+    "fg": "#abb2bf"
+  },
+  "globals": {
+    "background": "#1e2127",
+    "foreground": "#abb2bf",
+    "caret": "#61afef",
+    "selection": "#44475a",
+    "line_highlight": "#24272d"
+  },
+  "rules": [
+    {
+      "scope": "comment",
+      "foreground": "#5c6370",
+      "font_style": "italic"
+    },
+    {
+      "scope": "keyword",
+      "foreground": "#c678dd"
+    },
+    {
+      "scope": "string",
+      "foreground": "#98c379"
+    },
+    {
+      "scope": "entity.name.function",
+      "foreground": "#61afef"
+    },
+    {
+      "scope": "constant.numeric",
+      "foreground": "#d19a66"
+    },
+    {
+      "scope": "entity.name.type, support.type",
+      "foreground": "#e5c07b"
+    },
+    {
+      "scope": "variable",
+      "foreground": "#abb2bf"
+    }
+  ]
+}

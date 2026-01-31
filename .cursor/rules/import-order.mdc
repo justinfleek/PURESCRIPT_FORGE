@@ -1,0 +1,29 @@
+---
+description: Import order conventions for TypeScript/Vue and Python
+alwaysApply: true
+---
+
+# Import Order
+
+## TypeScript/Vue
+
+```typescript
+// 1. External dependencies
+import { ref, computed } from "vue";
+import { storeToRefs } from "pinia";
+
+// 2. Internal dependencies (use @/* alias)
+import { useSelectionStore } from "@/composables";
+import { validateBounds } from "@/utils/validation";
+import { isLayer } from "@/utils/typeGuards";
+import { safeNumber } from "@/utils/numericSafety";
+
+// 3. Relative dependencies
+import type { LayerConfig } from "./types";
+```
+
+Type exports: Grouped in separate `export type {}` blocks.
+
+## Python
+
+Ruff isort (standard library → third-party → first-party → local)

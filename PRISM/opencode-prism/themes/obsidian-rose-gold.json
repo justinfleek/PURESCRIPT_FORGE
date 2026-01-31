@@ -1,0 +1,121 @@
+{
+  "$schema": "https://opencode.ai/schemas/theme.json",
+  "name": "Prism Obsidian Rose Gold",
+  "description": "Volcanic glass with delicate rose gold veining",
+  "author": "Weyl AI",
+  "version": "1.0.0",
+  "type": "dark",
+  
+  "colors": {
+    "background": "#050404",
+    "backgroundSecondary": "#0c0a0a",
+    "backgroundTertiary": "#141210",
+    
+    "text": "#f0e8e8",
+    "textMuted": "#5a5555",
+    "textSubtle": "#3a3535",
+    
+    "border": "#141210",
+    "borderMuted": "#0c0a0a",
+    "borderFocus": "#e8b4b8",
+    
+    "accent": "#e8b4b8",
+    "accentMuted": "#a88878",
+    "accentText": "#050404",
+    
+    "error": "#e87878",
+    "errorMuted": "#3a1818",
+    "warning": "#e8a878",
+    "warningMuted": "#3a2818",
+    "success": "#78c8a8",
+    "successMuted": "#183a28",
+    "info": "#7898e8",
+    "infoMuted": "#18283a",
+    
+    "selection": "#141210",
+    "selectionText": "#f0e8e8",
+    "highlight": "#e8b4b830",
+    
+    "link": "#78b8c8",
+    "linkHover": "#e8b4b8",
+    
+    "scrollbar": "#3a3535",
+    "scrollbarHover": "#5a5555",
+    
+    "syntax": {
+      "comment": "#3a3535",
+      "keyword": "#c878e8",
+      "function": "#7898e8",
+      "string": "#78c8a8",
+      "number": "#e8a878",
+      "type": "#e8b4b8",
+      "variable": "#f0e8e8",
+      "constant": "#e8a878",
+      "operator": "#f0e8e8",
+      "punctuation": "#5a5555",
+      "tag": "#e87878",
+      "attribute": "#e8b4b8",
+      "property": "#f0e8e8",
+      "class": "#e8b4b8",
+      "regex": "#78b8c8",
+      "escape": "#78b8c8"
+    },
+    
+    "diff": {
+      "added": "#78c8a8",
+      "addedBackground": "#183a28",
+      "removed": "#e87878",
+      "removedBackground": "#3a1818",
+      "modified": "#7898e8",
+      "modifiedBackground": "#18283a"
+    },
+    
+    "markdown": {
+      "heading": "#7898e8",
+      "bold": "#f0e8e8",
+      "italic": "#c878e8",
+      "code": "#78c8a8",
+      "codeBackground": "#0c0a0a",
+      "blockquote": "#5a5555",
+      "list": "#e8b4b8",
+      "link": "#78b8c8",
+      "image": "#7898e8"
+    },
+    
+    "terminal": {
+      "black": "#050404",
+      "red": "#e87878",
+      "green": "#78c8a8",
+      "yellow": "#e8b4b8",
+      "blue": "#7898e8",
+      "magenta": "#c878e8",
+      "cyan": "#78b8c8",
+      "white": "#f0e8e8",
+      "brightBlack": "#3a3535",
+      "brightRed": "#e87878",
+      "brightGreen": "#78c8a8",
+      "brightYellow": "#e8b4b8",
+      "brightBlue": "#7898e8",
+      "brightMagenta": "#c878e8",
+      "brightCyan": "#78b8c8",
+      "brightWhite": "#fffafa"
+    }
+  },
+  
+  "ui": {
+    "borderRadius": "8px",
+    "panelShadow": "0 8px 32px rgba(0,0,0,0.5)",
+    "glowColor": "#e8b4b8",
+    "glowIntensity": 0.06
+  },
+  
+  "_prism": {
+    "category": "luxury",
+    "inspiration": "Volcanic glass with delicate rose gold veining",
+    "heroColor": "#e8b4b8",
+    "effects": {
+      "glow": true,
+      "bloom": { "radius": 100, "intensity": 0.04 }
+    }
+  }
+}

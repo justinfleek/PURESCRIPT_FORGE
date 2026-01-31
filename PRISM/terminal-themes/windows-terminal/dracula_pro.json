@@ -1,0 +1,22 @@
+{
+  "name": "Prism Dracula Pro",
+  "background": "#282a36",
+  "foreground": "#f1fa8c",
+  "cursorColor": "#bd93f9",
+  "black": "#282a36",
+  "red": "#ff79c6",
+  "green": "#50fa7b",
+  "yellow": "#bd93f9",
+  "blue": "#ff79c6",
+  "purple": "#bd93f9",
+  "cyan": "#50fa7b",
+  "white": "#f1fa8c",
+  "brightBlack": "#282a36",
+  "brightRed": "#ff79c6",
+  "brightGreen": "#50fa7b",
+  "brightYellow": "#bd93f9",
+  "brightBlue": "#ff79c6",
+  "brightPurple": "#bd93f9",
+  "brightCyan": "#50fa7b",
+  "brightWhite": "#f1fa8c"
+}

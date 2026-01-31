@@ -1,0 +1,45 @@
+{
+  "name": "Prism obsidian-rose-gold",
+  "variables": {
+    "bg": "#050404",
+    "fg": "#f0e8e8"
+  },
+  "globals": {
+    "background": "#050404",
+    "foreground": "#f0e8e8",
+    "caret": "#e8b4b8",
+    "selection": "#44475a",
+    "line_highlight": "#0c0b0b"
+  },
+  "rules": [
+    {
+      "scope": "comment",
+      "foreground": "#3a3535",
+      "font_style": "italic"
+    },
+    {
+      "scope": "keyword",
+      "foreground": "#c878e8"
+    },
+    {
+      "scope": "string",
+      "foreground": "#78c8a8"
+    },
+    {
+      "scope": "entity.name.function",
+      "foreground": "#7898e8"
+    },
+    {
+      "scope": "constant.numeric",
+      "foreground": "#e8a878"
+    },
+    {
+      "scope": "entity.name.type, support.type",
+      "foreground": "#e8b4b8"
+    },
+    {
+      "scope": "variable",
+      "foreground": "#f0e8e8"
+    }
+  ]
+}

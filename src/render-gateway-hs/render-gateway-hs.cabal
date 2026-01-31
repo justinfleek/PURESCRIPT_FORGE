@@ -1,0 +1,36 @@
+cabal-version: 3.0
+name: render-gateway-hs
+version: 0.1.0
+build-type: Simple
+
+executable render-gateway
+  main-is: app/Main.hs
+  build-depends:
+    base >= 4.18 && < 5.0
+    , render-gateway-hs
+  default-language: Haskell2010
+  ghc-options: -Wall -Werror -O2
+
+library
+  exposed-modules:
+    Render.Gateway.STM.Queue
+    Render.Gateway.STM.RateLimiter
+    Render.Gateway.STM.CircuitBreaker
+    Render.Gateway.STM.Clock
+    Render.Gateway.Backend
+    Render.Gateway.Core
+    Render.Gateway.ClickHouse.Schema
+    Render.Gateway.Capacity.Queueing
+    Render.Gateway.Server
+  build-depends:
+    base >= 4.18 && < 5.0
+    , stm >= 2.5
+    , time >= 1.12
+    , containers >= 0.7
+    , text >= 2.0
+    , aeson >= 2.0
+    , wai >= 3.2
+    , warp >= 3.3
+    , bytestring >= 0.11
+  default-language: Haskell2010
+  ghc-options: -Wall -Werror -O2 -fno-warn-orphans

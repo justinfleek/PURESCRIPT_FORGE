@@ -1,0 +1,24 @@
+# Prism Rose Pine - Alacritty
+[colors.primary]
+background = "#191724"
+foreground = "#c4a7e7"
+
+[colors.normal]
+black = "#191724"
+red = "#ebbcba"
+green = "#9ccfd8"
+yellow = "#31748f"
+blue = "#ebbcba"
+magenta = "#31748f"
+cyan = "#9ccfd8"
+white = "#c4a7e7"
+
+[colors.bright]
+black = "#191724"
+red = "#ebbcba"
+green = "#9ccfd8"
+yellow = "#31748f"
+blue = "#ebbcba"
+magenta = "#31748f"
+cyan = "#9ccfd8"
+white = "#c4a7e7"

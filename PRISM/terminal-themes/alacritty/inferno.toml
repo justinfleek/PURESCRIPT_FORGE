@@ -1,0 +1,24 @@
+# Prism Inferno - Alacritty
+[colors.primary]
+background = "#320B0C"
+foreground = "#FFDB99"
+
+[colors.normal]
+black = "#320B0C"
+red = "#DE2817"
+green = "#FD9935"
+yellow = "#FB590E"
+blue = "#DE2817"
+magenta = "#FB590E"
+cyan = "#FD9935"
+white = "#FFDB99"
+
+[colors.bright]
+black = "#320B0C"
+red = "#DE2817"
+green = "#FD9935"
+yellow = "#FB590E"
+blue = "#DE2817"
+magenta = "#FB590E"
+cyan = "#FD9935"
+white = "#FFDB99"

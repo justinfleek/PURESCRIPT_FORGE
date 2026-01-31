@@ -1,0 +1,22 @@
+{
+  "name": "Prism Blood Moon",
+  "background": "#090909",
+  "foreground": "#f5f5f5",
+  "cursorColor": "#d71b1f",
+  "black": "#090909",
+  "red": "#d71b1f",
+  "green": "#c2b9b7",
+  "yellow": "#b0a8a6",
+  "blue": "#968f8d",
+  "purple": "#6e0a09",
+  "cyan": "#c9c1c0",
+  "white": "#f5f5f5",
+  "brightBlack": "#090909",
+  "brightRed": "#d71b1f",
+  "brightGreen": "#c2b9b7",
+  "brightYellow": "#b0a8a6",
+  "brightBlue": "#968f8d",
+  "brightPurple": "#6e0a09",
+  "brightCyan": "#c9c1c0",
+  "brightWhite": "#f5f5f5"
+}

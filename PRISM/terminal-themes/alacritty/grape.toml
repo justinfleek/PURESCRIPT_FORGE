@@ -1,0 +1,24 @@
+# Prism Grape - Alacritty
+[colors.primary]
+background = "#10002B"
+foreground = "#F0D6FF"
+
+[colors.normal]
+black = "#10002B"
+red = "#3C096C"
+green = "#C77DFF"
+yellow = "#7B2CBF"
+blue = "#3C096C"
+magenta = "#7B2CBF"
+cyan = "#C77DFF"
+white = "#F0D6FF"
+
+[colors.bright]
+black = "#10002B"
+red = "#3C096C"
+green = "#C77DFF"
+yellow = "#7B2CBF"
+blue = "#3C096C"
+magenta = "#7B2CBF"
+cyan = "#C77DFF"
+white = "#F0D6FF"

@@ -1,0 +1,22 @@
+{
+  "name": "Prism Nord Aurora",
+  "background": "#2e3440",
+  "foreground": "#bf616a",
+  "cursorColor": "#81a1c1",
+  "black": "#2e3440",
+  "red": "#88c0d0",
+  "green": "#a3be8c",
+  "yellow": "#81a1c1",
+  "blue": "#88c0d0",
+  "purple": "#81a1c1",
+  "cyan": "#a3be8c",
+  "white": "#bf616a",
+  "brightBlack": "#2e3440",
+  "brightRed": "#88c0d0",
+  "brightGreen": "#a3be8c",
+  "brightYellow": "#81a1c1",
+  "brightBlue": "#88c0d0",
+  "brightPurple": "#81a1c1",
+  "brightCyan": "#a3be8c",
+  "brightWhite": "#bf616a"
+}

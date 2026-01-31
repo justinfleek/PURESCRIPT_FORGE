@@ -1,0 +1,27 @@
+---
+description: Documentation protocol - every operation updates master docs
+alwaysApply: true
+---
+
+# Documentation Protocol
+
+```
+DOCUMENTATION IS THE AUDIT TRAIL
+EVERY STAGE UPDATES MASTER DOCS
+NO EXCEPTIONS
+```
+
+After EVERY operation:
+1. Update relevant documentation
+2. Record: what changed, why, dependencies affected
+3. Timestamp entry
+4. Link to related tests/verification
+
+Structure:
+```
+docs/
+  MASTER.md              # System overview, kept current
+  architecture/*.md      # Component docs
+  decisions/NNNN-*.md    # ADRs
+  changelog/YYYY-MM-DD.md
+```

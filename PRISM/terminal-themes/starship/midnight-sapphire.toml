@@ -1,0 +1,30 @@
+# Prism Theme: midnight-sapphire
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on midnight-sapphire
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #6ee7b7)"
+# error_symbol = "[❯](bold #f87171)"
+
+# [directory]
+# style = "bold #c0c0d0"
+
+# [git_branch]
+# style = "bold #a78bfa"
+
+# [git_status]
+# style = "#c0c0d0"
+
+# Color reference:
+# background: #050810
+# foreground: #e0e8f8
+# accent: #c0c0d0
+# keyword: #a78bfa
+# string: #6ee7b7
+# function: #60a5fa
+# comment: #2a3548
+# number: #fb923c
+# type: #c0c0d0

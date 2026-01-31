@@ -1,0 +1,18 @@
+---
+description: Naming conventions for types, functions, files, constants
+alwaysApply: true
+---
+
+# Naming Conventions
+
+| Element | Convention | Example |
+|---------|------------|---------|
+| Types/Interfaces | PascalCase | `SelectionModifiers` |
+| Functions/Variables | camelCase | `selectLayers` |
+| File Names | kebab-case | `selection-store.ts` |
+| Constants | UPPER_SNAKE_CASE | `DEFAULT_CURVE_MARGIN` |
+| Enums | PascalCase | `SelectionMode` |
+| Vue Components | PascalCase | `LayerPanel.vue` |
+| Pinia Stores | camelCase + use prefix | `useSelectionStore` |
+| Python Classes | PascalCase | `LayerProcessor` |
+| Python Functions/Variables | snake_case | `process_layer` |

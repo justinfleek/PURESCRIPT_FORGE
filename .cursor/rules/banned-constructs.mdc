@@ -1,0 +1,61 @@
+---
+description: Banned language constructs - type escapes, unsafe operations
+alwaysApply: true
+---
+
+# Banned Constructs
+
+Immediate termination triggers. Never emit:
+
+## TypeScript
+```typescript
+// ALL BANNED - immediate violation
+any
+unknown
+as unknown as
+as SomeType  // type assertions
+!            // non-null assertions
+??           // nullish coalescing (use explicit checks)
+||           // as default (use explicit checks)
+// @ts-ignore
+// @ts-expect-error
+eval()
+Function()
+```
+
+## Runtime Values
+```typescript
+// ALL BANNED - never produce these
+undefined   // as intentional value
+null        // without Maybe/Option pattern
+Infinity    // as runtime value
+-Infinity   // as runtime value
+NaN         // must be guarded, never propagated
+```
+
+## Correct Patterns
+
+```typescript
+// CORRECT: Explicit type narrowing
+if (value === null || value === undefined) {
+  return defaultValue;
+}
+return value;
+
+// CORRECT: Exhaustive switch
+switch (status) {
+  case "pending":
+    return handlePending();
+  case "complete":
+    return handleComplete();
+  case "error":
+    return handleError();
+  // No default - compiler catches missing cases
+}
+```
+
+Every value must have:
+- Explicit type at function boundaries
+- Defined domain with min/max bounds
+- Validated default value
+- Exhaustive handling (no catch-all hiding cases)

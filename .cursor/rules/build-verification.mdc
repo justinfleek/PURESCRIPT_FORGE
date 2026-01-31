@@ -1,0 +1,69 @@
+---
+description: Build and verification protocol - Nix-based builds, post-build validation, property tests
+alwaysApply: true
+---
+
+# Build & Verification Protocol
+
+## Build Process
+
+### Nix Flakes
+
+```bash
+# Verify flake
+nix flake check
+
+# Build package
+nix build .#package-name
+
+# Enter dev shell
+nix develop
+```
+
+### Build Requirements
+
+- All dependencies pinned in `flake.lock`
+- Build artifacts are deterministic
+- No network access during build (except for fixed-output derivations)
+- Build outputs are reproducible
+
+## Post-Build Validation
+
+Every build must include:
+
+1. **Type Validation**
+   - Type checks pass (`npx tsc --noEmit` or equivalent)
+   - No type errors or warnings
+
+2. **Quantization Validation** (for ML models)
+   - Verify quantization config matches expected
+   - Check engine size is reasonable
+
+3. **Sanity Checks**
+   - Quick inference test for ML models
+   - Smoke tests for applications
+   - Catch garbage output early
+
+4. **Property Tests** (where applicable)
+   - QuickCheck for Haskell
+   - Property-based testing for critical paths
+   - Test protocol compliance
+
+## Verification Checklist
+
+Before marking build complete:
+- [ ] `nix flake check` passes
+- [ ] Type checks pass
+- [ ] Post-build validations pass
+- [ ] Property tests pass (if applicable)
+- [ ] Sanity checks pass
+- [ ] No warnings or errors
+
+## Example: trtllm-serve-main Pattern
+
+```nix
+# Post-build validations
+${trtllm-validate}/bin/trtllm-validate validate-engine "$out" "${quantization}"
+${trtllm-validate}/bin/trtllm-validate check-size "$out" "${quantization}"
+${python}/bin/python ${./scripts/trtllm-sanity-check.py} "$out"
+```

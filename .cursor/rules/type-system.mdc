@@ -1,0 +1,29 @@
+---
+description: Type system rules - code is truth, types describe
+alwaysApply: true
+---
+
+# Type System Rules
+
+**Code is truth, types describe.**
+
+**Implementation:** See `src/rules-ps/src/Rules/TypeSafety.purs`, `src/rules-hs/Rules/TypeSafety.hs`, `src/rules-lean/CoderRules/TypeSafety.lean`
+
+**Proof:** `explicitDefaultTypeSafe` and `noTypeEscapes` theorems in Lean4 ensure type safety.
+
+- NEVER delete properties/code to satisfy TypeScript
+- ALWAYS update TYPE DEFINITIONS to match working code
+- If code works but types complain → fix types
+- If types pass but code fails → fix code, then types
+
+## Strict Mode — No Escapes
+
+| Pattern | Status | Replacement |
+|---------|--------|-------------|
+| `any` | BANNED | Proper type or generic |
+| `unknown` | BANNED | Type guard + narrowing |
+| `as Type` | BANNED | Type guard + narrowing |
+| `!` | BANNED | Explicit null check |
+| `??` | BANNED | Explicit conditional |
+| `||` for defaults | BANNED | Explicit conditional |
+| `// @ts-ignore` | BANNED | Fix the type |

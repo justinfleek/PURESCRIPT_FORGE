@@ -1,0 +1,36 @@
+cabal-version: 3.0
+name: nexus-database-layer-hs
+version: 0.1.0.0
+synopsis: Nexus PostgreSQL Database Layer
+description: PostgreSQL connection pool and operations for Nexus semantic memory
+license: MIT
+license-file: LICENSE
+author: Nexus Team
+maintainer: nexus@example.com
+build-type: Simple
+
+library
+  exposed-modules:
+    Nexus.Database.Postgres
+    Nexus.Database.Postgres.Schema
+    Nexus.Database.Postgres.Operations
+  build-depends:
+    base >= 4.14 && < 5,
+    postgresql-simple >= 0.7 && < 0.8,
+    postgresql-simple-url >= 0.2 && < 0.3,
+    resource-pool >= 0.3 && < 0.4,
+    aeson >= 2.0 && < 3.0,
+    text >= 2.0 && < 3.0,
+    time >= 1.9 && < 2.0,
+    bytestring >= 0.11 && < 0.13
+  default-language: Haskell2010
+  ghc-options: -Wall -Werror
+
+executable nexus-database-cli
+  main-is: Main.hs
+  build-depends:
+    base >= 4.14 && < 5,
+    nexus-database-layer-hs,
+    text >= 2.0 && < 3.0
+  default-language: Haskell2010
+  ghc-options: -Wall -Werror

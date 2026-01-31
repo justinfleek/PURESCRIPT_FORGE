@@ -1,0 +1,24 @@
+# Prism Sunset - Alacritty
+[colors.primary]
+background = "#390099"
+foreground = "#FFBD00"
+
+[colors.normal]
+black = "#390099"
+red = "#9E0059"
+green = "#FF5400"
+yellow = "#FF0054"
+blue = "#9E0059"
+magenta = "#FF0054"
+cyan = "#FF5400"
+white = "#FFBD00"
+
+[colors.bright]
+black = "#390099"
+red = "#9E0059"
+green = "#FF5400"
+yellow = "#FF0054"
+blue = "#9E0059"
+magenta = "#FF0054"
+cyan = "#FF5400"
+white = "#FFBD00"

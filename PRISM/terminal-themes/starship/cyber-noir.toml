@@ -1,0 +1,30 @@
+# Prism Theme: cyber-noir
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on cyber-noir
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #00ff88)"
+# error_symbol = "[❯](bold #ff0055)"
+
+# [directory]
+# style = "bold #00fff0"
+
+# [git_branch]
+# style = "bold #ff0080"
+
+# [git_status]
+# style = "#ff8800"
+
+# Color reference:
+# background: #0a0a0f
+# foreground: #a0a8c0
+# accent: #00fff0
+# keyword: #ff0080
+# string: #00ff88
+# function: #00fff0
+# comment: #404858
+# number: #ff8800
+# type: #00fff0

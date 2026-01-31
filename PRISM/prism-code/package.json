@@ -1,0 +1,45 @@
+{
+  "name": "prism-code",
+  "version": "0.1.0",
+  "description": "The AI coding agent that makes you want to code. Fork of OpenCode with luxury themes and micro-interactions.",
+  "author": "Weyl AI",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/weyl-ai/prism-code"
+  },
+  "homepage": "https://prism-code.dev",
+  "keywords": [
+    "ai",
+    "coding",
+    "agent",
+    "terminal",
+    "tui",
+    "themes",
+    "opencode",
+    "claude",
+    "gpt",
+    "cursor"
+  ],
+  "scripts": {
+    "dev": "bun run --filter=opencode dev",
+    "build": "turbo build",
+    "generate-themes": "bun run scripts/generate-themes.ts themes/",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "format": "prettier --write .",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "bun-types": "^1.0.0",
+    "husky": "^9.0.0",
+    "prettier": "^3.0.0",
+    "turbo": "^2.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "bun@1.1.0"
+}

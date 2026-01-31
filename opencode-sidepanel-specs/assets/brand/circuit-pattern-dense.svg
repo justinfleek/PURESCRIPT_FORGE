@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <!-- Fleek Circuit Pattern - Dense Network -->
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#121211"/>
+  
+  <!-- Dense circuit grid -->
+  <g opacity="0.4">
+    <!-- Horizontal layers -->
+    <path d="M0 80 H150 V140 H350 V80 H550 V160 H750 V80 H950 V140 H1200" stroke="#696256" stroke-width="1" fill="none"/>
+    <path d="M0 200 H100 V260 H250 V200 H450 V280 H650 V200 H850 V260 H1050 V200 H1200" stroke="#696256" stroke-width="1" fill="none"/>
+    <path d="M0 340 H200 V400 H400 V340 H600 V420 H800 V340 H1000 V400 H1200" stroke="#696256" stroke-width="1" fill="none"/>
+    <path d="M0 480 H50 V540 H200 V480 H400 V560 H600 V480 H800 V540 H1000 V480 H1200" stroke="#696256" stroke-width="1" fill="none"/>
+    <path d="M0 620 H150 V680 H350 V620 H550 V700 H750 V620 H950 V680 H1200" stroke="#696256" stroke-width="1" fill="none"/>
+    <path d="M0 740 H100 V800 H300 V740 H500 V800 H700 V740 H900 V800 H1100 V740 H1200" stroke="#696256" stroke-width="1" fill="none"/>
+    
+    <!-- Vertical connectors (sampling) -->
+    <path d="M150 0 V140" stroke="#696256" stroke-width="1"/>
+    <path d="M350 0 V80" stroke="#696256" stroke-width="1"/>
+    <path d="M550 0 V160" stroke="#696256" stroke-width="1"/>
+    <path d="M750 0 V80" stroke="#696256" stroke-width="1"/>
+    <path d="M950 0 V140" stroke="#696256" stroke-width="1"/>
+    
+    <path d="M100 140 V260" stroke="#696256" stroke-width="1"/>
+    <path d="M250 140 V260" stroke="#696256" stroke-width="1"/>
+    <path d="M450 160 V280" stroke="#696256" stroke-width="1"/>
+    <path d="M650 160 V280" stroke="#696256" stroke-width="1"/>
+    <path d="M850 140 V260" stroke="#696256" stroke-width="1"/>
+    <path d="M1050 140 V260" stroke="#696256" stroke-width="1"/>
+    
+    <path d="M200 260 V400" stroke="#696256" stroke-width="1"/>
+    <path d="M400 280 V400" stroke="#696256" stroke-width="1"/>
+    <path d="M600 280 V420" stroke="#696256" stroke-width="1"/>
+    <path d="M800 280 V420" stroke="#696256" stroke-width="1"/>
+    <path d="M1000 260 V400" stroke="#696256" stroke-width="1"/>
+    
+    <path d="M50 400 V540" stroke="#696256" stroke-width="1"/>
+    <path d="M200 400 V540" stroke="#696256" stroke-width="1"/>
+    <path d="M400 420 V560" stroke="#696256" stroke-width="1"/>
+    <path d="M600 420 V560" stroke="#696256" stroke-width="1"/>
+    <path d="M800 420 V540" stroke="#696256" stroke-width="1"/>
+    <path d="M1000 400 V540" stroke="#696256" stroke-width="1"/>
+    
+    <path d="M150 540 V680" stroke="#696256" stroke-width="1"/>
+    <path d="M350 540 V680" stroke="#696256" stroke-width="1"/>
+    <path d="M550 560 V700" stroke="#696256" stroke-width="1"/>
+    <path d="M750 560 V700" stroke="#696256" stroke-width="1"/>
+    <path d="M950 540 V680" stroke="#696256" stroke-width="1"/>
+    
+    <path d="M100 680 V800" stroke="#696256" stroke-width="1"/>
+    <path d="M300 680 V800" stroke="#696256" stroke-width="1"/>
+    <path d="M500 700 V800" stroke="#696256" stroke-width="1"/>
+    <path d="M700 700 V800" stroke="#696256" stroke-width="1"/>
+    <path d="M900 680 V800" stroke="#696256" stroke-width="1"/>
+    <path d="M1100 680 V800" stroke="#696256" stroke-width="1"/>
+  </g>
+  
+  <!-- Connection nodes (key intersections only) -->
+  <g opacity="0.5">
+    <circle cx="150" cy="80" r="3" fill="#696256"/>
+    <circle cx="350" cy="80" r="3" fill="#696256"/>
+    <circle cx="550" cy="80" r="3" fill="#696256"/>
+    <circle cx="750" cy="80" r="3" fill="#696256"/>
+    <circle cx="950" cy="80" r="3" fill="#696256"/>
+    <circle cx="250" cy="200" r="3" fill="#696256"/>
+    <circle cx="450" cy="200" r="3" fill="#696256"/>
+    <circle cx="650" cy="200" r="3" fill="#696256"/>
+    <circle cx="850" cy="200" r="3" fill="#696256"/>
+    <circle cx="200" cy="340" r="3" fill="#696256"/>
+    <circle cx="400" cy="340" r="3" fill="#696256"/>
+    <circle cx="600" cy="340" r="3" fill="#696256"/>
+    <circle cx="800" cy="340" r="3" fill="#696256"/>
+    <circle cx="1000" cy="340" r="3" fill="#696256"/>
+    <circle cx="200" cy="480" r="3" fill="#696256"/>
+    <circle cx="400" cy="480" r="3" fill="#696256"/>
+    <circle cx="600" cy="480" r="3" fill="#696256"/>
+    <circle cx="800" cy="480" r="3" fill="#696256"/>
+    <circle cx="150" cy="620" r="3" fill="#696256"/>
+    <circle cx="350" cy="620" r="3" fill="#696256"/>
+    <circle cx="550" cy="620" r="3" fill="#696256"/>
+    <circle cx="750" cy="620" r="3" fill="#696256"/>
+    <circle cx="950" cy="620" r="3" fill="#696256"/>
+  </g>
+  
+  <!-- Rainbow dots scattered through the network -->
+  <circle cx="250" cy="110" r="6" fill="#0090ff"/>
+  <circle cx="550" cy="240" r="6" fill="#32e48e"/>
+  <circle cx="300" cy="370" r="6" fill="#ffe629"/>
+  <circle cx="700" cy="370" r="6" fill="#f76b15"/>
+  <circle cx="100" cy="510" r="6" fill="#0090ff"/>
+  <circle cx="500" cy="520" r="6" fill="#32e48e"/>
+  <circle cx="900" cy="510" r="6" fill="#ffe629"/>
+  <circle cx="450" cy="650" r="6" fill="#f76b15"/>
+  <circle cx="850" cy="660" r="6" fill="#0090ff"/>
+  <circle cx="200" cy="770" r="6" fill="#32e48e"/>
+  <circle cx="600" cy="770" r="6" fill="#ffe629"/>
+  <circle cx="1000" cy="770" r="6" fill="#f76b15"/>
+</svg>
+

@@ -1,0 +1,22 @@
+{
+  "name": "Prism Rose Gold",
+  "background": "#a5385f",
+  "foreground": "#f7dcbc",
+  "cursorColor": "#ffa6ab",
+  "black": "#430a1d",
+  "red": "#8c3050",
+  "green": "#f7dcbc",
+  "yellow": "#ffa6ab",
+  "blue": "#c4586e",
+  "purple": "#da627a",
+  "cyan": "#f9e3c9",
+  "white": "#f7dcbc",
+  "brightBlack": "#430a1d",
+  "brightRed": "#8c3050",
+  "brightGreen": "#f7dcbc",
+  "brightYellow": "#ffa6ab",
+  "brightBlue": "#c4586e",
+  "brightPurple": "#da627a",
+  "brightCyan": "#f9e3c9",
+  "brightWhite": "#f7dcbc"
+}

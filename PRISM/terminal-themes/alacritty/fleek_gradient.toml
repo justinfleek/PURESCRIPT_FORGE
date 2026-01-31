@@ -1,0 +1,24 @@
+# Prism Fleek Gradient - Alacritty
+[colors.primary]
+background = "#0b0b0b"
+foreground = "#ffe629"
+
+[colors.normal]
+black = "#0b0b0b"
+red = "#f76b15"
+green = "#30a46c"
+yellow = "#ffe629"
+blue = "#0090ff"
+magenta = "#d25912"
+cyan = "#33a8ff"
+white = "#ffe629"
+
+[colors.bright]
+black = "#0b0b0b"
+red = "#f76b15"
+green = "#30a46c"
+yellow = "#ffe629"
+blue = "#0090ff"
+magenta = "#d25912"
+cyan = "#33a8ff"
+white = "#ffe629"

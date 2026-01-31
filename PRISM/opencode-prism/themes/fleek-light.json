@@ -1,0 +1,120 @@
+{
+  "$schema": "https://opencode.ai/schemas/theme.json",
+  "name": "Fleek Light",
+  "description": "Fleek theme light mode - clean and professional for daytime coding",
+  "author": "Weyl AI / Fleek",
+  "version": "1.0.0",
+  "type": "light",
+  "colors": {
+    "background": "#fafaf8",
+    "backgroundSecondary": "#f0f0ee",
+    "backgroundTertiary": "#e8e8e4",
+    
+    "text": "#1a1a18",
+    "textMuted": "#6a6a68",
+    "textSubtle": "#9a9a98",
+    
+    "border": "#e0e0dc",
+    "borderMuted": "#e8e8e4",
+    "borderFocus": "#2a9860",
+    
+    "accent": "#2a9860",
+    "accentMuted": "#8a7858",
+    "accentText": "#ffffff",
+    
+    "error": "#d85030",
+    "errorMuted": "#fde8e0",
+    "warning": "#c8a020",
+    "warningMuted": "#fdf8e0",
+    "success": "#2a9860",
+    "successMuted": "#e0fde8",
+    "info": "#0088c8",
+    "infoMuted": "#e0f0fd",
+    
+    "selection": "#e8e8e4",
+    "selectionText": "#1a1a18",
+    "highlight": "#2a986030",
+    
+    "link": "#0088c8",
+    "linkHover": "#2a9860",
+    
+    "scrollbar": "#d0d0cc",
+    "scrollbarHover": "#b0b0ac",
+    
+    "syntax": {
+      "comment": "#9a9a98",
+      "keyword": "#d85030",
+      "function": "#0088c8",
+      "string": "#2a9860",
+      "number": "#b08010",
+      "type": "#2a9860",
+      "variable": "#1a1a18",
+      "constant": "#b08010",
+      "operator": "#1a1a18",
+      "punctuation": "#6a6a68",
+      "tag": "#d85030",
+      "attribute": "#2a9860",
+      "property": "#1a1a18",
+      "class": "#2a9860",
+      "regex": "#0088c8",
+      "escape": "#0088c8"
+    },
+    
+    "diff": {
+      "added": "#2a9860",
+      "addedBackground": "#e0fde8",
+      "removed": "#d85030",
+      "removedBackground": "#fde8e0",
+      "modified": "#0088c8",
+      "modifiedBackground": "#e0f0fd"
+    },
+    
+    "markdown": {
+      "heading": "#0088c8",
+      "bold": "#1a1a18",
+      "italic": "#d85030",
+      "code": "#2a9860",
+      "codeBackground": "#f0f0ee",
+      "blockquote": "#6a6a68",
+      "list": "#b08010",
+      "link": "#0088c8",
+      "image": "#2a9860"
+    },
+    
+    "terminal": {
+      "black": "#1a1a18",
+      "red": "#d85030",
+      "green": "#2a9860",
+      "yellow": "#b08010",
+      "blue": "#0088c8",
+      "magenta": "#8a7858",
+      "cyan": "#0088c8",
+      "white": "#fafaf8",
+      "brightBlack": "#6a6a68",
+      "brightRed": "#d85030",
+      "brightGreen": "#2a9860",
+      "brightYellow": "#c8a020",
+      "brightBlue": "#0088c8",
+      "brightMagenta": "#8a7858",
+      "brightCyan": "#0088c8",
+      "brightWhite": "#ffffff"
+    }
+  },
+  
+  "ui": {
+    "borderRadius": "8px",
+    "panelShadow": "0 4px 16px rgba(0,0,0,0.08)"
+  },
+  
+  "_prism": {
+    "category": "flagship",
+    "inspiration": "Fleek light mode - professional and clean",
+    "heroColor": "#2a9860",
+    "brandColors": {
+      "cyan": "#0088c8",
+      "green": "#2a9860",
+      "yellow": "#c8a020",
+      "orange": "#d85030"
+    }
+  }
+}

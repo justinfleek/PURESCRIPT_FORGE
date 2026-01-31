@@ -1,0 +1,22 @@
+{
+  "name": "Prism Tuned",
+  "background": "#191c20",
+  "foreground": "#c5d0dd",
+  "cursorColor": "#54aeff",
+  "black": "#191c20",
+  "red": "#4793d8",
+  "green": "#65b6ff",
+  "yellow": "#616772",
+  "blue": "#54aeff",
+  "purple": "#3f82bf",
+  "cyan": "#76beff",
+  "white": "#c5d0dd",
+  "brightBlack": "#191c20",
+  "brightRed": "#4793d8",
+  "brightGreen": "#65b6ff",
+  "brightYellow": "#616772",
+  "brightBlue": "#54aeff",
+  "brightPurple": "#3f82bf",
+  "brightCyan": "#76beff",
+  "brightWhite": "#c5d0dd"
+}

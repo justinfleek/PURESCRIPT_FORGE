@@ -1,0 +1,238 @@
+{
+  "name": "prism-themes",
+  "displayName": "Prism - 40 Formally Verified Color Themes",
+  "description": "40 mathematically perfect syntax themes with OKLCH color science. Luxury, Glass, Wild, and Classic collections.",
+  "version": "2.0.0",
+  "publisher": "fleek-ai",
+  "author": {
+    "name": "Fleek AI",
+    "url": "https://fleek.sh"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fleek-ai/prism-themes"
+  },
+  "bugs": {
+    "url": "https://github.com/fleek-ai/prism-themes/issues"
+  },
+  "homepage": "https://github.com/fleek-ai/prism-themes#readme",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Themes"
+  ],
+  "keywords": [
+    "theme",
+    "color theme",
+    "dark theme",
+    "light theme",
+    "dracula",
+    "nord",
+    "catppuccin",
+    "gruvbox",
+    "tokyo night",
+    "cyberpunk",
+    "vaporwave"
+  ],
+  "galleryBanner": {
+    "color": "#0a0a0a",
+    "theme": "dark"
+  },
+  "icon": "media/icon.png",
+  "contributes": {
+    "themes": [
+      {
+        "label": "Prism Tuned",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-tuned.json"
+      },
+      {
+        "label": "Prism Memphis",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-memphis.json"
+      },
+      {
+        "label": "Prism Github",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-github.json"
+      },
+      {
+        "label": "Prism Neoform",
+        "uiTheme": "vs",
+        "path": "./themes/prism-neoform.json"
+      },
+      {
+        "label": "Prism Biopic",
+        "uiTheme": "vs",
+        "path": "./themes/prism-biopic.json"
+      },
+      {
+        "label": "Prism Ghost",
+        "uiTheme": "vs",
+        "path": "./themes/prism-ghost.json"
+      },
+      {
+        "label": "Prism Tessier",
+        "uiTheme": "vs",
+        "path": "./themes/prism-tessier.json"
+      },
+      {
+        "label": "Prism Fleek Gold",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-fleek_gold.json"
+      },
+      {
+        "label": "Prism Fleek Gradient",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-fleek_gradient.json"
+      },
+      {
+        "label": "Prism Blood Moon",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-blood_moon.json"
+      },
+      {
+        "label": "Prism Minimal",
+        "uiTheme": "vs",
+        "path": "./themes/prism-minimal.json"
+      },
+      {
+        "label": "Prism Rose Gold",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-rose_gold.json"
+      },
+      {
+        "label": "Prism Coastal",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-coastal.json"
+      },
+      {
+        "label": "Prism Inferno",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-inferno.json"
+      },
+      {
+        "label": "Prism Faded Glory",
+        "uiTheme": "vs",
+        "path": "./themes/prism-faded_glory.json"
+      },
+      {
+        "label": "Prism Sunset",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-sunset.json"
+      },
+      {
+        "label": "Prism Forest",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-forest.json"
+      },
+      {
+        "label": "Prism Ocean",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-ocean.json"
+      },
+      {
+        "label": "Prism Grape",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-grape.json"
+      },
+      {
+        "label": "Prism Mint",
+        "uiTheme": "vs",
+        "path": "./themes/prism-mint.json"
+      },
+      {
+        "label": "Prism Tropical",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-tropical.json"
+      },
+      {
+        "label": "Prism Arctic",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-arctic.json"
+      },
+      {
+        "label": "Prism Vesper",
+        "uiTheme": "vs",
+        "path": "./themes/prism-vesper.json"
+      },
+      {
+        "label": "Prism Vaporwave",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-vaporwave.json"
+      },
+      {
+        "label": "Prism Rose",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-rose.json"
+      },
+      {
+        "label": "Prism Synthwave",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-synthwave.json"
+      },
+      {
+        "label": "Prism Acid Rain",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-acid_rain.json"
+      },
+      {
+        "label": "Prism Catppuccin Mocha",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-catppuccin_mocha.json"
+      },
+      {
+        "label": "Prism Cobalt2",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-cobalt2.json"
+      },
+      {
+        "label": "Prism Dracula Pro",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-dracula_pro.json"
+      },
+      {
+        "label": "Prism Gruvbox Material",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-gruvbox_material.json"
+      },
+      {
+        "label": "Prism Holographic",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-holographic.json"
+      },
+      {
+        "label": "Prism Night Owl",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-night_owl.json"
+      },
+      {
+        "label": "Prism Nord Aurora",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-nord_aurora.json"
+      },
+      {
+        "label": "Prism One Dark Pro",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-one_dark_pro.json"
+      },
+      {
+        "label": "Prism Rose Pine",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-rose_pine.json"
+      },
+      {
+        "label": "Prism Synthwave 84",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-synthwave_84.json"
+      },
+      {
+        "label": "Prism Ultraviolet",
+        "uiTheme": "vs-dark",
+        "path": "./themes/prism-ultraviolet.json"
+      }
+    ]
+  }
+}

@@ -1,0 +1,44 @@
+---
+description: Language stack - PureScript/Haskell/Lean4 with strongest proofs possible
+alwaysApply: true
+---
+
+# Language Stack & Type Safety
+
+## Core Principle
+
+```
+ACCURACY > SPEED
+COMPLETENESS > CONVENIENCE
+PROOF > ASSUMPTION
+TRUTH > COMFORT
+```
+
+Zero lazy code. Everything is resolved in PureScript, Haskell, and Lean4 with the strongest proofs possible. EVERYTHING is deterministic.
+
+## Language Stack
+
+| Layer | Language | Purpose |
+|-------|----------|---------|
+| Implementation | PureScript | Application logic |
+| Systems | Haskell | Performance-critical modules |
+| Verification | Lean4 | Proofs of correctness |
+
+No other languages permitted. No interop with untyped ecosystems.
+
+## Totality Requirements
+
+Every function must be total:
+- Handles ALL possible inputs
+- Terminates on ALL inputs
+- No exceptions, no bottoms
+
+## Proof Integration
+
+```
+Implementation (PS/HS) ◄────────► Proof (Lean4)
+
+Every critical invariant has corresponding theorem
+Proofs live alongside implementation
+CI fails if proofs don't check
+```

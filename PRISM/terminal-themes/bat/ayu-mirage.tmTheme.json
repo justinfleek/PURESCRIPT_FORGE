@@ -1,0 +1,45 @@
+{
+  "name": "Prism ayu-mirage",
+  "variables": {
+    "bg": "#1f2430",
+    "fg": "#cccac2"
+  },
+  "globals": {
+    "background": "#1f2430",
+    "foreground": "#cccac2",
+    "caret": "#ffcc66",
+    "selection": "#44475a",
+    "line_highlight": "#252a36"
+  },
+  "rules": [
+    {
+      "scope": "comment",
+      "foreground": "#5c6773",
+      "font_style": "italic"
+    },
+    {
+      "scope": "keyword",
+      "foreground": "#ffa759"
+    },
+    {
+      "scope": "string",
+      "foreground": "#d5ff80"
+    },
+    {
+      "scope": "entity.name.function",
+      "foreground": "#ffd580"
+    },
+    {
+      "scope": "constant.numeric",
+      "foreground": "#ffcc66"
+    },
+    {
+      "scope": "entity.name.type, support.type",
+      "foreground": "#73d0ff"
+    },
+    {
+      "scope": "variable",
+      "foreground": "#cccac2"
+    }
+  ]
+}

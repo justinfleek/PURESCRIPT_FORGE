@@ -1,0 +1,22 @@
+{
+  "name": "Prism Rose",
+  "background": "#140006",
+  "foreground": "#FAE0E4",
+  "cursorColor": "#FF99AC",
+  "black": "#140006",
+  "red": "#FF7096",
+  "green": "#F7CAD0",
+  "yellow": "#FF99AC",
+  "blue": "#FF7096",
+  "purple": "#FF99AC",
+  "cyan": "#F7CAD0",
+  "white": "#FAE0E4",
+  "brightBlack": "#140006",
+  "brightRed": "#FF7096",
+  "brightGreen": "#F7CAD0",
+  "brightYellow": "#FF99AC",
+  "brightBlue": "#FF7096",
+  "brightPurple": "#FF99AC",
+  "brightCyan": "#F7CAD0",
+  "brightWhite": "#FAE0E4"
+}

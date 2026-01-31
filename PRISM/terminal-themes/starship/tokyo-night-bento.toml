@@ -1,0 +1,30 @@
+# Prism Theme: tokyo-night-bento
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on tokyo-night-bento
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #9ece6a)"
+# error_symbol = "[❯](bold #f7768e)"
+
+# [directory]
+# style = "bold #bb9af7"
+
+# [git_branch]
+# style = "bold #bb9af7"
+
+# [git_status]
+# style = "#e0af68"
+
+# Color reference:
+# background: #0f0f18
+# foreground: #e8e8f0
+# accent: #bb9af7
+# keyword: #bb9af7
+# string: #9ece6a
+# function: #7aa2f7
+# comment: #3a3a4a
+# number: #ff9e64
+# type: #e0af68

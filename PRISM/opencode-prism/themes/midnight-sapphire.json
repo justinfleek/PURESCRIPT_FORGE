@@ -1,0 +1,121 @@
+{
+  "$schema": "https://opencode.ai/schemas/theme.json",
+  "name": "Prism Midnight Sapphire",
+  "description": "Deep blue gemstone with platinum accents and inner fire",
+  "author": "Weyl AI",
+  "version": "1.0.0",
+  "type": "dark",
+  
+  "colors": {
+    "background": "#050810",
+    "backgroundSecondary": "#0a1018",
+    "backgroundTertiary": "#101825",
+    
+    "text": "#e0e8f8",
+    "textMuted": "#4a5568",
+    "textSubtle": "#2a3548",
+    
+    "border": "#101825",
+    "borderMuted": "#0a1018",
+    "borderFocus": "#60a5fa",
+    
+    "accent": "#c0c0d0",
+    "accentMuted": "#8090a0",
+    "accentText": "#050810",
+    
+    "error": "#f87171",
+    "errorMuted": "#3a1818",
+    "warning": "#fb923c",
+    "warningMuted": "#3a2818",
+    "success": "#6ee7b7",
+    "successMuted": "#183a28",
+    "info": "#60a5fa",
+    "infoMuted": "#18283a",
+    
+    "selection": "#101825",
+    "selectionText": "#e0e8f8",
+    "highlight": "#60a5fa30",
+    
+    "link": "#67e8f9",
+    "linkHover": "#60a5fa",
+    
+    "scrollbar": "#2a3548",
+    "scrollbarHover": "#4a5568",
+    
+    "syntax": {
+      "comment": "#2a3548",
+      "keyword": "#a78bfa",
+      "function": "#60a5fa",
+      "string": "#6ee7b7",
+      "number": "#fb923c",
+      "type": "#c0c0d0",
+      "variable": "#e0e8f8",
+      "constant": "#fb923c",
+      "operator": "#e0e8f8",
+      "punctuation": "#4a5568",
+      "tag": "#f87171",
+      "attribute": "#c0c0d0",
+      "property": "#e0e8f8",
+      "class": "#c0c0d0",
+      "regex": "#67e8f9",
+      "escape": "#67e8f9"
+    },
+    
+    "diff": {
+      "added": "#6ee7b7",
+      "addedBackground": "#183a28",
+      "removed": "#f87171",
+      "removedBackground": "#3a1818",
+      "modified": "#60a5fa",
+      "modifiedBackground": "#18283a"
+    },
+    
+    "markdown": {
+      "heading": "#60a5fa",
+      "bold": "#e0e8f8",
+      "italic": "#a78bfa",
+      "code": "#6ee7b7",
+      "codeBackground": "#0a1018",
+      "blockquote": "#4a5568",
+      "list": "#c0c0d0",
+      "link": "#67e8f9",
+      "image": "#60a5fa"
+    },
+    
+    "terminal": {
+      "black": "#050810",
+      "red": "#f87171",
+      "green": "#6ee7b7",
+      "yellow": "#c0c0d0",
+      "blue": "#60a5fa",
+      "magenta": "#a78bfa",
+      "cyan": "#67e8f9",
+      "white": "#e0e8f8",
+      "brightBlack": "#2a3548",
+      "brightRed": "#f87171",
+      "brightGreen": "#6ee7b7",
+      "brightYellow": "#c0c0d0",
+      "brightBlue": "#60a5fa",
+      "brightMagenta": "#a78bfa",
+      "brightCyan": "#67e8f9",
+      "brightWhite": "#fafcff"
+    }
+  },
+  
+  "ui": {
+    "borderRadius": "8px",
+    "panelShadow": "0 8px 32px rgba(0,0,0,0.5), 0 0 60px rgba(96,165,250,0.1)",
+    "glowColor": "#60a5fa",
+    "glowIntensity": 0.12
+  },
+  
+  "_prism": {
+    "category": "luxury",
+    "inspiration": "Deep blue gemstone with platinum accents",
+    "heroColor": "#60a5fa",
+    "effects": {
+      "glow": true,
+      "innerFire": { "pulse": true, "period": 4000 }
+    }
+  }
+}

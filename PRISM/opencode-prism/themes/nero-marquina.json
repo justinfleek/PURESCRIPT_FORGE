@@ -1,0 +1,125 @@
+{
+  "$schema": "https://opencode.ai/schemas/theme.json",
+  "name": "Prism Nero Marquina",
+  "description": "Black Spanish marble with gold veining and warm gold leaf accents",
+  "author": "Weyl AI",
+  "version": "1.0.0",
+  "type": "dark",
+  
+  "colors": {
+    "background": "#08080a",
+    "backgroundSecondary": "#101014",
+    "backgroundTertiary": "#18181e",
+    
+    "text": "#e8e4dc",
+    "textMuted": "#5a5a68",
+    "textSubtle": "#3a3a45",
+    
+    "border": "#18181e",
+    "borderMuted": "#101014",
+    "borderFocus": "#d4af37",
+    
+    "accent": "#d4af37",
+    "accentMuted": "#a89050",
+    "accentText": "#08080a",
+    
+    "error": "#e85454",
+    "errorMuted": "#3a1a1a",
+    "warning": "#e8a054",
+    "warningMuted": "#3a2a1a",
+    "success": "#54c878",
+    "successMuted": "#1a3a1a",
+    "info": "#5494e8",
+    "infoMuted": "#1a2a3a",
+    
+    "selection": "#18181e",
+    "selectionText": "#e8e4dc",
+    "highlight": "#d4af3730",
+    
+    "link": "#54b4b8",
+    "linkHover": "#d4af37",
+    
+    "scrollbar": "#3a3a45",
+    "scrollbarHover": "#5a5a68",
+    
+    "syntax": {
+      "comment": "#3a3a45",
+      "keyword": "#b454e8",
+      "function": "#5494e8",
+      "string": "#54c878",
+      "number": "#e8a054",
+      "type": "#d4af37",
+      "variable": "#e8e4dc",
+      "constant": "#e8a054",
+      "operator": "#e8e4dc",
+      "punctuation": "#5a5a68",
+      "tag": "#e85454",
+      "attribute": "#d4af37",
+      "property": "#e8e4dc",
+      "class": "#d4af37",
+      "regex": "#54b4b8",
+      "escape": "#54b4b8"
+    },
+    
+    "diff": {
+      "added": "#54c878",
+      "addedBackground": "#1a3a1a",
+      "removed": "#e85454",
+      "removedBackground": "#3a1a1a",
+      "modified": "#5494e8",
+      "modifiedBackground": "#1a2a3a"
+    },
+    
+    "markdown": {
+      "heading": "#d4af37",
+      "bold": "#e8e4dc",
+      "italic": "#b454e8",
+      "code": "#54c878",
+      "codeBackground": "#101014",
+      "blockquote": "#5a5a68",
+      "list": "#d4af37",
+      "link": "#54b4b8",
+      "image": "#5494e8"
+    },
+    
+    "terminal": {
+      "black": "#08080a",
+      "red": "#e85454",
+      "green": "#54c878",
+      "yellow": "#d4af37",
+      "blue": "#5494e8",
+      "magenta": "#b454e8",
+      "cyan": "#54b4b8",
+      "white": "#e8e4dc",
+      "brightBlack": "#3a3a45",
+      "brightRed": "#e85454",
+      "brightGreen": "#54c878",
+      "brightYellow": "#d4af37",
+      "brightBlue": "#5494e8",
+      "brightMagenta": "#b454e8",
+      "brightCyan": "#54b4b8",
+      "brightWhite": "#fffef8"
+    }
+  },
+  
+  "ui": {
+    "borderRadius": "8px",
+    "panelShadow": "0 8px 32px rgba(0,0,0,0.4)",
+    "glowColor": "#d4af37",
+    "glowIntensity": 0.08
+  },
+  
+  "_prism": {
+    "category": "luxury",
+    "inspiration": "Black Spanish marble with gold veining",
+    "heroColor": "#d4af37",
+    "effects": {
+      "glow": true,
+      "particles": {
+        "type": "gold-dust",
+        "count": 4,
+        "speed": 0.15
+      }
+    }
+  }
+}

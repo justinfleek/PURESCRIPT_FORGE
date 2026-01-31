@@ -1,0 +1,30 @@
+# Prism Theme: gruvbox-material
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on gruvbox-material
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #a9b665)"
+# error_symbol = "[❯](bold #ea6962)"
+
+# [directory]
+# style = "bold #d8a657"
+
+# [git_branch]
+# style = "bold #d3869b"
+
+# [git_status]
+# style = "#d8a657"
+
+# Color reference:
+# background: #1d2021
+# foreground: #d4be98
+# accent: #d8a657
+# keyword: #ea6962
+# string: #a9b665
+# function: #a9b665
+# comment: #7c6f64
+# number: #d3869b
+# type: #d8a657

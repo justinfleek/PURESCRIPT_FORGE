@@ -1,0 +1,22 @@
+{
+  "name": "Prism Vaporwave",
+  "background": "#4C1A57",
+  "foreground": "#00E5E8",
+  "cursorColor": "#FF3CC7",
+  "black": "#4C1A57",
+  "red": "#85FFFB",
+  "green": "#F0F600",
+  "yellow": "#FF3CC7",
+  "blue": "#85FFFB",
+  "purple": "#FF3CC7",
+  "cyan": "#F0F600",
+  "white": "#00E5E8",
+  "brightBlack": "#4C1A57",
+  "brightRed": "#85FFFB",
+  "brightGreen": "#F0F600",
+  "brightYellow": "#FF3CC7",
+  "brightBlue": "#85FFFB",
+  "brightPurple": "#FF3CC7",
+  "brightCyan": "#F0F600",
+  "brightWhite": "#00E5E8"
+}

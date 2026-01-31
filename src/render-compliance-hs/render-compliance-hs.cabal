@@ -1,0 +1,15 @@
+cabal-version: 3.0
+name: render-compliance-hs
+version: 0.1.0
+build-type: Simple
+
+library
+  exposed-modules:
+    Render.Compliance.AuditTrail
+  build-depends:
+    base >= 4.18 && < 5.0
+    , text >= 2.0
+    , time >= 1.12
+    , bytestring >= 0.11
+  default-language: Haskell2010
+  ghc-options: -Wall -Werror -O2 -fno-warn-orphans

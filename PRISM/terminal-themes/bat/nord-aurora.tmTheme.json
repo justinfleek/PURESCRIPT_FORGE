@@ -1,0 +1,45 @@
+{
+  "name": "Prism nord-aurora",
+  "variables": {
+    "bg": "#1a1f2a",
+    "fg": "#d8dee9"
+  },
+  "globals": {
+    "background": "#1a1f2a",
+    "foreground": "#d8dee9",
+    "caret": "#88c0d0",
+    "selection": "#44475a",
+    "line_highlight": "#202530"
+  },
+  "rules": [
+    {
+      "scope": "comment",
+      "foreground": "#616e88",
+      "font_style": "italic"
+    },
+    {
+      "scope": "keyword",
+      "foreground": "#81a1c1"
+    },
+    {
+      "scope": "string",
+      "foreground": "#a3be8c"
+    },
+    {
+      "scope": "entity.name.function",
+      "foreground": "#88c0d0"
+    },
+    {
+      "scope": "constant.numeric",
+      "foreground": "#b48ead"
+    },
+    {
+      "scope": "entity.name.type, support.type",
+      "foreground": "#8fbcbb"
+    },
+    {
+      "scope": "variable",
+      "foreground": "#d8dee9"
+    }
+  ]
+}

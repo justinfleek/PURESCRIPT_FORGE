@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scheme name="Prism porcelain-moon" version="142" parent_scheme="Default">
+  <metaInfo>
+    <property name="created">Prism Theme Generator</property>
+    <property name="ideVersion">2024.1</property>
+    <property name="modified">Prism Theme Generator</property>
+  </metaInfo>
+  <colors>
+    <option name="CARET_COLOR" value="CA8A04" />
+    <option name="CARET_ROW_COLOR" value="E6E8ED" />
+    <option name="CONSOLE_BACKGROUND_KEY" value="E8EAEE" />
+    <option name="GUTTER_BACKGROUND" value="E8EAEE" />
+    <option name="LINE_NUMBERS_COLOR" value="707478" />
+    <option name="SELECTION_BACKGROUND" value="44475A" />
+    <option name="SELECTION_FOREGROUND" value="1A1C20" />
+  </colors>
+  <attributes>
+    <option name="DEFAULT_KEYWORD">
+      <value>
+        <option name="FOREGROUND" value="7C3AED" />
+        <option name="FONT_TYPE" value="1" />
+      </value>
+    </option>
+    <option name="DEFAULT_STRING">
+      <value>
+        <option name="FOREGROUND" value="16A34A" />
+      </value>
+    </option>
+    <option name="DEFAULT_FUNCTION_DECLARATION">
+      <value>
+        <option name="FOREGROUND" value="2563EB" />
+      </value>
+    </option>
+    <option name="DEFAULT_FUNCTION_CALL">
+      <value>
+        <option name="FOREGROUND" value="2563EB" />
+      </value>
+    </option>
+    <option name="DEFAULT_LINE_COMMENT">
+      <value>
+        <option name="FOREGROUND" value="A0A4AA" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_BLOCK_COMMENT">
+      <value>
+        <option name="FOREGROUND" value="A0A4AA" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_DOC_COMMENT">
+      <value>
+        <option name="FOREGROUND" value="A0A4AA" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_NUMBER">
+      <value>
+        <option name="FOREGROUND" value="EA580C" />
+      </value>
+    </option>
+    <option name="DEFAULT_CLASS_NAME">
+      <value>
+        <option name="FOREGROUND" value="CA8A04" />
+      </value>
+    </option>
+    <option name="DEFAULT_INTERFACE_NAME">
+      <value>
+        <option name="FOREGROUND" value="CA8A04" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_CONSTANT">
+      <value>
+        <option name="FOREGROUND" value="EA580C" />
+        <option name="FONT_TYPE" value="1" />
+      </value>
+    </option>
+    <option name="DEFAULT_IDENTIFIER">
+      <value>
+        <option name="FOREGROUND" value="1A1C20" />
+      </value>
+    </option>
+  </attributes>
+</scheme>

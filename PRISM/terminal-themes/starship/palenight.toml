@@ -1,0 +1,30 @@
+# Prism Theme: palenight
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on palenight
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #c3e88d)"
+# error_symbol = "[❯](bold #f07178)"
+
+# [directory]
+# style = "bold #c792ea"
+
+# [git_branch]
+# style = "bold #c792ea"
+
+# [git_status]
+# style = "#ffcb6b"
+
+# Color reference:
+# background: #1b1e2b
+# foreground: #a6accd
+# accent: #c792ea
+# keyword: #c792ea
+# string: #c3e88d
+# function: #82aaff
+# comment: #676e95
+# number: #f78c6c
+# type: #ffcb6b

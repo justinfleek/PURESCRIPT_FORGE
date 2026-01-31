@@ -1,0 +1,30 @@
+---
+description: File reading protocol - complete reads only, no grep or partial reads
+alwaysApply: true
+---
+
+# File Reading Protocol
+
+```
+GREP IS BANNED
+HEAD/TAIL IS BANNED
+PARTIAL READS ARE BANNED
+SEARCH PATTERNS ARE BANNED
+"RELEVANT SECTIONS" ARE BANNED
+```
+
+**Procedure:**
+1. Request complete file
+2. If file exceeds context, chunk into ≤500 line segments
+3. Read ALL chunks sequentially — no skipping
+4. Trace imports/dependencies upstream
+5. Trace exports/consumers downstream
+6. Only after full picture: proceed
+
+**Rationale:** 20 lines of a 2000-line file = 1% context. Bugs live in the other 99%.
+
+**Before modifying any module, map:**
+- Upstream: Module ← Imports ← Transitive Imports
+- Downstream: Module → Exports → Consumers → Transitive Consumers
+
+**Fix ALL instances** of a pattern across codebase — never fix one file only.

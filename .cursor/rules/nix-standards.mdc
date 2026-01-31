@@ -1,0 +1,86 @@
+---
+description: Nix standards - reproducible builds, flake structure, validation
+globs: **/*.nix
+alwaysApply: false
+---
+
+# Nix Standards
+
+## Flake Structure
+
+```nix
+{
+  description = "Project description";
+  
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/...";
+    flake-parts.url = "github:hercules-ci/flake-parts";
+  };
+  
+  outputs = inputs@{ flake-parts, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = [ "x86_64-linux" "aarch64-linux" ];
+      
+      perSystem = { config, pkgs, ... }: {
+        packages = { ... };
+        devShells = { ... };
+        apps = { ... };
+      };
+    };
+}
+```
+
+## Build Requirements
+
+- All dependencies pinned in `flake.lock`
+- No network access during build (except fixed-output)
+- Build outputs are reproducible
+- Use `nix flake check` for verification
+
+## Package Structure
+
+```nix
+haskellPackages.mkDerivation {
+  pname = "package-name";
+  version = "0.1.0";
+  
+  src = ./package-source;
+  
+  libraryHaskellDepends = [ ... ];
+  executableHaskellDepends = [ ... ];
+  testHaskellDepends = [ ... ];
+  
+  # Tests run separately
+  doCheck = false;
+  
+  license = lib.licenses.mit;
+  description = "Package description";
+  mainProgram = "executable-name";
+}
+```
+
+## Validation
+
+- Post-build validation scripts
+- Sanity checks for ML models
+- Type validation for applications
+- Property tests run separately
+
+## Nix Commands
+
+```bash
+# Verify flake
+nix flake check
+
+# Build package
+nix build .#package-name
+
+# Enter dev shell
+nix develop
+
+# Run app
+nix run .#app-name
+
+# Run tests
+nix run .#package-name.tests.test-name
+```

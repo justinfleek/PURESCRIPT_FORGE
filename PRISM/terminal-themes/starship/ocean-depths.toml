@@ -1,0 +1,30 @@
+# Prism Theme: ocean-depths
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on ocean-depths
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #61e8e1)"
+# error_symbol = "[❯](bold #f87171)"
+
+# [directory]
+# style = "bold #61e8e1"
+
+# [git_branch]
+# style = "bold #a78bfa"
+
+# [git_status]
+# style = "#fbbf24"
+
+# Color reference:
+# background: #0a1018
+# foreground: #d0e0f0
+# accent: #61e8e1
+# keyword: #a78bfa
+# string: #61e8e1
+# function: #60a5fa
+# comment: #406080
+# number: #fb923c
+# type: #61e8e1

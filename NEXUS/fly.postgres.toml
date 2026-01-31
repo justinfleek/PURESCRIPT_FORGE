@@ -1,0 +1,84 @@
+# Fly.io PostgreSQL Cluster Configuration
+# Multi-region PostgreSQL with logical replication
+
+app = "nexus-postgres"
+
+[build]
+  image = "flyio/postgres:15"
+
+[env]
+  POSTGRES_USER = "nexus"
+  POSTGRES_DATABASE = "nexus"
+  POSTGRES_PASSWORD = ""  # Set via secrets
+
+[processes]
+  app = "postgres"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 5432
+  processes = ["app"]
+
+  [[services.ports]]
+    port = 5432
+    handlers = ["pg_tls"]
+
+  [[services.tcp_checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "1s"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 2
+  memory_mb = 2048
+
+# Primary region (Washington, D.C.)
+[[vm]]
+  region = "iad"
+  cpu_kind = "shared"
+  cpus = 2
+  memory_mb = 2048
+
+# Replica regions (read replicas)
+[[vm]]
+  region = "lhr"  # London
+  cpu_kind = "shared"
+  cpus = 2
+  memory_mb = 2048
+
+[[vm]]
+  region = "nrt"  # Tokyo
+  cpu_kind = "shared"
+  cpus = 2
+  memory_mb = 2048
+
+[[vm]]
+  region = "sjc"  # San Jose
+  cpu_kind = "shared"
+  cpus = 2
+  memory_mb = 2048
+
+# Volume for persistent data
+[[mounts]]
+  source = "nexus_postgres_data"
+  destination = "/var/lib/postgresql/data"
+
+# PostgreSQL configuration
+[env]
+  POSTGRES_HOST_AUTH_METHOD = "scram-sha-256"
+  POSTGRES_INITDB_ARGS = "--auth-host=scram-sha-256"
+
+# Logical replication configuration
+[env]
+  WAL_LEVEL = "logical"
+  MAX_REPLICATION_SLOTS = "10"
+  MAX_WAL_SENDERS = "10"
+
+# Health checks
+[checks]
+  [checks.postgres]
+    grace_period = "10s"
+    interval = "30s"
+    timeout = "5s"
+    tcp_port = 5432

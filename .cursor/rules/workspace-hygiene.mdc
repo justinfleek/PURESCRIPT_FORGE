@@ -1,0 +1,17 @@
+---
+description: Workspace hygiene - clean artifacts, clear caches after operations
+alwaysApply: true
+---
+
+# Workspace Hygiene
+
+After every operation:
+- Remove generated artifacts not needed for next step
+- Clear test caches (`node_modules/.cache`, `__pycache__`, `.pytest_cache`)
+- Remove temporary files
+- Verify workspace state
+
+Before long-running operations:
+- Check available disk space
+- Estimate artifact size
+- Clean preemptively if needed

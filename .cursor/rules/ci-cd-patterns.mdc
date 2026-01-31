@@ -1,0 +1,87 @@
+---
+description: CI/CD patterns - Nix-based reproducible builds, validation gates, property tests
+alwaysApply: true
+---
+
+# CI/CD Patterns
+
+## Core Principles
+
+```
+REPRODUCIBLE BUILDS
+VALIDATION GATES
+PROPERTY TESTS
+NO FLAKY TESTS
+```
+
+## CI Pipeline Stages
+
+### Stage 1: Build
+```bash
+nix flake check
+nix build .#all-packages
+```
+
+### Stage 2: Type Check
+```bash
+# TypeScript
+npx tsc --noEmit
+
+# Haskell
+cabal build --enable-tests
+```
+
+### Stage 3: Lint
+```bash
+# TypeScript
+npx biome check
+
+# Haskell
+# Built into cabal with -Wall
+```
+
+### Stage 4: Test
+```bash
+# Unit tests
+npm test  # or cabal test
+
+# Property tests
+nix run .#proxy-proptest  # QuickCheck
+
+# Integration tests
+# Run post-build validations
+```
+
+### Stage 5: Validation
+```bash
+# Post-build checks
+nix run .#validate-engine
+nix run .#sanity-check
+```
+
+## CI Requirements
+
+- All stages must pass
+- No flaky tests (deterministic)
+- Builds are reproducible
+- Validation gates prevent bad artifacts
+
+## Failure Handling
+
+- Fail fast on first error
+- Clear error messages with file:line references
+- Root cause analysis required
+- Prevention measures documented
+
+## Example: trtllm-serve-main Pattern
+
+```yaml
+# .github/workflows/ci.yml (conceptual)
+stages:
+  - name: Build
+    run: nix flake check
+  - name: Test
+    run: nix build .#openai-proxy-hs.tests.proxy-proptest
+  - name: Validate
+    run: nix run .#trtllm-validate -- validate-engine ...
+```

@@ -1,0 +1,28 @@
+---
+description: Execution standards - correct and slow over fast and wrong
+alwaysApply: true
+---
+
+# Execution Standards
+
+```
+CORRECT AND SLOW > FAST AND WRONG
+THERE IS NO "QUICK FIX"
+TECHNICAL DEBT IS BANNED
+```
+
+## Banned Phrases
+
+Never say or act on:
+- "Quick fix"
+- "We can clean this up later"
+- "For now, let's just..."
+- "This is simpler" (as justification for shortcuts)
+- "Skip this for now"
+- "Too complex to handle"
+- "Edge case, unlikely"
+
+Every "edge case" gets:
+- Explicit handling
+- Type-level representation
+- Test coverage

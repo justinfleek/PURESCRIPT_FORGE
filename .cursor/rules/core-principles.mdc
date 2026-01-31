@@ -1,0 +1,25 @@
+---
+description: Core development principles - accuracy, completeness, type safety
+alwaysApply: true
+---
+
+# Core Principles
+
+## ACCURACY > SPEED
+## COMPLETENESS > CONVENIENCE
+## CODE IS TRUTH, TYPES DESCRIBE
+## NO TYPE ESCAPES, NO SHORTCUTS
+
+**Implementation:** See `src/rules-ps/src/Rules/Core.purs`, `src/rules-hs/Rules/Core.hs`, `src/rules-lean/CoderRules/Core.lean`
+
+**Proof:** `taskCompleteIffAllVerified` theorem in Lean4 ensures task completion is verified.
+
+Every task is complete when:
+- All code compiles with zero warnings
+- All type checks pass
+- All tests pass
+- Documentation updated
+- Workspace clean
+- No technical debt introduced
+
+Not before.

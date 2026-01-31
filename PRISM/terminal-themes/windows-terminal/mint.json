@@ -1,0 +1,22 @@
+{
+  "name": "Prism Mint",
+  "background": "#EDFDEE",
+  "foreground": "#1B445F",
+  "cursorColor": "#74D2A9",
+  "black": "#1B445F",
+  "red": "#49BFC1",
+  "green": "#A6F2B8",
+  "yellow": "#74D2A9",
+  "blue": "#49BFC1",
+  "purple": "#74D2A9",
+  "cyan": "#A6F2B8",
+  "white": "#EDFDEE",
+  "brightBlack": "#1B445F",
+  "brightRed": "#49BFC1",
+  "brightGreen": "#A6F2B8",
+  "brightYellow": "#74D2A9",
+  "brightBlue": "#49BFC1",
+  "brightPurple": "#74D2A9",
+  "brightCyan": "#A6F2B8",
+  "brightWhite": "#EDFDEE"
+}

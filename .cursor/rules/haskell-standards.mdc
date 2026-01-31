@@ -1,0 +1,80 @@
+---
+description: Haskell coding standards - strict compiler flags, property tests, type safety
+globs: **/*.hs
+alwaysApply: false
+---
+
+# Haskell Standards
+
+## Compiler Flags
+
+```haskell
+ghc-options: -Wall -O2 -threaded -rtsopts "-with-rtsopts=-N"
+```
+
+- `-Wall`: All warnings enabled
+- `-O2`: Optimize for performance
+- `-threaded`: Enable threading
+- `-rtsopts`: Runtime system options
+
+## Language Extensions
+
+Common extensions:
+- `OverloadedStrings`: String literals as Text
+- `RecordWildCards`: Pattern matching on records
+- `LambdaCase`: Lambda expressions
+- `StrictData`: Strict data types
+- `ScopedTypeVariables`: Scoped type variables
+
+## Type Safety
+
+- No `undefined` or `error`
+- No partial functions (`head`, `tail`, `fromJust`)
+- Use `Maybe` or `Either` for optional values
+- Total functions only
+
+## Property Tests
+
+Use QuickCheck for property-based testing:
+
+```haskell
+import Test.QuickCheck
+
+prop_roundTrip :: Text -> Property
+prop_roundTrip t = parseChat (renderChat (fromOpenAI [(t, t)])) === Right (fromOpenAI [(t, t)])
+```
+
+## Module Structure
+
+```haskell
+{-|
+Module      : ModuleName
+Description : Brief description
+License     : MIT
+-}
+module ModuleName where
+
+-- Imports
+import ...
+
+-- Types
+data Type = ...
+
+-- Functions
+function :: Type -> Type
+function = ...
+```
+
+## Error Handling
+
+```haskell
+-- Use Either for recoverable errors
+parseConfig :: Text -> Either String Config
+
+-- Use Maybe for optional values
+lookupConfig :: Key -> Maybe Value
+
+-- Never use error or undefined
+-- BANNED: error "should not happen"
+-- BANNED: undefined
+```

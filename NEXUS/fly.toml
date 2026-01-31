@@ -1,0 +1,102 @@
+# Fly.io Configuration for Nexus Bridge Server
+# Multi-region deployment with PostgreSQL replication
+
+app = "nexus-bridge-server"
+primary_region = "iad"  # Washington, D.C. (primary region)
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  LOG_LEVEL = "info"
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/health"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 8080
+  processes = ["app"]
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [[services.http_checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
+
+# PostgreSQL connection (set via secrets)
+# DATABASE_URL is set via: fly secrets set DATABASE_URL=postgres://...
+
+# Region-specific configuration
+[[vm]]
+  region = "iad"  # Primary region
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
+
+[[vm]]
+  region = "lhr"  # London
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
+
+[[vm]]
+  region = "nrt"  # Tokyo
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
+
+[[vm]]
+  region = "sjc"  # San Jose
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
+
+# Health checks
+[checks]
+  [checks.health]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/health"
+
+# Metrics and monitoring
+[metrics]
+  port = 9091
+  path = "/metrics"
+
+# Scaling configuration
+[scaling]
+  min_instances = 1
+  max_instances = 10
+  target_cpu_percent = 70

@@ -1,0 +1,45 @@
+{
+  "name": "Prism acid-rain",
+  "variables": {
+    "bg": "#040604",
+    "fg": "#d0e0c0"
+  },
+  "globals": {
+    "background": "#040604",
+    "foreground": "#d0e0c0",
+    "caret": "#c6ff00",
+    "selection": "#44475a",
+    "line_highlight": "#0b0d0b"
+  },
+  "rules": [
+    {
+      "scope": "comment",
+      "foreground": "#506040",
+      "font_style": "italic"
+    },
+    {
+      "scope": "keyword",
+      "foreground": "#c6ff00"
+    },
+    {
+      "scope": "string",
+      "foreground": "#c6ff00"
+    },
+    {
+      "scope": "entity.name.function",
+      "foreground": "#00aaff"
+    },
+    {
+      "scope": "constant.numeric",
+      "foreground": "#ffaa00"
+    },
+    {
+      "scope": "entity.name.type, support.type",
+      "foreground": "#c6ff00"
+    },
+    {
+      "scope": "variable",
+      "foreground": "#d0e0c0"
+    }
+  ]
+}
