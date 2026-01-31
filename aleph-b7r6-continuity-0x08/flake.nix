@@ -2,14 +2,32 @@
   description = "// straylight // aleph // continuity project";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    systems.url = "github:nix-systems/default";
-    flake-parts.url = "github:hercules-ci/flake-parts";
-    treefmt-nix.url = "github:numtide/treefmt-nix";
-    ndg.url = "github:feel-co/ndg";
+    # Pin nixpkgs to stable release tag for reproducibility
+    # Using nixos-24.11 (latest stable) instead of unstable
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
 
+    systems.url = "github:nix-systems/default";
+
+    # Pin flake-parts to avoid version conflicts across inputs
+    flake-parts = {
+      url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+    };
+
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    ndg = {
+      url = "github:feel-co/ndg";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # LLVM 19.1.0 - stable release tag (avoid commit pins that can be GC'd)
+    # Using llvmorg-19.1.0 tag for stability and long-term availability
     llvm-project = {
-      url = "github:llvm/llvm-project/bb1f220d534b0f6d80bea36662f5188ff11c2e54";
+      url = "github:llvm/llvm-project/llvmorg-19.1.0";
       flake = false;
     };
 
@@ -41,7 +59,11 @@
 
     # NativeLink - Local Remote Execution for Buck2
     # Provides CAS, scheduler, and worker for build caching
-    nativelink.url = "github:TraceMachina/nativelink";
+    nativelink = {
+      url = "github:TraceMachina/nativelink";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-parts.follows = "flake-parts";
+    };
 
     # nix2gpu - NixOS containers for GPU compute (vast.ai, runpod, fly.io)
     # Uses nimi as PID 1 for modular services
@@ -52,7 +74,8 @@
 
     # Nimi - Tini-like PID 1 for containers and NixOS modular services
     # Used for VM init scripts with proper process supervision
-    # Using fork with nimi-static for microVM support (PR: weyl-ai/nimi#12)
+    # NOTE: Using fork with nimi-static for microVM support
+    # TODO: Upstream PR and switch to tagged release when merged
     nimi = {
       url = "github:b7r6/nimi/add-static-build";
       inputs.nixpkgs.follows = "nixpkgs";
