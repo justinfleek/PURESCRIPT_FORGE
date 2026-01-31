@@ -1048,7 +1048,7 @@
             # Typed Unix build verification
             verify-builds-aleph = {
               type = "app";
-              program = "${pkgs.aleph.ghc.turtle-script {
+              program = "${prelude.ghc.turtle-script {
                 name = "verify-builds-aleph";
                 src = ./scripts/verify-builds-aleph.hs;
                 deps = [ pkgs.nix ];
@@ -1208,13 +1208,13 @@
             };
           }
           # Conditionally add LRE/NativeLink apps
-          (lib.mkIf config.aleph.lre.enable {
+          (lib.mkIf (((config.aleph or {}).lre or { enable = false; }).enable or false) {
             lre-start = {
               type = "app";
               program = "${config.aleph.lre.lre-start}/bin/lre-start";
             };
           })
-          (lib.mkIf config.aleph.nativelink.enable {
+          (lib.mkIf (((config.aleph or {}).nativelink or { enable = false; }).enable or false) {
             nativelink-status = {
               type = "app";
               program = "${config.aleph.nativelink.packages.nativelink-status}/bin/nativelink-status";
@@ -1225,7 +1225,7 @@
             };
           })
           # Container tools (if enabled, Linux only)
-          (lib.mkIf ((config.aleph.container or { enable = false; }).enable && pkgs.stdenv.isLinux) {
+          (lib.mkIf ((((config.aleph or {}).container or { enable = false; }).enable or false) && pkgs.stdenv.isLinux) {
             crane-inspect = {
               type = "app";
               program = "${pkgs.aleph.script.compiled.crane-inspect}/bin/crane-inspect";
@@ -1266,14 +1266,20 @@
           # Firecracker/Isospin tools (if enabled)
           # Note: Container module exposes these via perSystem.packages
           # They'll be merged into config.packages, so we reference them there
-          (lib.mkIf ((config.aleph.container or { enable = false; isospin = { enable = false; }; }).enable && (config.aleph.container or { isospin = { enable = false; }; }).isospin.enable && pkgs.stdenv.isLinux) (lib.optionalAttrs (builtins.hasAttr "isospin-run" config.packages) {
+          (let
+            aleph = config.aleph or {};
+            container = aleph.container or { enable = false; isospin = { enable = false; }; };
+          in lib.mkIf ((container.enable or false) && (container.isospin.enable or false) && pkgs.stdenv.isLinux) (lib.optionalAttrs (builtins.hasAttr "isospin-run" config.packages) {
             isospin-run = {
               type = "app";
               program = lib.getExe config.packages.isospin-run;
             };
           }))
           # Cloud Hypervisor tools (if enabled)
-          (lib.mkIf ((config.aleph.container or { enable = false; cloud-hypervisor = { enable = false; }; }).enable && (config.aleph.container or { cloud-hypervisor = { enable = false; }; }).cloud-hypervisor.enable && pkgs.stdenv.isLinux) (lib.optionalAttrs (builtins.hasAttr "cloud-hypervisor-run" config.packages) {
+          (let
+            aleph = config.aleph or {};
+            container = aleph.container or { enable = false; cloud-hypervisor = { enable = false; }; };
+          in lib.mkIf ((container.enable or false) && (container.cloud-hypervisor.enable or false) && pkgs.stdenv.isLinux) (lib.optionalAttrs (builtins.hasAttr "cloud-hypervisor-run" config.packages) {
             cloud-hypervisor-run = {
               type = "app";
               program = lib.getExe config.packages.cloud-hypervisor-run;
@@ -1284,7 +1290,7 @@
             };
           }))
           # Formatter (if enabled)
-          (lib.mkIf config.aleph.formatter.enable {
+          (lib.mkIf ((config.aleph or { formatter = { enable = false; }; }).formatter.enable or false) {
             formatter = {
               type = "app";
               program = lib.getExe config.treefmt.build;
@@ -1318,7 +1324,7 @@
             };
           }
           # Lint tools (if enabled)
-          (lib.mkIf config.aleph.lint.enable (lib.optionalAttrs (builtins.hasAttr "lint-init" config.packages) {
+          (lib.mkIf ((config.aleph or { lint = { enable = false; }; }).lint.enable or false) (lib.optionalAttrs (builtins.hasAttr "lint-init" config.packages) {
             lint-init = {
               type = "app";
               program = lib.getExe config.packages.lint-init;
