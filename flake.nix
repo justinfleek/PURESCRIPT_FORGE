@@ -111,6 +111,9 @@
         aleph-continuity.modules.flake.shortlist
         aleph-continuity.modules.flake.lre
         aleph-continuity.modules.flake.devshell
+        aleph-continuity.modules.flake.docs
+        aleph-continuity.modules.flake.formatter
+        aleph-continuity.modules.flake.lint
         # nix2gpu must be imported before nativelink (provides perSystem.nix2gpu options)
         inputs.nix2gpu.flakeModule
         aleph-continuity.modules.flake.nativelink

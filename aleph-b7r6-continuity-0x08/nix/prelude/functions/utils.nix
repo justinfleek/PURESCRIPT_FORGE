@@ -570,7 +570,31 @@ rec {
     => "name = \"myapp\"\nversion = \"1.0\"\n"
     ```
   */
-  to-toml = lib.generators.toTOML { };
+  to-toml =
+    if lib.generators ? toTOML then
+      lib.generators.toTOML { }
+    else
+      # Polyfill for older nixpkgs versions that lack toTOML
+      # This is a minimal implementation that handles basic cases
+      let
+        escapeString = s: ''"${builtins.replaceStrings [''"'' "\\"] [''\"'' "\\\\"] s}"'';
+        formatValue = v:
+          if builtins.isString v then escapeString v
+          else if builtins.isInt v || builtins.isFloat v then builtins.toString v
+          else if builtins.isBool v then (if v then "true" else "false")
+          else if builtins.isList v then "[${lib.concatMapStringsSep ", " formatValue v}]"
+          else if builtins.isAttrs v then "{ ${lib.concatStringsSep ", " (lib.mapAttrsToList (k: val: "${k} = ${formatValue val}") v)} }"
+          else builtins.throw "to-toml: unsupported type";
+        formatTopLevel = attrs:
+          let
+            simple = lib.filterAttrs (_: v: !(builtins.isAttrs v) || builtins.isList v) attrs;
+            tables = lib.filterAttrs (_: v: builtins.isAttrs v && !(builtins.isList v)) attrs;
+            simpleLines = lib.mapAttrsToList (k: v: "${k} = ${formatValue v}") simple;
+            tableLines = lib.concatLists (lib.mapAttrsToList (k: v: ["[${k}]"] ++ lib.mapAttrsToList (k2: v2: "${k2} = ${formatValue v2}") v) tables);
+          in
+          lib.concatStringsSep "\n" (simpleLines ++ tableLines) + "\n";
+      in
+      _opts: formatTopLevel;
 
   # ─────────────────────────────────────────────────────────────────────────
   # Assertions
