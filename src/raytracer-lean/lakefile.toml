@@ -1,0 +1,15 @@
+name = "Raytracer"
+version = "0.1.0"
+reservoir = false
+defaultTargets = ["Raytracer"]
+
+[leanOptions]
+pp.unicode.fun = true
+
+[[lean_lib]]
+name = "Raytracer"
+roots = ["Vec3", "Algebra", "ArrayExtra", "NatExtra", "vec"]
+
+[[lean_exe]]
+name = "raytracer"
+root = "Main"

@@ -1,0 +1,27 @@
+name = "Lattice"
+version = "0.1.0"
+reservoir = false
+defaultTargets = ["Lattice"]
+
+[leanOptions]
+pp.unicode.fun = true
+
+[[lean_lib]]
+name = "Lattice"
+globs = ["Lattice", "Lattice.**"]
+
+[[lean_lib]]
+name = "TensorCore"
+globs = ["TensorCore", "TensorCore.**"]
+
+[[lean_lib]]
+name = "Color"
+globs = ["Color", "Color.**"]
+
+[[lean_lib]]
+name = "Interpolation"
+globs = ["Interpolation", "Interpolation.**"]
+
+[[lean_exe]]
+name = "lattice"
+root = "Main"
