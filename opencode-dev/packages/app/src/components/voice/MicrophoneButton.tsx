@@ -25,8 +25,8 @@ export function MicrophoneButton(props: MicrophoneButtonProps) {
       onClick={handleClick}
       disabled={props.disabled || props.isProcessing}
       class="relative"
-      variant={props.isListening ? "destructive" : "default"}
-      size="lg"
+      variant={props.isListening ? "primary" : "secondary"}
+      size="large"
     >
       <Show
         when={props.isListening}
@@ -34,11 +34,11 @@ export function MicrophoneButton(props: MicrophoneButtonProps) {
       >
         <Icon name="mic-off" />
       </Show>
-      <Show when={props.isListening && (props.audioLevel > 0)}>
+      <Show when={props.isListening && props.audioLevel !== undefined && props.audioLevel > 0}>
         <div
           class="absolute inset-0 rounded-full bg-red-500/20 animate-pulse"
           style={{
-            transform: `scale(${1 + props.audioLevel * 0.5})`,
+            transform: `scale(${1 + (props.audioLevel ?? 0) * 0.5})`,
             transition: "transform 0.1s",
           }}
         />

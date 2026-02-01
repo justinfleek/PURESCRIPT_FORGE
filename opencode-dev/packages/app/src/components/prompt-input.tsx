@@ -1,4 +1,5 @@
 import { useFilteredList } from "@opencode-ai/ui/hooks"
+import { useVoice } from "@/hooks/use-voice"
 import {
   createEffect,
   on,
@@ -132,6 +133,22 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
   const command = useCommand()
   const permission = usePermission()
   const language = useLanguage()
+  
+  // Voice input integration
+  const voice = useVoice({
+    onTranscript: (text) => {
+      if (text.trim()) {
+        addPart({ type: "text", content: text, start: 0, end: 0 })
+      }
+    },
+    onError: (error) => {
+      showToast({
+        title: language.t("prompt.voice.error.title") || "Voice Error",
+        description: error,
+      })
+    },
+  })
+  
   let editorRef!: HTMLDivElement
   let fileInputRef!: HTMLInputElement
   let scrollRef!: HTMLDivElement
@@ -2018,6 +2035,26 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                     aria-label={language.t("prompt.action.attachFile")}
                   >
                     <Icon name="photo" class="size-4.5" />
+                  </Button>
+                </Tooltip>
+                <Tooltip 
+                  placement="top" 
+                  value={voice.recording() ? (language.t("prompt.voice.stop") || "Stop recording") : (language.t("prompt.voice.start") || "Voice input")}
+                >
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    classList={{
+                      "size-6": true,
+                      "text-icon-error-base animate-pulse": voice.recording(),
+                      "text-icon-base": !voice.recording() && !voice.processing(),
+                      "text-icon-info-base": voice.processing(),
+                    }}
+                    onClick={() => voice.toggleRecording()}
+                    disabled={voice.processing()}
+                    aria-label={voice.recording() ? "Stop recording" : "Start voice input"}
+                  >
+                    <Icon name={voice.recording() ? "mic-off" : "mic"} class="size-4.5" />
                   </Button>
                 </Tooltip>
               </Show>

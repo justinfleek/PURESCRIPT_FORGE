@@ -224,6 +224,11 @@ export const dict = {
   "prompt.attachment.remove": "Remove attachment",
   "prompt.action.send": "Send",
   "prompt.action.stop": "Stop",
+  
+  "prompt.voice.start": "Voice input",
+  "prompt.voice.stop": "Stop recording",
+  "prompt.voice.processing": "Processing...",
+  "prompt.voice.error.title": "Voice Error",
 
   "prompt.toast.pasteUnsupported.title": "Unsupported paste",
   "prompt.toast.pasteUnsupported.description": "Only images or PDFs can be pasted here.",

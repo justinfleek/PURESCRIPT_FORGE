@@ -152,7 +152,7 @@ export const Terminal = (props: TerminalProps) => {
       }
       ws = socket
 
-      const t = new mod.Terminal({
+      const t = new Term({
         cursorBlink: true,
         cursorStyle: "bar",
         fontSize: 14,
@@ -197,7 +197,7 @@ export const Terminal = (props: TerminalProps) => {
         return false
       }
 
-      t.attachCustomKeyEventHandler((event) => {
+      t.attachCustomKeyEventHandler((event: KeyboardEvent) => {
         const key = event.key.toLowerCase()
 
         if (event.ctrlKey && event.shiftKey && !event.metaKey && key === "c") {
@@ -261,7 +261,7 @@ export const Terminal = (props: TerminalProps) => {
       handleResize = () => fit.fit()
       window.addEventListener("resize", handleResize)
       cleanups.push(() => window.removeEventListener("resize", handleResize))
-      const onResize = t.onResize(async (size) => {
+      const onResize = t.onResize(async (size: { cols: number; rows: number }) => {
         if (socket.readyState === WebSocket.OPEN) {
           await sdk.client.pty
             .update({
@@ -275,13 +275,13 @@ export const Terminal = (props: TerminalProps) => {
         }
       })
       cleanups.push(() => (onResize as unknown as { dispose?: VoidFunction }).dispose?.())
-      const onData = t.onData((data) => {
+      const onData = t.onData((data: string) => {
         if (socket.readyState === WebSocket.OPEN) {
           socket.send(data)
         }
       })
       cleanups.push(() => (onData as unknown as { dispose?: VoidFunction }).dispose?.())
-      const onKey = t.onKey((key) => {
+      const onKey = t.onKey((key: { key: string }) => {
         if (key.key == "Enter") {
           props.onSubmit?.()
         }

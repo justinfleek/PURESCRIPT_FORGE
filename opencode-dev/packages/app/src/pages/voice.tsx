@@ -3,7 +3,7 @@ import { MicrophoneButton } from "@/components/voice/MicrophoneButton";
 import { AudioVisualizer } from "@/components/voice/AudioVisualizer";
 import { TranscriptView, type TranscriptMessage } from "@/components/voice/TranscriptView";
 import { VoiceSelector } from "@/components/voice/VoiceSelector";
-import { sendVoiceMessage, sendTextMessage, listVoices, type VoiceChatResponse } from "@opencode/api/voice";
+import { sendVoiceMessage, sendTextMessage, listVoices, type VoiceChatResponse } from "@/api/voice";
 import { Button } from "@opencode-ai/ui/button";
 import { Icon } from "@opencode-ai/ui/icon";
 import { type Maybe, just, none, isJust, isNone, fromMaybe, mapMaybe } from "@/utils/maybe";
@@ -38,7 +38,7 @@ export default function VoiceChatPage() {
 
   const handleStartRecording = async () => {
     try {
-      setError(none());
+      setError(none<string>());
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
       // Create audio context for visualization (with proper type guard)
@@ -137,7 +137,7 @@ export default function VoiceChatPage() {
 
   const handleVoiceMessage = async (audioBlob: Blob) => {
     setIsProcessing(true);
-    setError(none());
+    setError(none<string>());
     
     try {
       // Add user message placeholder

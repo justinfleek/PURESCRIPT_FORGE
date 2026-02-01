@@ -17,8 +17,8 @@ export function VoiceSelector(props: VoiceSelectorProps) {
       <Button
         onClick={() => setIsOpen(!isOpen())}
         disabled={props.disabled}
-        variant="outline"
-        size="sm"
+        variant="secondary"
+        size="small"
       >
         <Icon name="user" class="mr-2" />
         {props.selectedVoice}
