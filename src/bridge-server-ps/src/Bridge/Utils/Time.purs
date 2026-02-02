@@ -3,6 +3,7 @@
 module Bridge.Utils.Time where
 
 import Prelude
+import Effect (Effect)
 import Data.DateTime (DateTime)
 import Data.Maybe (Maybe(..))
 

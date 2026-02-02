@@ -44,6 +44,30 @@ foreign import data Tracer :: Type
 -- | Opaque Span type
 foreign import data Span :: Type
 
+-- | FFI: Create tracer implementation
+foreign import createTracerImpl :: String -> String -> Effect Tracer
+
+-- | FFI: Start span implementation
+foreign import startSpanImpl :: Tracer -> String -> Maybe SpanContext -> Effect Span
+
+-- | FFI: End span implementation
+foreign import endSpanImpl :: Span -> Effect Unit
+
+-- | FFI: Set attribute implementation
+foreign import setAttributeImpl :: Span -> String -> String -> Effect Unit
+
+-- | FFI: Add event implementation
+foreign import addEventImpl :: Span -> String -> String -> Effect Unit
+
+-- | FFI: Get span context implementation
+foreign import getSpanContextImpl :: Span -> Effect SpanContext
+
+-- | FFI: Inject trace context implementation
+foreign import injectTraceContextImpl :: SpanContext -> Effect (Array { key :: String, value :: String })
+
+-- | FFI: Extract trace context implementation
+foreign import extractTraceContextImpl :: Array { key :: String, value :: String } -> Effect (Maybe SpanContext)
+
 -- | Span context (for propagation)
 type SpanContext =
   { traceId :: String
@@ -59,10 +83,7 @@ type SpanContext =
 -- | - `serviceVersion`: Service version
 -- | **Returns:** Tracer instance
 createTracer :: String -> String -> Effect Tracer
-createTracer serviceName serviceVersion = do
-  createTracerImpl serviceName serviceVersion
-  where
-    foreign import createTracerImpl :: String -> String -> Effect Tracer
+createTracer serviceName serviceVersion = createTracerImpl serviceName serviceVersion
 
 -- | Start span
 -- |
@@ -73,10 +94,7 @@ createTracer serviceName serviceVersion = do
 -- | - `parentContext`: Optional parent span context
 -- | **Returns:** Span instance
 startSpan :: Tracer -> String -> Maybe SpanContext -> Effect Span
-startSpan tracer spanName parentContext = do
-  startSpanImpl tracer spanName parentContext
-  where
-    foreign import startSpanImpl :: Tracer -> String -> Maybe SpanContext -> Effect Span
+startSpan tracer spanName parentContext = startSpanImpl tracer spanName parentContext
 
 -- | End span
 -- |
@@ -85,10 +103,7 @@ startSpan tracer spanName parentContext = do
 -- | - `span`: Span instance
 -- | **Side Effects:** Records span to trace exporter
 endSpan :: Span -> Effect Unit
-endSpan span = do
-  endSpanImpl span
-  where
-    foreign import endSpanImpl :: Span -> Effect Unit
+endSpan = endSpanImpl
 
 -- | Set span attribute
 -- |
@@ -98,10 +113,7 @@ endSpan span = do
 -- | - `key`: Attribute key
 -- | - `value`: Attribute value (string)
 setAttribute :: Span -> String -> String -> Effect Unit
-setAttribute span key value = do
-  setAttributeImpl span key value
-  where
-    foreign import setAttributeImpl :: Span -> String -> String -> Effect Unit
+setAttribute = setAttributeImpl
 
 -- | Add span event
 -- |
@@ -111,10 +123,7 @@ setAttribute span key value = do
 -- | - `eventName`: Event name
 -- | - `attributes`: Event attributes (JSON string)
 addEvent :: Span -> String -> String -> Effect Unit
-addEvent span eventName attributes = do
-  addEventImpl span eventName attributes
-  where
-    foreign import addEventImpl :: Span -> String -> String -> Effect Unit
+addEvent = addEventImpl
 
 -- | Get span context
 -- |
@@ -123,10 +132,7 @@ addEvent span eventName attributes = do
 -- | - `span`: Span instance
 -- | **Returns:** Span context
 getSpanContext :: Span -> Effect SpanContext
-getSpanContext span = do
-  getSpanContextImpl span
-  where
-    foreign import getSpanContextImpl :: Span -> Effect SpanContext
+getSpanContext = getSpanContextImpl
 
 -- | Inject trace context into headers
 -- |
@@ -135,10 +141,7 @@ getSpanContext span = do
 -- | - `spanContext`: Span context
 -- | **Returns:** Headers map (key -> value)
 injectTraceContext :: SpanContext -> Effect (Array { key :: String, value :: String })
-injectTraceContext spanContext = do
-  injectTraceContextImpl spanContext
-  where
-    foreign import injectTraceContextImpl :: SpanContext -> Effect (Array { key :: String, value :: String })
+injectTraceContext = injectTraceContextImpl
 
 -- | Extract trace context from headers
 -- |
@@ -147,8 +150,4 @@ injectTraceContext spanContext = do
 -- | - `headers`: HTTP headers
 -- | **Returns:** Maybe span context
 extractTraceContext :: Array { key :: String, value :: String } -> Effect (Maybe SpanContext)
-extractTraceContext headers = do
-  result <- extractTraceContextImpl headers
-  pure result
-  where
-    foreign import extractTraceContextImpl :: Array { key :: String, value :: String } -> Effect (Maybe SpanContext)
+extractTraceContext = extractTraceContextImpl

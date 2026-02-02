@@ -48,7 +48,7 @@ import Data.Maybe (Maybe(..))
 import Bridge.State.Store (StateStore)
 import Bridge.FFI.Node.Pino as Pino
 import Bridge.FFI.Node.Fetch as Fetch
-import Bridge.Venice.RateLimiter (RateLimiter, createRateLimiter, acquireRateLimit, updateFromResponse)
+import Bridge.Venice.RateLimiter (RateLimiter, createRateLimiter, updateFromResponse)
 
 -- | Opaque Venice Client type
 foreign import data VeniceClient :: Type

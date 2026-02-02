@@ -37,14 +37,25 @@ module Bridge.Auth.RateLimit where
 import Prelude
 import Effect (Effect)
 import Effect.Aff (Aff)
+import Effect.Class (liftEffect)
 import Effect.Ref (Ref, new, read, write, modify)
 import Data.Either (Either(..))
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.DateTime (DateTime)
 import Data.DateTime.Instant (Instant)
+import Data.Tuple (Tuple(..))
 import Bridge.FFI.Node.Pino (Logger)
+
+-- | FFI: Check rate limit implementation
+foreign import checkRateLimitImpl :: String -> String -> RateLimiter -> Effect (Either String RateLimitResult)
+
+-- | FFI: Reset rate limit implementation
+foreign import resetRateLimitImpl :: String -> String -> RateLimiter -> Effect (Either String Unit)
+
+-- | FFI: Get rate limit status implementation
+foreign import getRateLimitStatusImpl :: String -> String -> RateLimiter -> Effect RateLimitResult
 
 -- | Rate limit configuration
 type RateLimitConfig =
@@ -107,10 +118,7 @@ createRateLimiter configs logger = do
 -- | **Returns:** Either error or rate limit result
 checkRateLimit :: String -> String -> RateLimiter -> Aff (Either String RateLimitResult)
 checkRateLimit userId operation rateLimiter = do
-  result <- liftEffect $ checkRateLimitImpl userId operation rateLimiter
-  pure result
-  where
-    foreign import checkRateLimitImpl :: String -> String -> RateLimiter -> Effect (Either String RateLimitResult)
+  liftEffect $ checkRateLimitImpl userId operation rateLimiter
 
 -- | Reset rate limit for user
 -- |
@@ -121,11 +129,8 @@ checkRateLimit userId operation rateLimiter = do
 -- | - `rateLimiter`: Rate limiter instance
 -- | **Returns:** Success or error
 resetRateLimit :: String -> String -> RateLimiter -> Effect (Either String Unit)
-resetRateLimit userId operation rateLimiter = do
-  result <- resetRateLimitImpl userId operation rateLimiter
-  pure result
-  where
-    foreign import resetRateLimitImpl :: String -> String -> RateLimiter -> Effect (Either String Unit)
+resetRateLimit userId operation rateLimiter =
+  resetRateLimitImpl userId operation rateLimiter
 
 -- | Get rate limit status
 -- |
@@ -136,8 +141,5 @@ resetRateLimit userId operation rateLimiter = do
 -- | - `rateLimiter`: Rate limiter instance
 -- | **Returns:** Rate limit result
 getRateLimitStatus :: String -> String -> RateLimiter -> Effect RateLimitResult
-getRateLimitStatus userId operation rateLimiter = do
-  status <- getRateLimitStatusImpl userId operation rateLimiter
-  pure status
-  where
-    foreign import getRateLimitStatusImpl :: String -> String -> RateLimiter -> Effect RateLimitResult
+getRateLimitStatus userId operation rateLimiter =
+  getRateLimitStatusImpl userId operation rateLimiter

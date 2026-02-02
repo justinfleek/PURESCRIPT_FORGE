@@ -31,7 +31,33 @@ import Prelude
 import Effect (Effect)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
-import Bridge.Error.Taxonomy (BridgeError, ValidationError(..), MISSING_FIELD, VALUE_OUT_OF_RANGE, invalidJson, missingField, createError, FixAndRetry)
+import Bridge.Error.Taxonomy (BridgeError, ErrorCategory(..), RecoveryStrategy(..), valueOutOfRangeCode, invalidJson, missingField, createError)
+
+-- | FFI: Check if string matches pattern
+foreign import matchesPattern :: String -> String -> Boolean
+
+-- | FFI: Get string length
+foreign import length :: String -> Int
+
+-- | FFI: Check if number is integer
+foreign import isInteger :: Number -> Boolean
+
+-- | FFI: Sanitize string
+foreign import sanitizeImpl :: String -> String
+
+-- | FFI: Check if JSON is valid
+foreign import isValidJson :: String -> Boolean
+
+-- | FFI: Check if email is valid
+foreign import isValidEmail :: String -> Boolean
+
+-- | FFI: Check if URL is valid
+foreign import isValidUrl :: String -> Boolean
+
+-- | Create validation error helper
+createValidationError :: String -> String -> BridgeError
+createValidationError message details =
+  createError ValidationError valueOutOfRangeCode message message false FixAndRetry (Just details)
 
 -- | String validation options
 type StringValidationOptions =
@@ -56,43 +82,27 @@ type NumberValidationOptions =
 -- | - `options`: Validation options
 -- | **Returns:** Either error or validated string
 validateString :: String -> StringValidationOptions -> Either BridgeError String
-validateString value options = do
+validateString value options =
   -- Check empty
   if not options.allowEmpty && value == "" then
     Left (missingField "value")
-  else
-    pure ()
-  
   -- Check min length
-  case options.minLength of
-    Just minLen -> if length value < minLen then
+  else case options.minLength of
+    Just minLen | length value < minLen ->
       Left (createValidationError "String too short" ("Minimum length: " <> show minLen))
-    else
-      pure ()
-    Nothing -> pure ()
-  
-  -- Check max length
-  case options.maxLength of
-    Just maxLen -> if length value > maxLen then
-      Left (createValidationError "String too long" ("Maximum length: " <> show maxLen))
-    else
-      pure ()
-    Nothing -> pure ()
-  
-  -- Check pattern
-  case options.pattern of
-    Just pattern -> if matchesPattern value pattern then
-      pure value
-    else
-      Left (createValidationError "String does not match pattern" pattern)
-    Nothing -> pure value
-  where
-    foreign import matchesPattern :: String -> String -> Boolean
-    foreign import length :: String -> Int
-    
-    createValidationError :: String -> String -> BridgeError
-    createValidationError message details =
-      createError ValidationError VALUE_OUT_OF_RANGE message message false FixAndRetry (Just details)
+    _ ->
+      -- Check max length
+      case options.maxLength of
+        Just maxLen | length value > maxLen ->
+          Left (createValidationError "String too long" ("Maximum length: " <> show maxLen))
+        _ ->
+          -- Check pattern
+          case options.pattern of
+            Just pat -> if matchesPattern value pat then
+              Right value
+            else
+              Left (createValidationError "String does not match pattern" pat)
+            Nothing -> Right value
 
 -- | Validate number
 -- |
@@ -102,34 +112,20 @@ validateString value options = do
 -- | - `options`: Validation options
 -- | **Returns:** Either error or validated number
 validateNumber :: Number -> NumberValidationOptions -> Either BridgeError Number
-validateNumber value options = do
+validateNumber value options =
   -- Check if integer required
   if options.integer && not (isInteger value) then
     Left (createValidationError "Number must be integer" (show value))
-  else
-    pure ()
-  
   -- Check min
-  case options.min of
-    Just minVal -> if value < minVal then
+  else case options.min of
+    Just minVal | value < minVal ->
       Left (createValidationError "Number too small" ("Minimum: " <> show minVal))
-    else
-      pure ()
-    Nothing -> pure ()
-  
-  -- Check max
-  case options.max of
-    Just maxVal -> if value > maxVal then
-      Left (createValidationError "Number too large" ("Maximum: " <> show maxVal))
-    else
-      pure value
-    Nothing -> pure value
-  where
-    foreign import isInteger :: Number -> Boolean
-    
-    createValidationError :: String -> String -> BridgeError
-    createValidationError message details =
-      createError ValidationError VALUE_OUT_OF_RANGE message message false FixAndRetry (Just details)
+    _ ->
+      -- Check max
+      case options.max of
+        Just maxVal | value > maxVal ->
+          Left (createValidationError "Number too large" ("Maximum: " <> show maxVal))
+        _ -> Right value
 
 -- | Sanitize string
 -- |
@@ -138,10 +134,7 @@ validateNumber value options = do
 -- | - `value`: String to sanitize
 -- | **Returns:** Sanitized string
 sanitizeString :: String -> String
-sanitizeString value = do
-  sanitizeImpl value
-  where
-    foreign import sanitizeImpl :: String -> String
+sanitizeString = sanitizeImpl
 
 -- | Validate JSON
 -- |
@@ -151,13 +144,11 @@ sanitizeString value = do
 -- | - `schema`: JSON schema (simplified - would use JSON Schema in production)
 -- | **Returns:** Either error or validated JSON
 validateJson :: String -> String -> Either BridgeError String
-validateJson json schema = do
+validateJson json _schema =
   if isValidJson json then
     Right json
   else
     Left (invalidJson "Invalid JSON format")
-  where
-    foreign import isValidJson :: String -> Boolean
 
 -- | Validate email
 -- |
@@ -166,17 +157,11 @@ validateJson json schema = do
 -- | - `email`: Email string
 -- | **Returns:** Either error or validated email
 validateEmail :: String -> Either BridgeError String
-validateEmail email = do
+validateEmail email =
   if isValidEmail email then
     Right email
   else
     Left (createValidationError "Invalid email format" email)
-  where
-    foreign import isValidEmail :: String -> Boolean
-    
-    createValidationError :: String -> String -> BridgeError
-    createValidationError message details =
-      createError ValidationError VALUE_OUT_OF_RANGE message message false FixAndRetry (Just details)
 
 -- | Validate URL
 -- |
@@ -185,14 +170,8 @@ validateEmail email = do
 -- | - `url`: URL string
 -- | **Returns:** Either error or validated URL
 validateUrl :: String -> Either BridgeError String
-validateUrl url = do
+validateUrl url =
   if isValidUrl url then
     Right url
   else
     Left (createValidationError "Invalid URL format" url)
-  where
-    foreign import isValidUrl :: String -> Boolean
-    
-    createValidationError :: String -> String -> BridgeError
-    createValidationError message details =
-      createError ValidationError VALUE_OUT_OF_RANGE message message false FixAndRetry (Just details)

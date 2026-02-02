@@ -7,7 +7,9 @@ import Prelude
 import Data.Generic.Rep (class Generic)
 import Data.Show.Generic (genericShow)
 import Data.Maybe (Maybe)
+import Data.Either (Either(..))
 import Data.Argonaut (class EncodeJson, class DecodeJson, encodeJson, decodeJson, Json, (.:), (.:?))
+import Data.Argonaut.Decode.Error (JsonDecodeError(..))
 
 -- | Message role
 data MessageRole = User | Assistant
@@ -30,7 +32,7 @@ instance decodeJsonMessageRole :: DecodeJson MessageRole where
     case str of
       "user" -> pure User
       "assistant" -> pure Assistant
-      _ -> Left "Invalid message role"
+      _ -> Left (UnexpectedValue json)
 
 -- | Message part type
 data MessagePartType = Text | Code | Diff | Bash | Error | Markdown
@@ -43,17 +45,11 @@ instance showMessagePartType :: Show MessagePartType where
 
 -- | Message part
 type MessagePart =
-  { type :: MessagePartType
+  { partType :: MessagePartType
   , content :: String
   , language :: Maybe String
   , path :: Maybe String
   }
-
-derive instance genericMessagePart :: Generic MessagePart _
-derive instance eqMessagePart :: Eq MessagePart
-
-instance showMessagePart :: Show MessagePart where
-  show = genericShow
 
 -- | Message time metadata
 type MessageTime =
@@ -66,13 +62,8 @@ type TokenUsage =
   { input :: Int
   , output :: Int
   , reasoning :: Int
-  , cache :: CacheUsage
-  }
-
--- | Cache usage
-type CacheUsage =
-  { read :: Int
-  , write :: Int
+  , cacheRead :: Int
+  , cacheWrite :: Int
   }
 
 -- | Assistant metadata
@@ -80,32 +71,22 @@ type AssistantMetadata =
   { system :: Array String
   , modelID :: String
   , providerID :: String
-  , path :: PathInfo
+  , cwd :: String
+  , root :: String
   , cost :: Number
   , summary :: Maybe Boolean
   , tokens :: TokenUsage
-  }
-
--- | Path information
-type PathInfo =
-  { cwd :: String
-  , root :: String
   }
 
 -- | Tool execution metadata
 type ToolMetadata =
   { title :: String
   , snapshot :: Maybe String
-  , time :: ToolTime
+  , timeStart :: Number
+  , timeEnd :: Number
   }
 
--- | Tool execution time
-type ToolTime =
-  { start :: Number
-  , end :: Number
-  }
-
--- | Error types (simplified - would expand based on actual error types)
+-- | Error types (simplified)
 data MessageError = AuthError String | UnknownError String | OutputLengthError String
 
 derive instance genericMessageError :: Generic MessageError _
@@ -116,11 +97,10 @@ instance showMessageError :: Show MessageError where
 
 -- | Message metadata
 type MessageMetadata =
-  { time :: MessageTime
-  , error :: Maybe MessageError
+  { created :: Number
+  , completed :: Maybe Number
+  , error :: Maybe String
   , sessionID :: String
-  , tool :: Maybe (Record String ToolMetadata)
-  , assistant :: Maybe AssistantMetadata
   , snapshot :: Maybe String
   }
 
@@ -131,26 +111,3 @@ type MessageInfo =
   , parts :: Array MessagePart
   , metadata :: MessageMetadata
   }
-
-derive instance genericMessageInfo :: Generic MessageInfo _
-derive instance eqMessageInfo :: Eq MessageInfo
-
-instance showMessageInfo :: Show MessageInfo where
-  show = genericShow
-
-instance encodeJsonMessageInfo :: EncodeJson MessageInfo where
-  encodeJson m = encodeJson
-    { id: m.id
-    , role: m.role
-    , parts: m.parts
-    , metadata: m.metadata
-    }
-
-instance decodeJsonMessageInfo :: DecodeJson MessageInfo where
-  decodeJson json = do
-    obj <- decodeJson json
-    id <- obj .: "id"
-    role <- obj .: "role"
-    parts <- obj .: "parts"
-    metadata <- obj .: "metadata"
-    pure { id, role, parts, metadata }

@@ -42,7 +42,12 @@ import Data.Maybe (Maybe(..))
 import Bridge.FFI.Node.WebSocket as WS
 import Bridge.FFI.Node.Pino as Pino
 import Bridge.State.Store (StateStore)
-import Bridge.FFI.Node.Http (HttpServer)
+
+-- | Re-export HttpServer from WebSocket module
+type HttpServer = WS.HttpServer
+
+-- | FFI: Handle incoming message
+foreign import handleMessage :: Pino.Logger -> StateStore -> String -> WS.WebSocketConnection -> Effect Unit
 
 -- | Client connection
 type ClientConnection =
@@ -120,5 +125,3 @@ createManager httpServer store logger = do
       Pino.error logger ("WebSocket error: " <> error)
   
   pure { server: wss, clients, store, logger }
-  where
-    foreign import handleMessage :: Pino.Logger -> StateStore -> String -> WS.WebSocketConnection -> Effect Unit

@@ -35,13 +35,17 @@ module Bridge.Error.Retry where
 
 import Prelude
 import Effect (Effect)
-import Effect.Aff (Aff, delay, Milliseconds(..), liftEffect)
+import Effect.Aff (Aff, delay, Milliseconds(..))
+import Effect.Class (liftEffect)
 import Effect.Random (random)
 import Data.Either (Either(..))
 import Data.Int (toNumber)
 import Bridge.Error.Taxonomy (BridgeError, isRetryable)
 import Bridge.FFI.Node.Pino (Logger, info)
 import Bridge.FFI.Node.Pino as Pino
+
+-- | FFI: Random range
+foreign import randomRange :: Int -> Int -> Effect Int
 
 -- | Retry configuration
 type RetryConfig =
@@ -76,14 +80,13 @@ type RetryAttempt a =
 -- | **Returns:** Delay in milliseconds
 calculateBackoff :: Int -> RetryConfig -> Aff Int
 calculateBackoff attempt config = do
-  let baseDelay = config.baseDelay * (2 `pow` attempt)
+  let baseDelay = config.baseDelay * (pow 2 attempt)
   let cappedDelay = min baseDelay config.maxDelay
   jitterAmount <- liftEffect $ randomRange 0 config.jitter
   pure (cappedDelay + jitterAmount)
   where
-    foreign import randomRange :: Int -> Int -> Effect Int
     pow :: Int -> Int -> Int
-    pow base exp = if exp <= 0 then 1 else base * (pow base (exp - 1))
+    pow base exp = if exp <= 0 then 1 else base * pow base (exp - 1)
 
 -- | Retry operation with exponential backoff
 -- |

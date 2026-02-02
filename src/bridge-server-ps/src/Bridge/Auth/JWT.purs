@@ -44,17 +44,32 @@ module Bridge.Auth.JWT where
 
 import Prelude
 import Effect (Effect)
-import Effect.Aff (Aff, liftEffect, makeAff, nonCanceler)
+import Effect.Aff (Aff, makeAff, nonCanceler)
+import Effect.Class (liftEffect)
 import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Argonaut (Json, JsonDecodeError, decodeJson, encodeJson, (.?), (:=), (~>))
+import Data.Argonaut (Json, JsonDecodeError, decodeJson, encodeJson, (:=), (~>))
 import Data.Argonaut as A
 import Data.DateTime (DateTime)
 import Data.DateTime.Instant (Instant, instant, toDateTime)
 import Data.Time.Duration (Seconds(..))
 import Data.Newtype (unwrap)
+import Data.Maybe (fromMaybe) as M
+
 import Bridge.FFI.Node.Pino (Logger)
+
+-- | FFI: Generate JWT token implementation
+foreign import generateTokenImpl :: TokenOptions -> EffectFnAff (Either String String)
+
+-- | FFI: Validate JWT token implementation
+foreign import validateTokenImpl :: String -> EffectFnAff TokenValidationResult
+
+-- | FFI: Decode JWT token implementation (without validation)
+foreign import decodeTokenImpl :: String -> Either String Claims
+
+-- | FFI: Get current Unix timestamp
+foreign import getCurrentUnixTime :: Effect Int
 
 -- | JWT Claims - Token payload
 -- |
@@ -101,11 +116,9 @@ type TokenValidationResult =
 -- | token <- generateToken { userId: "user-123", roles: ["user"], expiresIn: Nothing } logger
 -- | ```
 generateToken :: TokenOptions -> Logger -> Aff (Either String String)
-generateToken options logger = do
+generateToken options _logger = do
   result <- fromEffectFnAff $ generateTokenImpl options
   pure result
-  where
-    foreign import generateTokenImpl :: TokenOptions -> EffectFnAff (Either String String)
 
 -- | Validate JWT token
 -- |
@@ -124,15 +137,13 @@ generateToken options logger = do
 -- |   Left err -> -- Token invalid: err
 -- | ```
 validateToken :: String -> Logger -> Aff (Either String Claims)
-validateToken token logger = do
+validateToken token _logger = do
   result <- fromEffectFnAff $ validateTokenImpl token
   case result.valid of
     true -> case result.claims of
       Just claims -> pure (Right claims)
       Nothing -> pure (Left "Token validation failed: no claims")
     false -> pure (Left (result.error # fromMaybe "Token validation failed"))
-  where
-    foreign import validateTokenImpl :: String -> EffectFnAff TokenValidationResult
 
 -- | Decode JWT token (without validation)
 -- |
@@ -143,8 +154,6 @@ validateToken token logger = do
 -- | **Returns:** Either error or decoded claims
 decodeToken :: String -> Either String Claims
 decodeToken token = decodeTokenImpl token
-  where
-    foreign import decodeTokenImpl :: String -> Either String Claims
 
 -- | Get token expiration time
 -- |
@@ -162,30 +171,32 @@ getTokenExpiration token = do
 -- | **Purpose:** Determines if token has passed its expiration time.
 -- | **Parameters:**
 -- | - `token`: JWT token string
--- | **Returns:** Either error or boolean (true if expired)
-isTokenExpired :: String -> Either String Boolean
+-- | **Returns:** Aff with Either error or boolean (true if expired)
+isTokenExpired :: String -> Aff (Either String Boolean)
 isTokenExpired token = do
-  exp <- getTokenExpiration token
-  now <- liftEffect $ getCurrentUnixTime
-  pure (exp < now)
-  where
-    foreign import getCurrentUnixTime :: Effect Int
+  case getTokenExpiration token of
+    Left err -> pure (Left err)
+    Right exp -> do
+      now <- liftEffect getCurrentUnixTime
+      pure (Right (exp < now))
 
--- | Claims JSON codec
-instance claimsJson :: A.EncodeJson Claims where
-  encodeJson claims =
-    "sub" := claims.sub
-    ~> "roles" := claims.roles
-    ~> "exp" := claims.exp
-    ~> "iat" := claims.iat
-    ~> "jti" := claims.jti
+-- | Encode Claims to JSON
+encodeClaims :: Claims -> Json
+encodeClaims claims =
+  "sub" := claims.sub
+  ~> "roles" := claims.roles
+  ~> "exp" := claims.exp
+  ~> "iat" := claims.iat
+  ~> "jti" := claims.jti
+  ~> A.jsonEmptyObject
 
-instance claimsJsonDecode :: A.DecodeJson Claims where
-  decodeJson json = do
-    obj <- A.decodeJson json
-    sub <- obj .? "sub"
-    roles <- obj .? "roles"
-    exp <- obj .? "exp"
-    iat <- obj .? "iat"
-    jti <- obj .? "jti"
-    pure { sub, roles, exp, iat, jti }
+-- | Decode Claims from JSON
+decodeClaims :: Json -> Either A.JsonDecodeError Claims
+decodeClaims json = do
+  obj <- A.decodeJson json
+  sub <- A.getField obj "sub"
+  roles <- A.getField obj "roles"
+  exp <- A.getField obj "exp"
+  iat <- A.getField obj "iat"
+  jti <- A.getField obj "jti"
+  pure { sub, roles, exp, iat, jti }

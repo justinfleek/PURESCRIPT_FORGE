@@ -7,6 +7,7 @@ import Prelude
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Data.Either (Either(..))
+import Data.Maybe (Maybe)
 import Bridge.FFI.OpenCode.Plugin (PluginInput, Hooks, Event)
 import Bridge.FFI.WebSocket.Client (BridgeClient, createClient, connect, sendEvent, sendMessage, sendToolExecution, sendConfig)
 

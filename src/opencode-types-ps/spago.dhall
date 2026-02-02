@@ -5,8 +5,9 @@
   , "aff"
   , "argonaut"
   , "argonaut-codecs"
-  , "generics-rep"
   , "maybe"
+  , "either"
+  , "foreign-object"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs" ]

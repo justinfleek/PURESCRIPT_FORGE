@@ -1,10 +1,10 @@
 // Session Management FFI - Database-backed session storage
 // Production-grade session lifecycle management
 
-const crypto = require('crypto');
+// Removed: require('crypto')
 
 // Create new session
-exports.createSessionImpl = function(options) {
+export const createSessionImpl = function(options) {
   return function(db) {
     return function(logger) {
       return function(onError, onSuccess) {
@@ -51,7 +51,7 @@ exports.createSessionImpl = function(options) {
 };
 
 // Validate session
-exports.validateSessionImpl = function(sessionId) {
+export const validateSessionImpl = function(sessionId) {
   return function(db) {
     return function(logger) {
       return function(onError, onSuccess) {
@@ -68,7 +68,7 @@ exports.validateSessionImpl = function(sessionId) {
 };
 
 // Refresh session
-exports.refreshSessionImpl = function(refreshToken) {
+export const refreshSessionImpl = function(refreshToken) {
   return function(db) {
     return function(logger) {
       return function(onError, onSuccess) {
@@ -85,7 +85,7 @@ exports.refreshSessionImpl = function(refreshToken) {
 };
 
 // Invalidate session
-exports.invalidateSessionImpl = function(sessionId) {
+export const invalidateSessionImpl = function(sessionId) {
   return function(db) {
     return function(logger) {
       return function(onError, onSuccess) {
@@ -102,7 +102,7 @@ exports.invalidateSessionImpl = function(sessionId) {
 };
 
 // Update session activity
-exports.updateSessionActivityImpl = function(sessionId) {
+export const updateSessionActivityImpl = function(sessionId) {
   return function(db) {
     return function(onError, onSuccess) {
       try {
@@ -117,7 +117,7 @@ exports.updateSessionActivityImpl = function(sessionId) {
 };
 
 // Get user sessions
-exports.getUserSessionsImpl = function(userId) {
+export const getUserSessionsImpl = function(userId) {
   return function(db) {
     return function(onError, onSuccess) {
       try {
@@ -132,7 +132,7 @@ exports.getUserSessionsImpl = function(userId) {
 };
 
 // Cleanup expired sessions
-exports.cleanupExpiredSessionsImpl = function(db) {
+export const cleanupExpiredSessionsImpl = function(db) {
   return function(logger) {
     return function(onError, onSuccess) {
       try {

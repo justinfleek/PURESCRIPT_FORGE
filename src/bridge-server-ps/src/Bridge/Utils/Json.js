@@ -1,7 +1,7 @@
 // JSON Utilities FFI Implementation
-"use strict";
 
-exports.parseJson = function(jsonStr) {
+
+export const parseJson = function(jsonStr) {
   return function() {
     try {
       var parsed = JSON.parse(jsonStr);
@@ -13,13 +13,13 @@ exports.parseJson = function(jsonStr) {
   };
 };
 
-exports.hasField = function(obj) {
+export const hasField = function(obj) {
   return function(field) {
     return obj && typeof obj === "object" && field in obj;
   };
 };
 
-exports.getField = function(obj) {
+export const getField = function(obj) {
   return function(field) {
     if (obj && typeof obj === "object" && field in obj) {
       var value = obj[field];
@@ -29,7 +29,7 @@ exports.getField = function(obj) {
   };
 };
 
-exports.foldl = function(f) {
+export const foldl = function(f) {
   return function(initial) {
     return function(arr) {
       var result = initial;

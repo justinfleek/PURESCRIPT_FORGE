@@ -2,7 +2,7 @@
 // Production-grade JWT generation and validation
 
 const { SignJWT, jwtVerify } = require('jose');
-const crypto = require('crypto');
+// Removed: require('crypto')
 
 // Get JWT secret from environment (or generate for development)
 function getSecret() {
@@ -19,7 +19,7 @@ function getSecret() {
 }
 
 // Generate JWT token (EffectFnAff for PureScript Aff)
-exports.generateTokenImpl = function(options) {
+export const generateTokenImpl = function(options) {
   return function(onError, onSuccess) {
     try {
       const secret = getSecret();
@@ -51,7 +51,7 @@ exports.generateTokenImpl = function(options) {
 };
 
 // Validate JWT token (EffectFnAff for PureScript Aff)
-exports.validateTokenImpl = function(token) {
+export const validateTokenImpl = function(token) {
   return function(onError, onSuccess) {
     try {
       const secret = getSecret();
@@ -89,7 +89,7 @@ exports.validateTokenImpl = function(token) {
 };
 
 // Decode token without validation (for debugging)
-exports.decodeTokenImpl = function(token) {
+export const decodeTokenImpl = function(token) {
   return function() {
     try {
       const parts = token.split('.');
@@ -115,6 +115,6 @@ exports.decodeTokenImpl = function(token) {
 };
 
 // Get current Unix time
-exports.getCurrentUnixTime = function() {
+export const getCurrentUnixTime = function() {
   return Math.floor(Date.now() / 1000);
 };

@@ -1,6 +1,5 @@
 -- | PureScript type definitions for OpenCode Provider types
 -- | Phase 2: Type Safety Layer
--- | Mirrors TypeScript/Zod types from opencode-dev/packages/opencode/src/provider/
 module Opencode.Types.Provider where
 
 import Prelude
@@ -22,17 +21,6 @@ type ApiInfo =
   , npm :: String
   }
 
--- | Model capabilities
-type ModelCapabilities =
-  { temperature :: Boolean
-  , reasoning :: Boolean
-  , attachment :: Boolean
-  , toolcall :: Boolean
-  , input :: InputCapabilities
-  , output :: OutputCapabilities
-  , interleaved :: InterleavedCapability
-  }
-
 -- | Input capabilities
 type InputCapabilities =
   { text :: Boolean
@@ -51,23 +39,15 @@ type OutputCapabilities =
   , pdf :: Boolean
   }
 
--- | Interleaved capability (boolean or object)
-data InterleavedCapability
-  = InterleavedBoolean Boolean
-  | InterleavedObject { field :: String }  -- "reasoning_content" | "reasoning_details"
-
-derive instance genericInterleavedCapability :: Generic InterleavedCapability _
-derive instance eqInterleavedCapability :: Eq InterleavedCapability
-
-instance showInterleavedCapability :: Show InterleavedCapability where
-  show = genericShow
-
--- | Model cost information
-type ModelCost =
-  { input :: Number
-  , output :: Number
-  , cache :: CacheCost
-  , experimentalOver200K :: Maybe ExperimentalCost
+-- | Model capabilities
+type ModelCapabilities =
+  { temperature :: Boolean
+  , reasoning :: Boolean
+  , attachment :: Boolean
+  , toolcall :: Boolean
+  , inputText :: Boolean
+  , inputImage :: Boolean
+  , outputText :: Boolean
   }
 
 -- | Cache cost
@@ -76,11 +56,12 @@ type CacheCost =
   , write :: Number
   }
 
--- | Experimental cost (over 200K tokens)
-type ExperimentalCost =
+-- | Model cost information
+type ModelCost =
   { input :: Number
   , output :: Number
-  , cache :: CacheCost
+  , cacheRead :: Number
+  , cacheWrite :: Number
   }
 
 -- | Model limits
@@ -103,24 +84,13 @@ instance showModelStatus :: Show ModelStatus where
 type ModelInfo =
   { id :: ModelID
   , providerID :: ProviderID
-  , api :: ApiInfo
   , name :: String
   , family :: Maybe String
   , capabilities :: ModelCapabilities
   , cost :: ModelCost
   , limit :: ModelLimits
   , status :: ModelStatus
-  , options :: Record String Json  -- z.record(z.string(), z.any())
-  , headers :: Record String String
-  , release_date :: String
-  , variants :: Maybe (Record String (Record String Json))
   }
-
-derive instance genericModelInfo :: Generic ModelInfo _
-derive instance eqModelInfo :: Eq ModelInfo
-
-instance showModelInfo :: Show ModelInfo where
-  show = genericShow
 
 -- | Provider information
 type ProviderInfo =
@@ -128,18 +98,4 @@ type ProviderInfo =
   , name :: String
   }
 
-derive instance genericProviderInfo :: Generic ProviderInfo _
-derive instance eqProviderInfo :: Eq ProviderInfo
-
-instance showProviderInfo :: Show ProviderInfo where
-  show = genericShow
-
-instance encodeJsonProviderInfo :: EncodeJson ProviderInfo where
-  encodeJson p = encodeJson { id: p.id, name: p.name }
-
-instance decodeJsonProviderInfo :: DecodeJson ProviderInfo where
-  decodeJson json = do
-    obj <- decodeJson json
-    id <- obj .: "id"
-    name <- obj .: "name"
-    pure { id, name }
+-- Note: PureScript uses automatic record encoding from Argonaut

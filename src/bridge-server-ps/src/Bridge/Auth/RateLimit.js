@@ -45,7 +45,7 @@ function setBucket(key, bucket, buckets) {
 }
 
 // Check rate limit
-exports.checkRateLimitImpl = function(userId) {
+export const checkRateLimitImpl = function(userId) {
   return function(operation) {
     return function(rateLimiter) {
       return function() {
@@ -114,7 +114,7 @@ exports.checkRateLimitImpl = function(userId) {
 };
 
 // Reset rate limit
-exports.resetRateLimitImpl = function(userId) {
+export const resetRateLimitImpl = function(userId) {
   return function(operation) {
     return function(rateLimiter) {
       return function() {
@@ -143,7 +143,7 @@ exports.resetRateLimitImpl = function(userId) {
 };
 
 // Get rate limit status
-exports.getRateLimitStatusImpl = function(userId) {
+export const getRateLimitStatusImpl = function(userId) {
   return function(operation) {
     return function(rateLimiter) {
       return function() {

@@ -1,11 +1,11 @@
 // OpenCode Client FFI Implementation
-"use strict";
 
-exports.wrapClient = function(sdkClient) {
+
+export const wrapClient = function(sdkClient) {
   return sdkClient;
 };
 
-exports.processEventStream = function(store) {
+export const processEventStream = function(store) {
   return function(logger) {
     return function(stream) {
       return function() {
@@ -13,7 +13,7 @@ exports.processEventStream = function(store) {
           // Process event stream asynchronously
           (async function() {
             try {
-              var sdk = require("./Bridge/FFI/OpenCode/SDK.js");
+              // Removed: require("./Bridge/FFI/OpenCode/SDK.js")
               while (true) {
                 var eventResult = await sdk.nextEvent(stream)();
                 if (eventResult.tag === "Right") {
@@ -24,7 +24,7 @@ exports.processEventStream = function(store) {
                     
                     // Forward event to state store via PureScript handler
                     // This would call: Bridge.Opencode.Events.handleOpenCodeEvent(store, eventPayload)
-                    var eventsModule = require("./Bridge/Opencode/Events.js");
+                    // Removed: require("./Bridge/Opencode/Events.js")
                     eventsModule.handleOpenCodeEvent(store)(eventPayload)();
                     
                     console.log("OpenCode event:", eventType, globalEvent.directory);

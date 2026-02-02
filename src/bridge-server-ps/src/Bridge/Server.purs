@@ -58,7 +58,7 @@ import Bridge.WebSocket.Manager (createManager, WebSocketManager, setHandlerCont
 import Bridge.Venice.Client (createVeniceClient, VeniceClient)
 import Bridge.Opencode.Client (createOpencodeClient, OpencodeClient)
 import Bridge.Lean.Proxy (createLeanProxy, LeanProxy)
-import Bridge.Notifications.Service (create as createNotificationService, NotificationService)
+import Bridge.Notifications.Service as NotificationService
 import Bridge.Database.Sync (createSyncState, startPeriodicSync, SyncConfig)
 import Bridge.FFI.Haskell.Analytics as DuckDB
 

@@ -35,8 +35,10 @@
 module Bridge.Auth.Origin where
 
 import Prelude
-import Data.Array (elem)
+import Data.Array (elem, uncons)
 import Data.Maybe (Maybe(..))
+import Data.Either (Either(..))
+import Data.String (toLower)
 import Bridge.FFI.Node.Pino (Logger)
 
 -- | Allowed origins configuration
@@ -83,16 +85,16 @@ validateOrigin origin allowedOrigins = do
 -- | - `headers`: HTTP request headers
 -- | **Returns:** Maybe origin string
 extractOrigin :: Array { key :: String, value :: String } -> Maybe String
-extractOrigin headers = do
-  findOrigin headers
+extractOrigin headers = findOrigin headers
   where
     findOrigin :: Array { key :: String, value :: String } -> Maybe String
-    findOrigin [] = Nothing
-    findOrigin (h:hs) = do
-      if h.key.toLowerCase() == "origin" then
-        Just h.value
-      else
-        findOrigin hs
+    findOrigin arr = case uncons arr of
+      Nothing -> Nothing
+      Just { head: h, tail: hs } ->
+        if toLower h.key == "origin" then
+          Just h.value
+        else
+          findOrigin hs
 
 -- | Validate origin from request
 -- |
@@ -103,7 +105,7 @@ extractOrigin headers = do
 -- | - `logger`: Logger for error reporting
 -- | **Returns:** Either error message or validated origin
 validateOriginFromRequest :: Array { key :: String, value :: String } -> AllowedOrigins -> Logger -> Either String String
-validateOriginFromRequest headers allowedOrigins logger = do
+validateOriginFromRequest headers allowedOrigins _logger =
   case extractOrigin headers of
     Just origin -> do
       if validateOrigin origin allowedOrigins then

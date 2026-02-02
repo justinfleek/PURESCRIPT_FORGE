@@ -5,6 +5,7 @@ module Bridge.Utils.Json where
 import Prelude
 import Effect (Effect)
 import Data.Either (Either(..))
+import Data.Maybe (Maybe(..))
 
 -- | Safe JSON parse
 safeParseJson :: String -> Effect (Either String {})

@@ -5,6 +5,7 @@ import Prelude
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Data.Either (Either)
+import Data.Maybe (Maybe)
 
 -- | Opaque Response type
 foreign import data Response :: Type

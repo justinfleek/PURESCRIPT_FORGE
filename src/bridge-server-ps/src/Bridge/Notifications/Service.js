@@ -1,5 +1,5 @@
 // Notification Service FFI Implementation
-"use strict";
+
 
 // Helper: Explicit default value (replaces banned || pattern)
 function explicitDefault(value, defaultValue) {
@@ -9,9 +9,9 @@ function explicitDefault(value, defaultValue) {
   return value;
 }
 
-var crypto = require("crypto");
+// Removed: require("crypto")
 
-exports.create = function(wsManager) {
+export const create = function(wsManager) {
   return function(logger) {
     return function() {
       return {
@@ -23,7 +23,7 @@ exports.create = function(wsManager) {
   };
 };
 
-exports.notify = function(service) {
+export const notify = function(service) {
   return function(notificationJson) {
     return function() {
       try {
@@ -66,7 +66,7 @@ exports.notify = function(service) {
   };
 };
 
-exports.encodeNotification = function(notification) {
+export const encodeNotification = function(notification) {
   return JSON.stringify({
     type: notification.type_,
     level: notification.level,
@@ -75,7 +75,7 @@ exports.encodeNotification = function(notification) {
   });
 };
 
-exports.dismiss = function(service) {
+export const dismiss = function(service) {
   return function(id) {
     return function() {
       try {
@@ -114,7 +114,7 @@ exports.dismiss = function(service) {
   };
 };
 
-exports.dismissAll = function(service) {
+export const dismissAll = function(service) {
   return function() {
     try {
       // Clear all notifications

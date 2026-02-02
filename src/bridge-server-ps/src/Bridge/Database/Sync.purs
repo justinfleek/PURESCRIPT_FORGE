@@ -36,7 +36,9 @@ import Effect (Effect)
 import Effect.Aff (Aff, launchAff_, delay, Milliseconds(..))
 import Effect.Class (liftEffect)
 import Effect.Ref (Ref, new, read, write)
+import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
+import Data.Int (toNumber)
 import Bridge.FFI.Node.Pino as Pino
 import Bridge.FFI.Haskell.Database as SQLite
 import Bridge.FFI.Haskell.Analytics as DuckDB
@@ -78,7 +80,7 @@ syncDatabases :: SQLite.DatabaseHandle -> DuckDB.AnalyticsHandle -> String -> St
 syncDatabases sqliteHandle duckdbHandle sqlitePath duckdbPath logger = do
   liftEffect $ Pino.infoFields logger 
     "Starting database sync" 
-    """{"sqlite":"\"""" <> sqlitePath <> "\"","duckdb":"\"""" <> duckdbPath <> "\"""}"""
+    ("{\"sqlite\":\"" <> sqlitePath <> "\",\"duckdb\":\"" <> duckdbPath <> "\"}")
   
   -- Load data from SQLite into DuckDB
   DuckDB.loadFromSQLite duckdbHandle sqlitePath
@@ -111,7 +113,7 @@ startPeriodicSync config sqliteHandle duckdbHandle logger stateRef = do
 syncLoop :: SyncConfig -> SQLite.DatabaseHandle -> DuckDB.AnalyticsHandle -> Pino.Logger -> Ref SyncState -> Aff Unit
 syncLoop config sqliteHandle duckdbHandle logger stateRef = do
   -- Wait for interval
-  delay (Milliseconds (config.intervalMinutes * 60 * 1000.0))
+  delay (Milliseconds (toNumber (config.intervalMinutes * 60 * 1000)))
   
   -- Check if sync already in progress
   state <- liftEffect $ read stateRef
@@ -120,7 +122,7 @@ syncLoop config sqliteHandle duckdbHandle logger stateRef = do
     syncLoop config sqliteHandle duckdbHandle logger stateRef
   else do
     -- Mark sync in progress
-    liftEffect $ write stateRef state { syncInProgress = true }
+    liftEffect $ write (state { syncInProgress = true }) stateRef
     
     -- Perform sync
     syncResult <- trySync (syncDatabases sqliteHandle duckdbHandle config.sqlitePath config.duckdbPath logger)
@@ -129,22 +131,22 @@ syncLoop config sqliteHandle duckdbHandle logger stateRef = do
       Right _ -> do
         -- Update last sync time
         currentTime <- liftEffect $ getCurrentTimeMillis
-        liftEffect $ write stateRef 
+        liftEffect $ write 
           { lastSyncTime: Just currentTime
           , syncInProgress: false
           , errorCount: 0
-          }
+          } stateRef
         liftEffect $ Pino.info logger "Periodic sync completed successfully"
       Left err -> do
         -- Increment error count
         state' <- liftEffect $ read stateRef
-        liftEffect $ write stateRef 
+        liftEffect $ write 
           { lastSyncTime: state'.lastSyncTime
           , syncInProgress: false
           , errorCount: state'.errorCount + 1
-          }
+          } stateRef
         liftEffect $ Pino.errorFields logger "Periodic sync failed"
-          """{"error":"\"""" <> show err <> "\"""}"""
+          ("{\"error\":\"" <> show err <> "\"}")
     
     -- Continue loop
     syncLoop config sqliteHandle duckdbHandle logger stateRef

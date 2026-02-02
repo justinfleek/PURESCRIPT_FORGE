@@ -52,6 +52,27 @@ import Bridge.Auth.JWT (Claims)
 import Bridge.FFI.Haskell.Database as DB
 import Bridge.FFI.Node.Pino (Logger)
 
+-- | FFI: Create session implementation
+foreign import createSessionImpl :: CreateSessionOptions -> DB.DatabaseHandle -> Logger -> Aff (Either String Session)
+
+-- | FFI: Validate session implementation
+foreign import validateSessionImpl :: String -> DB.DatabaseHandle -> Logger -> Aff (Either String Session)
+
+-- | FFI: Refresh session implementation
+foreign import refreshSessionImpl :: String -> DB.DatabaseHandle -> Logger -> Aff (Either String Session)
+
+-- | FFI: Invalidate session implementation
+foreign import invalidateSessionImpl :: String -> DB.DatabaseHandle -> Logger -> Aff (Either String Unit)
+
+-- | FFI: Update session activity implementation
+foreign import updateSessionActivityImpl :: String -> DB.DatabaseHandle -> Aff (Either String Unit)
+
+-- | FFI: Get user sessions implementation
+foreign import getUserSessionsImpl :: String -> DB.DatabaseHandle -> Aff (Array Session)
+
+-- | FFI: Cleanup expired sessions implementation
+foreign import cleanupExpiredSessionsImpl :: DB.DatabaseHandle -> Logger -> Aff Int
+
 -- | Session data
 type Session =
   { id :: String
@@ -91,12 +112,8 @@ type SessionValidationResult =
 -- | - `db`: Database handle
 -- | - `logger`: Logger
 -- | **Returns:** Either error or created session
-createSession :: CreateSessionOptions -> DB.Database -> Logger -> Aff (Either String Session)
-createSession options db logger = do
-  result <- createSessionImpl options db logger
-  pure result
-  where
-    foreign import createSessionImpl :: CreateSessionOptions -> DB.Database -> Logger -> Aff (Either String Session)
+createSession :: CreateSessionOptions -> DB.DatabaseHandle -> Logger -> Aff (Either String Session)
+createSession options db logger = createSessionImpl options db logger
 
 -- | Validate session
 -- |
@@ -106,12 +123,8 @@ createSession options db logger = do
 -- | - `db`: Database handle
 -- | - `logger`: Logger
 -- | **Returns:** Either error or validated session
-validateSession :: String -> DB.Database -> Logger -> Aff (Either String Session)
-validateSession sessionId db logger = do
-  result <- validateSessionImpl sessionId db logger
-  pure result
-  where
-    foreign import validateSessionImpl :: String -> DB.Database -> Logger -> Aff (Either String Session)
+validateSession :: String -> DB.DatabaseHandle -> Logger -> Aff (Either String Session)
+validateSession sessionId db logger = validateSessionImpl sessionId db logger
 
 -- | Refresh session
 -- |
@@ -121,12 +134,8 @@ validateSession sessionId db logger = do
 -- | - `db`: Database handle
 -- | - `logger`: Logger
 -- | **Returns:** Either error or new session with updated tokens
-refreshSession :: String -> DB.Database -> Logger -> Aff (Either String Session)
-refreshSession refreshToken db logger = do
-  result <- refreshSessionImpl refreshToken db logger
-  pure result
-  where
-    foreign import refreshSessionImpl :: String -> DB.Database -> Logger -> Aff (Either String Session)
+refreshSession :: String -> DB.DatabaseHandle -> Logger -> Aff (Either String Session)
+refreshSession refreshToken db logger = refreshSessionImpl refreshToken db logger
 
 -- | Invalidate session
 -- |
@@ -136,12 +145,8 @@ refreshSession refreshToken db logger = do
 -- | - `db`: Database handle
 -- | - `logger`: Logger
 -- | **Returns:** Either error or success
-invalidateSession :: String -> DB.Database -> Logger -> Aff (Either String Unit)
-invalidateSession sessionId db logger = do
-  result <- invalidateSessionImpl sessionId db logger
-  pure result
-  where
-    foreign import invalidateSessionImpl :: String -> DB.Database -> Logger -> Aff (Either String Unit)
+invalidateSession :: String -> DB.DatabaseHandle -> Logger -> Aff (Either String Unit)
+invalidateSession sessionId db logger = invalidateSessionImpl sessionId db logger
 
 -- | Update session activity
 -- |
@@ -150,12 +155,8 @@ invalidateSession sessionId db logger = do
 -- | - `sessionId`: Session identifier
 -- | - `db`: Database handle
 -- | **Returns:** Either error or success
-updateSessionActivity :: String -> DB.Database -> Aff (Either String Unit)
-updateSessionActivity sessionId db = do
-  result <- updateSessionActivityImpl sessionId db
-  pure result
-  where
-    foreign import updateSessionActivityImpl :: String -> DB.Database -> Aff (Either String Unit)
+updateSessionActivity :: String -> DB.DatabaseHandle -> Aff (Either String Unit)
+updateSessionActivity sessionId db = updateSessionActivityImpl sessionId db
 
 -- | Get user sessions
 -- |
@@ -164,12 +165,8 @@ updateSessionActivity sessionId db = do
 -- | - `userId`: User identifier
 -- | - `db`: Database handle
 -- | **Returns:** Array of sessions
-getUserSessions :: String -> DB.Database -> Aff (Array Session)
-getUserSessions userId db = do
-  sessions <- getUserSessionsImpl userId db
-  pure sessions
-  where
-    foreign import getUserSessionsImpl :: String -> DB.Database -> Aff (Array Session)
+getUserSessions :: String -> DB.DatabaseHandle -> Aff (Array Session)
+getUserSessions userId db = getUserSessionsImpl userId db
 
 -- | Cleanup expired sessions
 -- |
@@ -178,9 +175,5 @@ getUserSessions userId db = do
 -- | - `db`: Database handle
 -- | - `logger`: Logger
 -- | **Returns:** Number of sessions removed
-cleanupExpiredSessions :: DB.Database -> Logger -> Aff Int
-cleanupExpiredSessions db logger = do
-  count <- cleanupExpiredSessionsImpl db logger
-  pure count
-  where
-    foreign import cleanupExpiredSessionsImpl :: DB.Database -> Logger -> Aff Int
+cleanupExpiredSessions :: DB.DatabaseHandle -> Logger -> Aff Int
+cleanupExpiredSessions db logger = cleanupExpiredSessionsImpl db logger

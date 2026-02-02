@@ -1,5 +1,5 @@
 // OpenCode SDK v2 FFI
-"use strict";
+
 
 // Helper: Explicit default value (replaces banned || pattern)
 function explicitDefault(value, defaultValue) {
@@ -35,7 +35,7 @@ function loadSDK() {
   });
 }
 
-exports.createClient = function(config) {
+export const createClient = function(config) {
   return function() {
     return new Promise(function(resolve) {
       loadSDK().then(function(module) {
@@ -59,7 +59,7 @@ exports.createClient = function(config) {
   };
 };
 
-exports.connect = function(client) {
+export const connect = function(client) {
   return function() {
     return new Promise(function(resolve) {
       // OpenCode SDK v2 clients are created already connected
@@ -73,7 +73,7 @@ exports.connect = function(client) {
   };
 };
 
-exports.disconnect = function(client) {
+export const disconnect = function(client) {
   return function() {
     return new Promise(function(resolve) {
       if (client && typeof client.disconnect === "function") {
@@ -90,7 +90,7 @@ exports.disconnect = function(client) {
   };
 };
 
-exports.subscribeEvents = function(client) {
+export const subscribeEvents = function(client) {
   return function() {
     return new Promise(function(resolve) {
       if (client && client.global && client.global.event) {
@@ -109,7 +109,7 @@ exports.subscribeEvents = function(client) {
   };
 };
 
-exports.nextEvent = function(stream) {
+export const nextEvent = function(stream) {
   return function() {
     return new Promise(function(resolve) {
       if (!stream) {
@@ -151,7 +151,7 @@ exports.nextEvent = function(stream) {
   };
 };
 
-exports.getEventType = function(event) {
+export const getEventType = function(event) {
   return function() {
     // OpenCode events are GlobalEvent: { directory, payload }
     // payload is the actual Event object with a 'type' field
@@ -164,14 +164,14 @@ exports.getEventType = function(event) {
   };
 };
 
-exports.getEventPayload = function(event) {
+export const getEventPayload = function(event) {
   return function() {
     // Return full GlobalEvent as JSON
     return JSON.stringify(event);
   };
 };
 
-exports.closeStream = function(stream) {
+export const closeStream = function(stream) {
   return function() {
     if (stream && typeof stream.return === "function") {
       stream.return();

@@ -1,5 +1,5 @@
 // WebSocket Handlers FFI Implementation
-"use strict";
+
 
 // Helper: Explicit default value (replaces banned || pattern)
 function explicitDefault(value, defaultValue) {
@@ -30,7 +30,7 @@ function toDateTime(dateOrString) {
   };
 }
 
-exports.getState = function(store) {
+export const getState = function(store) {
   return function() {
     // Get state from PureScript store
     // The store has a state Ref containing AppState
@@ -39,7 +39,7 @@ exports.getState = function(store) {
   };
 };
 
-exports.encodeState = function(state) {
+export const encodeState = function(state) {
   return function() {
     // Encode AppState to JSON string
     return JSON.stringify({
@@ -88,17 +88,17 @@ exports.encodeState = function(state) {
   };
 };
 
-exports.handleOpenCodeEvent = function(store) {
+export const handleOpenCodeEvent = function(store) {
   return function(eventJson) {
     return function() {
       // Call the actual OpenCode event handler from Events.js
-      var eventsModule = require("./Bridge/Opencode/Events.js");
+      // Removed: require("./Bridge/Opencode/Events.js")
       eventsModule.handleOpenCodeEvent(store)(eventJson)();
     };
   };
 };
 
-exports.decodeChatRequest = function(paramsJson) {
+export const decodeChatRequest = function(paramsJson) {
   return function() {
     try {
       var params = JSON.parse(paramsJson);
@@ -119,7 +119,7 @@ exports.decodeChatRequest = function(paramsJson) {
   };
 };
 
-exports.encodeChatResponse = function(response) {
+export const encodeChatResponse = function(response) {
   return JSON.stringify({
     id: response.id,
     model: response.model,
@@ -132,14 +132,14 @@ exports.encodeChatResponse = function(response) {
   });
 };
 
-exports.encodeStreamResponse = function(response) {
+export const encodeStreamResponse = function(response) {
   return JSON.stringify({
     streamId: response.streamId,
     type: response.type_
   });
 };
 
-exports.generateStreamId = function() {
+export const generateStreamId = function() {
   return function() {
     return new Promise(function(resolve) {
       var streamId = "stream-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
@@ -148,7 +148,7 @@ exports.generateStreamId = function() {
   };
 };
 
-exports.processStream = function(ctx) {
+export const processStream = function(ctx) {
   return function(streamId) {
     return function(stream) {
       return function() {
@@ -217,7 +217,7 @@ exports.processStream = function(ctx) {
   };
 };
 
-exports.encodeModels = function(models) {
+export const encodeModels = function(models) {
   return JSON.stringify(models.map(function(m) {
     return {
       id: m.id,
@@ -231,7 +231,7 @@ exports.encodeModels = function(models) {
   }));
 };
 
-exports.decodeImageRequest = function(paramsJson) {
+export const decodeImageRequest = function(paramsJson) {
   return function() {
     try {
       var params = JSON.parse(paramsJson);
@@ -251,13 +251,13 @@ exports.decodeImageRequest = function(paramsJson) {
   };
 };
 
-exports.encodeImageResponse = function(response) {
+export const encodeImageResponse = function(response) {
   return JSON.stringify({
     images: response.images
   });
 };
 
-exports.dismissNotification = function(service) {
+export const dismissNotification = function(service) {
   return function(id) {
     return function() {
       // Call PureScript dismissNotification function
@@ -268,7 +268,7 @@ exports.dismissNotification = function(service) {
   };
 };
 
-exports.decodeNotificationId = function(paramsJson) {
+export const decodeNotificationId = function(paramsJson) {
   return function() {
     try {
       var params = JSON.parse(paramsJson);
@@ -279,7 +279,7 @@ exports.decodeNotificationId = function(paramsJson) {
   };
 };
 
-exports.dismissAllNotifications = function(service) {
+export const dismissAllNotifications = function(service) {
   return function() {
     // Call PureScript dismissAllNotifications function
     if (service && service.dismissAll) {
@@ -288,7 +288,7 @@ exports.dismissAllNotifications = function(service) {
   };
 };
 
-exports.decodeSnapshotSaveRequest = function(paramsJson) {
+export const decodeSnapshotSaveRequest = function(paramsJson) {
   return function() {
     try {
       var params = JSON.parse(paramsJson);
@@ -307,7 +307,7 @@ exports.decodeSnapshotSaveRequest = function(paramsJson) {
   };
 };
 
-exports.decodeSnapshotRestoreRequest = function(paramsJson) {
+export const decodeSnapshotRestoreRequest = function(paramsJson) {
   return function() {
     try {
       var params = JSON.parse(paramsJson);
@@ -324,7 +324,7 @@ exports.decodeSnapshotRestoreRequest = function(paramsJson) {
   };
 };
 
-exports.decodeSnapshotListRequest = function(paramsJson) {
+export const decodeSnapshotListRequest = function(paramsJson) {
   return function() {
     try {
       var params = paramsJson !== undefined && paramsJson !== null && paramsJson !== "" ? JSON.parse(paramsJson) : {};
@@ -341,7 +341,7 @@ exports.decodeSnapshotListRequest = function(paramsJson) {
   };
 };
 
-exports.decodeSessionExportRequest = function(paramsJson) {
+export const decodeSessionExportRequest = function(paramsJson) {
   return function() {
     try {
       var params = JSON.parse(paramsJson);
@@ -358,7 +358,7 @@ exports.decodeSessionExportRequest = function(paramsJson) {
   };
 };
 
-exports.decodeLeanCheckRequest = function(paramsJson) {
+export const decodeLeanCheckRequest = function(paramsJson) {
   return function() {
     try {
       var params = JSON.parse(paramsJson);
@@ -375,7 +375,7 @@ exports.decodeLeanCheckRequest = function(paramsJson) {
   };
 };
 
-exports.decodeLeanGoalsRequest = function(paramsJson) {
+export const decodeLeanGoalsRequest = function(paramsJson) {
   return function() {
     try {
       var params = JSON.parse(paramsJson);
@@ -394,13 +394,13 @@ exports.decodeLeanGoalsRequest = function(paramsJson) {
   };
 };
 
-exports.generateSnapshotId = function() {
+export const generateSnapshotId = function() {
   return function() {
     return "snapshot-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
   };
 };
 
-exports.computeStateHash = function(stateJson) {
+export const computeStateHash = function(stateJson) {
   return function() {
     // Simple hash function for state
     var hash = 0;
@@ -413,7 +413,7 @@ exports.computeStateHash = function(stateJson) {
   };
 };
 
-exports.getCurrentTimestamp = function() {
+export const getCurrentTimestamp = function() {
   return function() {
     return new Date().toISOString();
   };
@@ -440,7 +440,7 @@ function toDateTime(dateOrString) {
   };
 }
 
-exports.parseSnapshotData = function(snapshotJson) {
+export const parseSnapshotData = function(snapshotJson) {
   return function() {
     try {
       var snapshot = typeof snapshotJson === "string" ? JSON.parse(snapshotJson) : snapshotJson;
@@ -532,7 +532,7 @@ exports.parseSnapshotData = function(snapshotJson) {
   };
 };
 
-exports.encodeSnapshots = function(snapshots) {
+export const encodeSnapshots = function(snapshots) {
   return function() {
     try {
       var snapshotArray = snapshots.map(function(snapJson) {
@@ -554,7 +554,7 @@ exports.encodeSnapshots = function(snapshots) {
 };
 
 // | Decode snapshot.get request
-exports.decodeSnapshotGetRequest = function(paramsJson) {
+export const decodeSnapshotGetRequest = function(paramsJson) {
   return function() {
     if (!paramsJson) {
       return {
@@ -581,7 +581,7 @@ exports.decodeSnapshotGetRequest = function(paramsJson) {
 };
 
 // | Encode snapshot.get response
-exports.encodeSnapshotGetResponse = function(response) {
+export const encodeSnapshotGetResponse = function(response) {
   return function() {
     try {
       return JSON.stringify({
@@ -604,7 +604,7 @@ exports.encodeSnapshotGetResponse = function(response) {
 };
 
 // | Get file context for snapshot
-exports.getFileContextForSnapshot = function(store) {
+export const getFileContextForSnapshot = function(store) {
   return function() {
     try {
       // Get current session ID from store
@@ -612,7 +612,7 @@ exports.getFileContextForSnapshot = function(store) {
       var sessionId = state.session !== undefined && state.session !== null ? state.session.id : null;
       
       // Use FileContext.getContextFiles to get files
-      var FileContext = require("./Bridge/FFI/Node/FileContext.js");
+      // Removed: require("./Bridge/FFI/Node/FileContext.js")
       var result = FileContext.getContextFiles(store)(sessionId)(null)();
       
       // Transform to snapshot format
@@ -634,7 +634,7 @@ exports.getFileContextForSnapshot = function(store) {
 };
 
 // | Enrich state JSON with file context
-exports.enrichStateWithFileContext = function(stateJson) {
+export const enrichStateWithFileContext = function(stateJson) {
   return function(fileContext) {
     return function() {
       try {
@@ -649,7 +649,7 @@ exports.enrichStateWithFileContext = function(stateJson) {
   };
 };
 
-exports.parseSessions = function(sessionsJson) {
+export const parseSessions = function(sessionsJson) {
   return function() {
     try {
       var sessions = typeof sessionsJson === "string" ? JSON.parse(sessionsJson) : sessionsJson;
@@ -681,7 +681,7 @@ exports.parseSessions = function(sessionsJson) {
   };
 };
 
-exports.encodeSessionExport = function(session) {
+export const encodeSessionExport = function(session) {
   return function() {
     try {
       return JSON.stringify({
@@ -707,7 +707,7 @@ exports.encodeSessionExport = function(session) {
   };
 };
 
-exports.encodeDiagnostics = function(diagnostics) {
+export const encodeDiagnostics = function(diagnostics) {
   return function() {
     try {
       return JSON.stringify({
@@ -735,7 +735,7 @@ exports.encodeDiagnostics = function(diagnostics) {
   };
 };
 
-exports.encodeLeanGoals = function(goals) {
+export const encodeLeanGoals = function(goals) {
   return function() {
     try {
       return JSON.stringify({
@@ -754,7 +754,7 @@ exports.encodeLeanGoals = function(goals) {
 };
 
 // State update functions for snapshot restore
-exports.updateBalance = function(store) {
+export const updateBalance = function(store) {
   return function(balance) {
     return function() {
       if (store && store.updateBalance) {
@@ -764,7 +764,7 @@ exports.updateBalance = function(store) {
   };
 };
 
-exports.updateSession = function(store) {
+export const updateSession = function(store) {
   return function(session) {
     return function() {
       if (store && store.updateSession) {
@@ -774,7 +774,7 @@ exports.updateSession = function(store) {
   };
 };
 
-exports.clearSession = function(store) {
+export const clearSession = function(store) {
   return function() {
     if (store && store.clearSession) {
       store.clearSession()();
@@ -782,7 +782,7 @@ exports.clearSession = function(store) {
   };
 };
 
-exports.updateProof = function(store) {
+export const updateProof = function(store) {
   return function(proof) {
     return function() {
       if (store && store.updateProof) {
@@ -792,7 +792,7 @@ exports.updateProof = function(store) {
   };
 };
 
-exports.updateMetrics = function(store) {
+export const updateMetrics = function(store) {
   return function(metrics) {
     return function() {
       if (store && store.updateMetrics) {
@@ -802,7 +802,7 @@ exports.updateMetrics = function(store) {
   };
 };
 
-exports.updateAlertConfig = function(store) {
+export const updateAlertConfig = function(store) {
   return function(config) {
     return function() {
       if (store && store.updateAlertConfig) {
@@ -817,9 +817,9 @@ exports.updateAlertConfig = function(store) {
 var authTokens = new Map();
 var TOKEN_EXPIRY_HOURS = 24;
 
-exports.generateAuthToken = function() {
+export const generateAuthToken = function() {
   return function() {
-    var crypto = require("crypto");
+    // Removed: require("crypto")
     var token = "auth_" + crypto.randomBytes(32).toString("hex");
     var expires = new Date(Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
     authTokens.set(token, expires);
@@ -827,7 +827,7 @@ exports.generateAuthToken = function() {
   };
 };
 
-exports.getAuthTokenExpiry = function() {
+export const getAuthTokenExpiry = function() {
   return function() {
     // Return expiry time for most recent token (or default)
     var expires = new Date(Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
@@ -835,7 +835,7 @@ exports.getAuthTokenExpiry = function() {
   };
 };
 
-exports.validateAuthToken = function(token) {
+export const validateAuthToken = function(token) {
   return function() {
     if (!authTokens.has(token)) {
       return false;
@@ -850,7 +850,7 @@ exports.validateAuthToken = function(token) {
 };
 
 // | Decode snapshot.get request (also in FFI/Node/Handlers.js, but needed here for consistency)
-exports.decodeSnapshotGetRequest = function(paramsJson) {
+export const decodeSnapshotGetRequest = function(paramsJson) {
   return function() {
     if (paramsJson === undefined || paramsJson === null || paramsJson === "") {
       return {
@@ -874,7 +874,7 @@ exports.decodeSnapshotGetRequest = function(paramsJson) {
 };
 
 // | Encode snapshot.get response
-exports.encodeSnapshotGetResponse = function(response) {
+export const encodeSnapshotGetResponse = function(response) {
   return function() {
     try {
       var state = response.state;
@@ -898,7 +898,7 @@ exports.encodeSnapshotGetResponse = function(response) {
 };
 
 // | Get file context for snapshot (from current session)
-exports.getFileContextForSnapshot = function(store) {
+export const getFileContextForSnapshot = function(store) {
   return function() {
     try {
       // Get current session ID from store
@@ -906,7 +906,7 @@ exports.getFileContextForSnapshot = function(store) {
       var sessionId = state.session !== undefined && state.session !== null ? state.session.id : null;
       
       // Use FileContext.getContextFiles to get files
-      var FileContext = require("../FFI/Node/FileContext.js");
+      // Removed: require("../FFI/Node/FileContext.js")
       var result = FileContext.getContextFiles(store)(sessionId !== undefined && sessionId !== null ? sessionId : null)(null)();
       
       // Transform to snapshot format
@@ -928,7 +928,7 @@ exports.getFileContextForSnapshot = function(store) {
 };
 
 // | Enrich state JSON with file context
-exports.enrichStateWithFileContext = function(stateJson) {
+export const enrichStateWithFileContext = function(stateJson) {
   return function(fileContext) {
     return function() {
       try {

@@ -54,8 +54,9 @@ import Effect (Effect)
 import Effect.Ref (Ref, new, read, write, modify)
 import Data.DateTime (DateTime)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Array (Array)
+import Data.Array (catMaybes) as Array
 import Data.Array as Array
+import Data.Foldable (traverse_)
 
 -- | Balance state - Token balance and consumption tracking
 -- |
@@ -214,10 +215,10 @@ type Diagnostic =
 -- |
 -- | **Purpose:** Indicates the severity of a Lean4 diagnostic message.
 -- | **Values:**
--- | - `Error`: Critical error that prevents compilation
--- | - `Warning`: Warning that may indicate issues
--- | - `Info`: Informational message
-data Severity = Error | Warning | Info
+-- | - `SevError`: Critical error that prevents compilation
+-- | - `SevWarning`: Warning that may indicate issues
+-- | - `SevInfo`: Informational message
+data Severity = SevError | SevWarning | SevInfo
 
 derive instance eqSeverity :: Eq Severity
 
@@ -465,16 +466,18 @@ updateBalancePartial store partial = do
               { diem = fromMaybe balance.venice.diem v.diem
               , usd = fromMaybe balance.venice.usd v.usd
               , effective = fromMaybe balance.venice.effective v.effective
-              , lastUpdated = fromMaybe balance.venice.lastUpdated v.lastUpdated
+              , lastUpdated = case v.lastUpdated of
+                  Just newDate -> Just newDate
+                  Nothing -> balance.venice.lastUpdated
               }
             Nothing -> balance.venice
         , consumptionRate = fromMaybe balance.consumptionRate partial.consumptionRate
-        , timeToDepletion = fromMaybe balance.timeToDepletion (partial.timeToDepletion >>= identity)
+        , timeToDepletion = fromMaybe balance.timeToDepletion partial.timeToDepletion
         , todayUsed = fromMaybe balance.todayUsed partial.todayUsed
-        , resetCountdown = fromMaybe balance.resetCountdown (partial.resetCountdown >>= identity)
+        , resetCountdown = fromMaybe balance.resetCountdown partial.resetCountdown
         , alertLevel = fromMaybe balance.alertLevel partial.alertLevel
         }
-  write store.state (current { balance = newBalance })
+  write (current { balance = newBalance }) store.state
   notifyListeners store "balance" "updated"
 
 -- | Update balance (full) - Replace entire balance state
@@ -495,7 +498,7 @@ updateBalancePartial store partial = do
 updateBalance :: StateStore -> BalanceState -> Effect Unit
 updateBalance store newBalance = do
   current <- read store.state
-  write store.state (current { balance = newBalance })
+  write (current { balance = newBalance }) store.state
   notifyListeners store "balance" "updated"
 
 -- | Update session (partial) - Merge partial session updates
@@ -542,7 +545,7 @@ updateSessionPartial store partial = do
             , messageCount = fromMaybe session.messageCount partial.messageCount
             , updatedAt = fromMaybe session.updatedAt partial.updatedAt
             }
-      write store.state (current { session = Just newSession })
+      write (current { session = Just newSession }) store.state
       notifyListeners store "session" "updated"
     Nothing -> pure unit
 
@@ -550,7 +553,7 @@ updateSessionPartial store partial = do
 updateSession :: StateStore -> SessionState -> Effect Unit
 updateSession store newSession = do
   current <- read store.state
-  write store.state (current { session = Just newSession })
+  write (current { session = Just newSession }) store.state
   notifyListeners store "session" "updated"
 
 -- | Clear session - Remove active session
@@ -568,7 +571,7 @@ updateSession store newSession = do
 clearSession :: StateStore -> Effect Unit
 clearSession store = do
   current <- read store.state
-  write store.state (current { session = Nothing })
+  write (current { session = Nothing }) store.state
   notifyListeners store "session" "cleared"
 
 -- | Update proof state (partial) - Merge partial proof updates
@@ -601,13 +604,13 @@ updateProofPartial store partial = do
   let proof = current.proof
   let newProof = proof
         { connected = fromMaybe proof.connected partial.connected
-        , file = fromMaybe proof.file (partial.file >>= identity)
-        , position = fromMaybe proof.position (partial.position >>= identity)
+        , file = fromMaybe proof.file partial.file
+        , position = fromMaybe proof.position partial.position
         , goals = fromMaybe proof.goals partial.goals
         , diagnostics = fromMaybe proof.diagnostics partial.diagnostics
         , suggestedTactics = fromMaybe proof.suggestedTactics partial.suggestedTactics
         }
-  write store.state (current { proof = newProof })
+  write (current { proof = newProof }) store.state
   notifyListeners store "proof" "updated"
 
 -- | Update proof state (full) - Replace entire proof state
@@ -628,7 +631,7 @@ updateProofPartial store partial = do
 updateProof :: StateStore -> ProofState -> Effect Unit
 updateProof store newProof = do
   current <- read store.state
-  write store.state (current { proof = newProof })
+  write (current { proof = newProof }) store.state
   notifyListeners store "proof" "updated"
 
 -- | Update metrics (partial) - Merge partial metrics updates
@@ -659,7 +662,7 @@ updateMetricsPartial store partial = do
         , averageResponseTime = fromMaybe metrics.averageResponseTime partial.averageResponseTime
         , toolTimings = fromMaybe metrics.toolTimings partial.toolTimings
         }
-  write store.state (current { metrics = newMetrics })
+  write (current { metrics = newMetrics }) store.state
   notifyListeners store "metrics" "updated"
 
 -- | Update metrics (full) - Replace entire metrics state
@@ -680,7 +683,7 @@ updateMetricsPartial store partial = do
 updateMetrics :: StateStore -> UsageMetrics -> Effect Unit
 updateMetrics store newMetrics = do
   current <- read store.state
-  write store.state (current { metrics = newMetrics })
+  write (current { metrics = newMetrics }) store.state
   notifyListeners store "metrics" "updated"
 
 -- | Set connected state - Update WebSocket connection status
@@ -700,7 +703,7 @@ updateMetrics store newMetrics = do
 setConnected :: StateStore -> Boolean -> Effect Unit
 setConnected store connected = do
   current <- read store.state
-  write store.state (current { connected = connected })
+  write (current { connected = connected }) store.state
   notifyListeners store "connected" (if connected then "connected" else "disconnected")
 
 -- | Update alert configuration - Replace alert thresholds
@@ -721,7 +724,7 @@ setConnected store connected = do
 updateAlertConfig :: StateStore -> AlertConfig -> Effect Unit
 updateAlertConfig store newConfig = do
   current <- read store.state
-  write store.state (current { alertConfig = newConfig })
+  write (current { alertConfig = newConfig }) store.state
   notifyListeners store "alertConfig" "updated"
 
 -- | Subscribe to state changes - Register change listener
@@ -748,9 +751,15 @@ updateAlertConfig store newConfig = do
 -- | ```
 onStateChange :: StateStore -> (String -> String -> Effect Unit) -> Effect (Effect Unit)
 onStateChange store listener = do
-  modify (\listeners -> listeners <> [listener]) store.listeners
+  currentListeners <- read store.listeners
+  let index = Array.length currentListeners
+  _ <- modify (\listeners -> listeners <> [listener]) store.listeners
   pure do
-    modify (\listeners -> Array.filter (\l -> l /= listener) listeners) store.listeners
+    -- Remove listener by reconstructing array without the element at index
+    void $ modify (\listeners -> 
+      Array.mapWithIndex (\i l -> if i == index then Nothing else Just l) listeners
+        # Array.catMaybes
+    ) store.listeners
 
 -- | Notify all listeners - Internal function to trigger change notifications
 -- |

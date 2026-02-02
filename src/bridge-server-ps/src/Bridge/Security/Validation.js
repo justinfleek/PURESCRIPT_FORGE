@@ -2,7 +2,7 @@
 // Production-grade input validation
 
 // Check if string matches regex pattern
-exports.matchesPattern = function(value) {
+export const matchesPattern = function(value) {
   return function(pattern) {
     try {
       const regex = new RegExp(pattern);
@@ -14,17 +14,17 @@ exports.matchesPattern = function(value) {
 };
 
 // Get string length
-exports.length = function(value) {
+export const length = function(value) {
   return value.length;
 };
 
 // Check if number is integer
-exports.isInteger = function(value) {
+export const isInteger = function(value) {
   return Number.isInteger(value);
 };
 
 // Sanitize string (remove dangerous characters)
-exports.sanitizeImpl = function(value) {
+export const sanitizeImpl = function(value) {
   // Remove null bytes, control characters, and potentially dangerous sequences
   return value
     .replace(/\0/g, '') // Remove null bytes
@@ -35,7 +35,7 @@ exports.sanitizeImpl = function(value) {
 };
 
 // Validate JSON
-exports.isValidJson = function(json) {
+export const isValidJson = function(json) {
   try {
     JSON.parse(json);
     return true;
@@ -45,13 +45,13 @@ exports.isValidJson = function(json) {
 };
 
 // Validate email format
-exports.isValidEmail = function(email) {
+export const isValidEmail = function(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
 
 // Validate URL format
-exports.isValidUrl = function(url) {
+export const isValidUrl = function(url) {
   try {
     new URL(url);
     return true;

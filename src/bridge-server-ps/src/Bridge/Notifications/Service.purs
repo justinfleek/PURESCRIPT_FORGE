@@ -36,6 +36,7 @@ module Bridge.Notifications.Service where
 
 import Prelude
 import Effect (Effect)
+import Data.Maybe (Maybe(..))
 import Bridge.FFI.Node.Pino as Pino
 import Bridge.WebSocket.Manager (WebSocketManager)
 

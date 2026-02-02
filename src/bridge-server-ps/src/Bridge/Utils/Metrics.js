@@ -1,6 +1,6 @@
 // Metrics Utilities FFI Implementation
-"use strict";
 
-exports.fromInt = function(n) {
+
+export const fromInt = function(n) {
   return n;
 };

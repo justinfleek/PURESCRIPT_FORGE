@@ -63,25 +63,26 @@
 module Bridge.WebSocket.Handlers where
 
 import Prelude
+import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Data.Either (Either(..))
-import Data.Maybe (Maybe(..))
-import Bridge.State.Store (StateStore, SessionState)
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Array (head) as Array
+import Bridge.State.Store (StateStore, SessionState, BalanceState, ProofState, UsageMetrics, AlertConfig, Goal, Diagnostic, Tactic, AppState)
 import Bridge.Venice.Client (VeniceClient, chat, chatStream, listModels, generateImage)
 import Bridge.Lean.Proxy (LeanProxy, check, goals, applyTactic, searchTheorems)
 import Bridge.FFI.Haskell.Database as DB
 import Bridge.FFI.Haskell.Analytics as DuckDB
 import Bridge.Notifications.Service (NotificationService)
-import Bridge.Opencode.Events (handleOpenCodeEvent)
+-- Bridge.Opencode.Events imported locally via foreign import
 import Bridge.FFI.Node.Terminal as Terminal
 import Bridge.FFI.Node.FileContext as FileContext
 import Bridge.FFI.Node.Process as Process
 import Bridge.FFI.Node.Handlers as Handlers
-import Bridge.State.Store (AlertConfig)
 import Data.DateTime (DateTime)
 import Effect.Aff (launchAff_)
-import Bridge.Protocol.JsonRpc (JsonRpcResponse)
+-- Using local JsonRpcRequest and JsonRpcResponse types
 import Bridge.NEXUS.Handlers as NexusHandlers
 
 -- | Handler context - Context passed to all JSON-RPC handlers
@@ -917,9 +918,9 @@ handleSessionExport ctx params = do
           -- Get session from database
           sessionsJson <- DB.getSessionsBySessionId ctx.db request.sessionId
           sessions <- liftEffect $ parseSessions sessionsJson
-          case sessions of
-            [] -> pure (errorResponse Nothing (-32602) "Session not found" (Just ("Session ID: " <> request.sessionId)))
-            (session:_) -> do
+          case Array.head sessions of
+            Nothing -> pure (errorResponse Nothing (-32602) "Session not found" (Just ("Session ID: " <> request.sessionId)))
+            Just session -> do
               -- Export session data
               exportData <- liftEffect $ encodeSessionExport session
               pure (successResponse Nothing exportData)
@@ -1054,7 +1055,7 @@ handleSessionNew ctx params = do
           startedAt <- liftEffect $ Process.parseDateTime timestamp
           
           -- Create new session state
-          let newSession :: SessionState =
+          let newSession =
                 { id: sessionId
                 , promptTokens: 0
                 , completionTokens: 0
@@ -1100,12 +1101,12 @@ handleFileContextAdd ctx params = do
 -- | Handle file.context.list - List files in context
 handleFileContextList :: HandlerContext -> Maybe String -> Aff JsonRpcResponse
 handleFileContextList ctx params = do
-  decoded <- liftEffect $ decodeFileContextListRequest params
+  decoded <- liftEffect $ Handlers.decodeFileContextListRequest params
   case decoded of
     Right request -> do
       -- Get files from context
       files <- liftEffect $ FileContext.getContextFiles ctx.store request.sessionId request.filter
-      responseJson <- liftEffect $ encodeFileContextListResponse files
+      responseJson <- liftEffect $ Handlers.encodeFileContextListResponse files
       pure (successResponse Nothing responseJson)
     Left err -> pure (errorResponse Nothing (-32602) "Invalid params" (Just err))
 
@@ -1232,7 +1233,7 @@ handleSettingsSave ctx params = do
       case decoded of
         Right settings -> do
           -- Update alert config from settings
-          let alertConfig :: AlertConfig = {
+          let alertConfig = {
               diemWarningPercent: settings.alerts.warningPercent
             , diemCriticalPercent: settings.alerts.criticalPercent
             , depletionWarningHours: settings.alerts.warningHours
@@ -1256,7 +1257,7 @@ handleAlertsConfigure ctx request = do
       decoded <- liftEffect $ Handlers.decodeAlertsConfigureRequest paramsJson
       case decoded of
         Right config -> do
-          let alertConfig :: AlertConfig = {
+          let alertConfig = {
               diemWarningPercent: config.diemWarningPercent
             , diemCriticalPercent: config.diemCriticalPercent
             , depletionWarningHours: config.depletionWarningHours
@@ -1332,11 +1333,11 @@ foreign import parseSessions :: String -> Effect (Array SessionState)
 foreign import encodeSessionExport :: SessionState -> Effect String
 foreign import encodeDiagnostics :: Array Diagnostic -> Effect String
 foreign import encodeLeanGoals :: Array Goal -> Effect String
-foreign import updateBalance :: StateStore -> Bridge.State.Store.BalanceState -> Effect Unit
+foreign import updateBalance :: StateStore -> BalanceState -> Effect Unit
 foreign import updateSession :: StateStore -> SessionState -> Effect Unit
 foreign import clearSession :: StateStore -> Effect Unit
-foreign import updateProof :: StateStore -> Bridge.State.Store.ProofState -> Effect Unit
-foreign import updateMetrics :: StateStore -> Bridge.State.Store.UsageMetrics -> Effect Unit
+foreign import updateProof :: StateStore -> ProofState -> Effect Unit
+foreign import updateMetrics :: StateStore -> UsageMetrics -> Effect Unit
 foreign import updateAlertConfig :: StateStore -> AlertConfig -> Effect Unit
 foreign import generateAuthToken :: Effect String
 foreign import getAuthTokenExpiry :: Effect String

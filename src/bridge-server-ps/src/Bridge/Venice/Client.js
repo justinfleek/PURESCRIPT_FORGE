@@ -1,5 +1,5 @@
 // Venice Client FFI Implementation
-"use strict";
+
 
 // Helper: Explicit default value (replaces banned || pattern)
 function explicitDefault(value, defaultValue) {
@@ -9,7 +9,7 @@ function explicitDefault(value, defaultValue) {
   return value;
 }
 
-exports.createVeniceClientImpl = function(apiKey) {
+export const createVeniceClientImpl = function(apiKey) {
   return function(store) {
     return function(logger) {
       return function(rateLimiter) {
@@ -27,11 +27,11 @@ exports.createVeniceClientImpl = function(apiKey) {
   };
 };
 
-exports.getApiKey = function(client) {
+export const getApiKey = function(client) {
   return client.apiKey;
 };
 
-exports.encodeRequest = function(request) {
+export const encodeRequest = function(request) {
   return JSON.stringify({
     model: request.model,
     messages: request.messages,
@@ -41,7 +41,7 @@ exports.encodeRequest = function(request) {
   });
 };
 
-exports.encodeStreamRequest = function(request) {
+export const encodeStreamRequest = function(request) {
   return JSON.stringify({
     model: request.model,
     messages: request.messages,
@@ -51,7 +51,7 @@ exports.encodeStreamRequest = function(request) {
   });
 };
 
-exports.decodeResponse = function(jsonStr) {
+export const decodeResponse = function(jsonStr) {
   var data = JSON.parse(jsonStr);
   var choicesArray = data.choices !== undefined && data.choices !== null && Array.isArray(data.choices) ? data.choices : [];
   return {
@@ -73,7 +73,7 @@ exports.decodeResponse = function(jsonStr) {
   };
 };
 
-exports.extractAndUpdateBalance = function(client) {
+export const extractAndUpdateBalance = function(client) {
   return function(response) {
     return function() {
       try {
@@ -146,7 +146,7 @@ exports.extractAndUpdateBalance = function(client) {
   };
 };
 
-exports.decodeModelsResponse = function(jsonStr) {
+export const decodeModelsResponse = function(jsonStr) {
   var data = JSON.parse(jsonStr);
   var modelsArray = data.data !== undefined && data.data !== null && Array.isArray(data.data) ? data.data : [];
   return modelsArray.map(function(m) {
@@ -162,7 +162,7 @@ exports.decodeModelsResponse = function(jsonStr) {
   });
 };
 
-exports.encodeImageRequest = function(request) {
+export const encodeImageRequest = function(request) {
   return JSON.stringify({
     model: request.model,
     prompt: request.prompt,
@@ -171,14 +171,14 @@ exports.encodeImageRequest = function(request) {
   });
 };
 
-exports.decodeImageResponse = function(jsonStr) {
+export const decodeImageResponse = function(jsonStr) {
   var data = JSON.parse(jsonStr);
   return {
     images: explicitDefault(data.images, [])
   };
 };
 
-exports.acquireRateLimit = function(client) {
+export const acquireRateLimit = function(client) {
   return function() {
     // Call PureScript rate limiter acquireRateLimit
     if (client.rateLimiter) {
@@ -204,7 +204,7 @@ exports.acquireRateLimit = function(client) {
   };
 };
 
-exports.parseStream = function(response) {
+export const parseStream = function(response) {
   return function() {
     return new Promise(function(resolve) {
       if (response === undefined || response === null || response.body === undefined || response.body === null) {

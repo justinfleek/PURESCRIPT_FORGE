@@ -7,6 +7,9 @@ import Effect (Effect)
 import Effect.Aff (Aff)
 import Data.Either (Either)
 
+-- | Opaque HTTP Server type
+foreign import data HttpServer :: Type
+
 -- | Opaque WebSocket Server type
 foreign import data WebSocketServer :: Type
 

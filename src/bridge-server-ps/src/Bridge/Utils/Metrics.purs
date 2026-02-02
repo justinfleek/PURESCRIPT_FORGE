@@ -3,6 +3,7 @@
 module Bridge.Utils.Metrics where
 
 import Prelude
+import Data.Maybe (Maybe(..))
 import Data.Array (foldl, length)
 import Bridge.State.Store (UsageMetrics)
 

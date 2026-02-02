@@ -1,11 +1,11 @@
 // Lean LSP Proxy FFI Implementation
 // Integrates with Lean4 LSP via Model Context Protocol (MCP)
-"use strict";
+
 
 // MCP SDK client (would be installed via npm)
 // const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
 
-exports.createLeanProxyImpl = function(store) {
+export const createLeanProxyImpl = function(store) {
   return function(logger) {
     return function() {
       var proxy = {
@@ -25,7 +25,7 @@ exports.createLeanProxyImpl = function(store) {
   };
 };
 
-exports.connect = function(proxy) {
+export const connect = function(proxy) {
   return function() {
     return new Promise(function(resolve, reject) {
       try {
@@ -56,7 +56,7 @@ exports.connect = function(proxy) {
   };
 };
 
-exports.disconnect = function(proxy) {
+export const disconnect = function(proxy) {
   return function() {
     return new Promise(function(resolve, reject) {
       try {
@@ -76,7 +76,7 @@ exports.disconnect = function(proxy) {
   };
 };
 
-exports.check = function(proxy) {
+export const check = function(proxy) {
   return function(filePath) {
     return function() {
       return new Promise(function(resolve) {
@@ -107,7 +107,7 @@ exports.check = function(proxy) {
   };
 };
 
-exports.goals = function(proxy) {
+export const goals = function(proxy) {
   return function(filePath) {
     return function(line) {
       return function(col) {
@@ -146,7 +146,7 @@ exports.goals = function(proxy) {
   };
 };
 
-exports.tactics = function(proxy) {
+export const tactics = function(proxy) {
   return function(filePath) {
     return function(line) {
       return function(col) {
@@ -186,7 +186,7 @@ exports.tactics = function(proxy) {
   };
 };
 
-exports.applyTactic = function(proxy) {
+export const applyTactic = function(proxy) {
   return function(filePath) {
     return function(line) {
       return function(col) {
@@ -243,7 +243,7 @@ exports.applyTactic = function(proxy) {
   };
 };
 
-exports.searchTheorems = function(proxy) {
+export const searchTheorems = function(proxy) {
   return function(query) {
     return function(limit) {
       return function(file) {

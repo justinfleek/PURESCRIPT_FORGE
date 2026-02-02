@@ -1,5 +1,5 @@
 // WebSocket Manager FFI Implementation
-"use strict";
+
 
 // Helper: Explicit default value (replaces banned || pattern)
 function explicitDefault(value, defaultValue) {
@@ -9,9 +9,9 @@ function explicitDefault(value, defaultValue) {
   return value;
 }
 
-var crypto = require("crypto");
+// Removed: require("crypto")
 
-exports.setHandlerContext = function(manager) {
+export const setHandlerContext = function(manager) {
   return function(contextJson) {
     return function() {
       manager.handlerContext = JSON.parse(contextJson);
@@ -19,7 +19,7 @@ exports.setHandlerContext = function(manager) {
   };
 };
 
-exports.broadcast = function(manager) {
+export const broadcast = function(manager) {
   return function(messageJson) {
     return function() {
       var message = JSON.parse(messageJson);
@@ -62,7 +62,7 @@ exports.broadcast = function(manager) {
   };
 };
 
-exports.handleMessage = function(logger) {
+export const handleMessage = function(logger) {
   return function(store) {
     return function(message) {
       return function(ws) {

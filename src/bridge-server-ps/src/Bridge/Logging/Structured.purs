@@ -35,6 +35,15 @@ import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Bridge.FFI.Node.Pino (Logger)
 
+-- | FFI: Generate UUID
+foreign import generateUUID :: Effect String
+
+-- | FFI: Log with level
+foreign import logWithLevel :: StructuredLogger -> String -> String -> Maybe String -> Effect Unit
+
+-- | FFI: Create child logger
+foreign import createChildLogger :: Logger -> String -> Effect Logger
+
 -- | Correlation ID (unique per request)
 type CorrelationId = String
 
@@ -49,10 +58,7 @@ type StructuredLogger =
 -- | **Purpose:** Generates a unique correlation ID for request tracing.
 -- | **Returns:** Correlation ID string (UUID format)
 generateCorrelationId :: Effect CorrelationId
-generateCorrelationId = do
-  generateUUID
-  where
-    foreign import generateUUID :: Effect String
+generateCorrelationId = generateUUID
 
 -- | Create structured logger
 -- |
@@ -74,27 +80,21 @@ createStructuredLogger baseLogger maybeCorrelationId = do
 -- | **Parameters:**
 -- | - `logger`: Structured logger
 -- | - `message`: Log message
--- | - `data`: Structured data (optional)
+-- | - `extraData`: Structured data (optional)
 info :: StructuredLogger -> String -> Maybe String -> Effect Unit
-info logger message data = do
-  logWithLevel logger "info" message data
-  where
-    foreign import logWithLevel :: StructuredLogger -> String -> String -> Maybe String -> Effect Unit
+info logger message extraData = logWithLevel logger "info" message extraData
 
 -- | Log error message
-error :: StructuredLogger -> String -> Maybe String -> Effect Unit
-error logger message data = do
-  logWithLevel logger "error" message data
+logError :: StructuredLogger -> String -> Maybe String -> Effect Unit
+logError logger message extraData = logWithLevel logger "error" message extraData
 
 -- | Log warning message
 warn :: StructuredLogger -> String -> Maybe String -> Effect Unit
-warn logger message data = do
-  logWithLevel logger "warn" message data
+warn logger message extraData = logWithLevel logger "warn" message extraData
 
 -- | Log debug message
 debug :: StructuredLogger -> String -> Maybe String -> Effect Unit
-debug logger message data = do
-  logWithLevel logger "debug" message data
+debug logger message extraData = logWithLevel logger "debug" message extraData
 
 -- | Create child logger with additional context
 -- |
@@ -107,5 +107,3 @@ child :: StructuredLogger -> String -> Effect StructuredLogger
 child logger context = do
   childLogger <- createChildLogger logger.baseLogger context
   pure { baseLogger: childLogger, correlationId: logger.correlationId }
-  where
-    foreign import createChildLogger :: Logger -> String -> Effect Logger

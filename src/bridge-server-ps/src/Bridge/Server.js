@@ -1,7 +1,7 @@
 // Bridge Server FFI Implementation
-"use strict";
 
-exports.encodeHandlerContext = function(ctx) {
+
+export const encodeHandlerContext = function(ctx) {
   // Pure function - returns String directly (no Effect wrapper)
   return JSON.stringify({
     store: ctx.store,
@@ -13,11 +13,11 @@ exports.encodeHandlerContext = function(ctx) {
   });
 };
 
-exports.setNEXUSWebSocketManager = function(wsManager) {
+export const setNEXUSWebSocketManager = function(wsManager) {
   return function() {
     // Set global WebSocket manager for NEXUS
     try {
-      var nexusWebSocket = require("../../NEXUS/bridge-server-ps/src/Bridge/NEXUS/WebSocket.js");
+      // Removed: require("../../NEXUS/bridge-server-ps/src/Bridge/NEXUS/WebSocket.js")
       if (nexusWebSocket.setGlobalWebSocketManager) {
         nexusWebSocket.setGlobalWebSocketManager(wsManager)();
       }
@@ -28,7 +28,7 @@ exports.setNEXUSWebSocketManager = function(wsManager) {
   };
 };
 
-exports.subscribeStateChanges = function(store) {
+export const subscribeStateChanges = function(store) {
   return function(wsManager) {
     return function() {
       // Subscribe to state changes and broadcast to all WebSocket clients

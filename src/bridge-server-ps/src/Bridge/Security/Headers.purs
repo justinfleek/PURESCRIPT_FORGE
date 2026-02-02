@@ -27,7 +27,16 @@ module Bridge.Security.Headers where
 
 import Prelude
 import Effect (Effect)
-import Bridge.FFI.Node.Http (HttpResponse)
+import Data.Maybe (Maybe, fromMaybe)
+
+-- | Opaque HTTP Response type
+foreign import data HttpResponse :: Type
+
+-- | FFI: Add security headers implementation
+foreign import addSecurityHeadersImpl :: HttpResponse -> SecurityHeadersConfig -> Effect Unit
+
+-- | FFI: Set response header
+foreign import setHeader :: HttpResponse -> String -> String -> Effect Unit
 
 -- | Security headers configuration
 type SecurityHeadersConfig =
@@ -59,9 +68,6 @@ addSecurityHeaders :: HttpResponse -> Maybe SecurityHeadersConfig -> Effect Unit
 addSecurityHeaders response config = do
   let finalConfig = fromMaybe defaultSecurityHeaders config
   addSecurityHeadersImpl response finalConfig
-  where
-    foreign import addSecurityHeadersImpl :: HttpResponse -> SecurityHeadersConfig -> Effect Unit
-    import Data.Maybe (fromMaybe)
 
 -- | Set Content-Security-Policy header
 -- |
@@ -70,10 +76,7 @@ addSecurityHeaders response config = do
 -- | - `response`: HTTP response
 -- | - `policy`: CSP policy string
 setContentSecurityPolicy :: HttpResponse -> String -> Effect Unit
-setContentSecurityPolicy response policy = do
-  setHeader response "Content-Security-Policy" policy
-  where
-    foreign import setHeader :: HttpResponse -> String -> String -> Effect Unit
+setContentSecurityPolicy response policy = setHeader response "Content-Security-Policy" policy
 
 -- | Set X-Frame-Options header
 -- |

@@ -1,5 +1,5 @@
 // Rate Limiter FFI Implementation
-"use strict";
+
 
 // Helper: Explicit default value (replaces banned || pattern)
 function explicitDefault(value, defaultValue) {
@@ -9,7 +9,7 @@ function explicitDefault(value, defaultValue) {
   return value;
 }
 
-exports.updateFromResponseImpl = function(limiter) {
+export const updateFromResponseImpl = function(limiter) {
   return function(headersJson) {
     return function() {
       try {

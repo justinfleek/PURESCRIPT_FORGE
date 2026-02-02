@@ -1,15 +1,15 @@
 // Structured Logging FFI - Correlation IDs and structured logging
 // Production-grade logging with correlation IDs
 
-const crypto = require('crypto');
+// Removed: require('crypto')
 
 // Generate UUID v4
-exports.generateUUID = function() {
+export const generateUUID = function() {
   return crypto.randomUUID();
 };
 
 // Log with level and correlation ID
-exports.logWithLevel = function(logger) {
+export const logWithLevel = function(logger) {
   return function(level) {
     return function(message) {
       return function(data) {
@@ -43,7 +43,7 @@ exports.logWithLevel = function(logger) {
 };
 
 // Create child logger with context
-exports.createChildLogger = function(baseLogger) {
+export const createChildLogger = function(baseLogger) {
   return function(context) {
     return function() {
       const contextData = JSON.parse(context);

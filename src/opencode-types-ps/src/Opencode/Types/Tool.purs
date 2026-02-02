@@ -7,7 +7,8 @@ import Prelude
 import Data.Generic.Rep (class Generic)
 import Data.Show.Generic (genericShow)
 import Data.Maybe (Maybe)
-import Data.Argonaut (class EncodeJson, class DecodeJson, encodeJson, decodeJson, Json, (.:), (.:?))
+import Data.Argonaut (Json)
+import Effect.Aff (Aff)
 
 -- | Tool identifier
 type ToolID = String
@@ -21,29 +22,21 @@ type MessageID = String
 -- | Agent identifier
 type AgentID = String
 
--- | Tool metadata (simplified - would be extensible)
-type ToolMetadata = Record String Json
+-- | Tool metadata (simplified)
+type ToolMetadata = { extra :: Maybe Json }
+
+-- | Agent information
+type AgentInfo = { id :: String, name :: String }
 
 -- | Tool initialization context
 type ToolInitContext =
   { agent :: Maybe AgentInfo
   }
 
--- | Agent information (placeholder - would import from Agent module)
-type AgentInfo = { id :: String, name :: String }
+-- | Message with parts (placeholder)
+type MessageWithParts = { id :: String, parts :: Array Json }
 
--- | Tool execution context
-type ToolContext =
-  { sessionID :: SessionID
-  , messageID :: MessageID
-  , agent :: AgentID
-  , abort :: AbortSignal  -- Placeholder - would be Effect-based
-  , callID :: Maybe String
-  , extra :: Maybe (Record String Json)
-  , messages :: Array MessageWithParts  -- Placeholder - would import from Message module
-  }
-
--- | Abort signal (placeholder - would be Effect-based)
+-- | Abort signal (placeholder)
 data AbortSignal = AbortSignal
 
 derive instance genericAbortSignal :: Generic AbortSignal _
@@ -52,8 +45,18 @@ derive instance eqAbortSignal :: Eq AbortSignal
 instance showAbortSignal :: Show AbortSignal where
   show = genericShow
 
--- | Message with parts (placeholder - would import from Message module)
-type MessageWithParts = { id :: String, parts :: Array Json }
+-- | Tool execution context
+type ToolContext =
+  { sessionID :: SessionID
+  , messageID :: MessageID
+  , agent :: AgentID
+  , callID :: Maybe String
+  , extra :: Maybe Json
+  , messages :: Array MessageWithParts
+  }
+
+-- | File part
+type FilePart = { path :: String, content :: String }
 
 -- | Tool execution result
 type ToolResult =
@@ -63,29 +66,16 @@ type ToolResult =
   , attachments :: Maybe (Array FilePart)
   }
 
--- | File part (placeholder - would import from Message module)
-type FilePart = { path :: String, content :: String }
-
--- | Tool information
--- | Note: This is simplified - the actual TypeScript version uses generics
--- | PureScript would need higher-kinded types or a different approach
+-- | Tool information (simplified - no functions in type)
 type ToolInfo =
   { id :: ToolID
   , description :: String
-  , parameters :: Json  -- Zod schema encoded as JSON
-  , execute :: Json -> ToolContext -> Aff ToolResult
-  , formatValidationError :: Maybe (Json -> String)
+  , parameters :: Json
   }
-
-derive instance genericToolInfo :: Generic ToolInfo _
-derive instance eqToolInfo :: Eq ToolInfo
-
-instance showToolInfo :: Show ToolInfo where
-  show = genericShow
 
 -- | Tool truncation result
 data TruncationResult
-  = NotTruncated { content :: String }
+  = NotTruncated String
   | Truncated { content :: String, outputPath :: String }
 
 derive instance genericTruncationResult :: Generic TruncationResult _
@@ -93,7 +83,3 @@ derive instance eqTruncationResult :: Eq TruncationResult
 
 instance showTruncationResult :: Show TruncationResult where
   show = genericShow
-
--- Import Effect for ToolResult
-import Effect (Effect)
-import Effect.Aff (Aff)

@@ -5,6 +5,7 @@ module Bridge.Opencode.Client where
 import Prelude
 import Effect.Aff (Aff, launchAff_)
 import Effect.Class (liftEffect)
+import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Bridge.State.Store (StateStore)
 import Bridge.FFI.Node.Pino as Pino
@@ -12,6 +13,12 @@ import Bridge.FFI.OpenCode.SDK as SDK
 
 -- | Opaque OpenCode Client type
 foreign import data OpencodeClient :: Type
+
+-- | FFI: Wrap SDK client
+foreign import wrapClient :: SDK.SDKClient -> OpencodeClient
+
+-- | FFI: Process event stream
+foreign import processEventStream :: StateStore -> Pino.Logger -> SDK.EventStream -> Aff Unit
 
 -- | Create OpenCode client
 createOpencodeClient :: StateStore -> { apiUrl :: String, directory :: String } -> Pino.Logger -> Aff (Maybe OpencodeClient)
@@ -45,8 +52,5 @@ createOpencodeClient store config logger = do
             Right stream -> do
               -- Start processing events
               liftEffect $ Pino.info logger "OpenCode client connected and subscribed to events"
-              launchAff_ $ processEventStream store logger stream
+              liftEffect $ launchAff_ $ processEventStream store logger stream
               pure (Just (wrapClient sdkClient))
-  where
-    foreign import wrapClient :: SDK.SDKClient -> OpencodeClient
-    foreign import processEventStream :: StateStore -> Pino.Logger -> SDK.EventStream -> Aff Unit

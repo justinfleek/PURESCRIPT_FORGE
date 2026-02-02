@@ -1,5 +1,5 @@
 // OpenCode Events FFI Implementation
-"use strict";
+
 
 // Helper: Explicit default value (replaces banned || pattern)
 function explicitDefault(value, defaultValue) {
@@ -9,7 +9,7 @@ function explicitDefault(value, defaultValue) {
   return value;
 }
 
-exports.handleOpenCodeEvent = function(store) {
+export const handleOpenCodeEvent = function(store) {
   return function(eventJson) {
     return function() {
       try {

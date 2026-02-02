@@ -14,22 +14,22 @@
   , "datetime"
   , "ordered-collections"
   , "foreign"
-  , "foreign-generic"
+  , "foreign-object"
   , "node-buffer"
   , "node-fs"
-  , "node-path"
   , "node-process"
   , "node-streams"
-  , "node-url"
-  , "node-http"
   , "unsafe-coerce"
-  , "maps"
   , "spec"
-  , "spec-discovery"
   , "quickcheck"
-  , "quickcheck-laws"
+  , "integers"
+  , "transformers"
+  , "refs"
+  , "tuples"
+  , "foldable-traversable"
+  , "newtype"
   ]
 , packages = ./packages.dhall
-, sources = [ "src/**/*.purs", "test/**/*.purs" ]
+, sources = [ "src/**/*.purs" ]
 , license = "MIT"
 }

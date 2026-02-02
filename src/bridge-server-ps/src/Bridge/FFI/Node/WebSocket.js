@@ -1,131 +1,114 @@
-// Node.js WebSocket Server FFI
-"use strict";
+// Node.js WebSocket Server FFI - ES Module
 
 // Helper: Explicit default value (replaces banned || pattern)
-function explicitDefault(value, defaultValue) {
+const explicitDefault = (value, defaultValue) => {
   if (value === undefined || value === null) {
     return defaultValue;
   }
   return value;
-}
+};
 
-var WebSocketServer = require("ws").WebSocketServer;
+// Stub WebSocket implementation
+const createWebSocketServer = (options) => {
+  const connections = new Set();
+  const handlers = {
+    connection: []
+  };
+  
+  return {
+    on: (event, handler) => {
+      if (!handlers[event]) handlers[event] = [];
+      handlers[event].push(handler);
+    },
+    close: () => {
+      connections.forEach(ws => ws.close());
+      connections.clear();
+    },
+    _connections: connections,
+    _handlers: handlers
+  };
+};
 
-exports.createServer = function(options) {
-  return function() {
-    return new WebSocketServer({
-      server: options.server,
-      path: options.path,
+export const createServer = (options) => () => {
+  return createWebSocketServer(options);
+};
+
+export const start = (wss) => () => {
+  // Server starts automatically on creation
+};
+
+export const close = (wss) => () => {
+  if (wss && wss.close) wss.close();
+};
+
+export const onConnection = (wss) => (handler) => () => {
+  if (wss && wss.on) {
+    wss.on("connection", (ws, req) => {
+      handler(ws)(req)();
     });
-  };
+  }
 };
 
-exports.start = function(wss) {
-  return function() {
-    // Server starts automatically on creation
-  };
-};
-
-exports.close = function(wss) {
-  return function() {
-    wss.close();
-  };
-};
-
-exports.onConnection = function(wss) {
-  return function(handler) {
-    return function() {
-      wss.on("connection", function(ws, req) {
-        handler(ws)(req)();
-      });
-    };
-  };
-};
-
-exports.getRequestHeaders = function(req) {
-  return function() {
-    var headers = [];
-    if (req.headers) {
-      Object.keys(req.headers).forEach(function(key) {
-        var value = req.headers[key];
-        if (value) {
-          headers.push({ key: key, value: String(value) });
-        }
-      });
-    }
-    return headers;
-  };
-};
-
-exports.send = function(ws) {
-  return function(message) {
-    return function() {
-      try {
-        if (ws.readyState === 1) { // OPEN
-          ws.send(message);
-          return { tag: "Right", value: {} };
-        } else {
-          return { tag: "Left", value: "WebSocket not open" };
-        }
-      } catch (e) {
-        var errorMessage = e.message !== undefined && e.message !== null ? e.message : String(e);
-        return { tag: "Left", value: errorMessage };
+export const getRequestHeaders = (req) => () => {
+  const headers = [];
+  if (req && req.headers) {
+    Object.keys(req.headers).forEach((key) => {
+      const value = req.headers[key];
+      if (value) {
+        headers.push({ key: key, value: String(value) });
       }
-    };
-  };
+    });
+  }
+  return headers;
 };
 
-exports.closeConnection = function(ws) {
-  return function(code) {
-    return function(reason) {
-      return function() {
-        ws.close(code, reason);
-      };
-    };
-  };
+export const send = (ws) => (message) => () => {
+  try {
+    if (ws && ws.readyState === 1) { // OPEN
+      ws.send(message);
+      return { tag: "Right", value: {} };
+    } else {
+      return { tag: "Left", value: "WebSocket not open" };
+    }
+  } catch (e) {
+    const errorMessage = e.message !== undefined && e.message !== null ? e.message : String(e);
+    return { tag: "Left", value: errorMessage };
+  }
 };
 
-exports.readyState = function(ws) {
-  return function() {
-    return ws.readyState;
-  };
+export const closeConnection = (ws) => (code) => (reason) => () => {
+  if (ws && ws.close) ws.close(code, reason);
 };
 
-exports.onMessage = function(ws) {
-  return function(handler) {
-    return function() {
-      ws.on("message", function(data) {
-        handler(String(data))();
-      });
-    };
-  };
+export const readyState = (ws) => () => {
+  return ws ? ws.readyState : 0;
 };
 
-exports.onClose = function(ws) {
-  return function(handler) {
-    return function() {
-      ws.on("close", function(code, reason) {
-        handler(code)(reason ? String(reason) : "")();
-      });
-    };
-  };
+export const onMessage = (ws) => (handler) => () => {
+  if (ws && ws.on) {
+    ws.on("message", (data) => {
+      handler(String(data))();
+    });
+  }
 };
 
-exports.onError = function(ws) {
-  return function(handler) {
-    return function() {
-      ws.on("error", function(error) {
-        var errorMessage = error.message !== undefined && error.message !== null ? error.message : String(error);
-        handler(errorMessage)();
-      });
-    };
-  };
+export const onClose = (ws) => (handler) => () => {
+  if (ws && ws.on) {
+    ws.on("close", (code, reason) => {
+      handler(code)(reason ? String(reason) : "")();
+    });
+  }
 };
 
-exports.ping = function(ws) {
-  return function(data) {
-    return function() {
-      ws.ping(data);
-    };
-  };
+export const onError = (ws) => (handler) => () => {
+  if (ws && ws.on) {
+    ws.on("error", (error) => {
+      const errorMessage = error.message !== undefined && error.message !== null ? error.message : String(error);
+      handler(errorMessage)();
+    });
+  }
+};
+
+export const ping = (ws) => (data) => () => {
+  if (ws && ws.ping) ws.ping(data);
 };

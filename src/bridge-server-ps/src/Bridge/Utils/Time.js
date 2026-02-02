@@ -1,7 +1,7 @@
 // Time Utilities FFI Implementation
-"use strict";
 
-exports.diffDateTime = function(target) {
+
+export const diffDateTime = function(target) {
   return function(now) {
     var targetMs = new Date(target).getTime();
     var nowMs = new Date(now).getTime();
@@ -24,7 +24,7 @@ exports.diffDateTime = function(target) {
   };
 };
 
-exports.getCurrentDateTime = function() {
+export const getCurrentDateTime = function() {
   return function() {
     var date = new Date();
     // Return DateTime structure matching PureScript Data.DateTime

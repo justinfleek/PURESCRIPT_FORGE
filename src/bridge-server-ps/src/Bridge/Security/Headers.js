@@ -2,7 +2,7 @@
 // Production-grade security headers
 
 // Add all security headers
-exports.addSecurityHeadersImpl = function(response) {
+export const addSecurityHeadersImpl = function(response) {
   return function(config) {
     return function() {
       // Set all security headers
@@ -16,7 +16,7 @@ exports.addSecurityHeadersImpl = function(response) {
 };
 
 // Set header helper
-exports.setHeader = function(response) {
+export const setHeader = function(response) {
   return function(name) {
     return function(value) {
       return function() {

@@ -1,79 +1,64 @@
-// Fetch API FFI
-"use strict";
+// Fetch API FFI - ES Module
 
 // Helper: Explicit default value (replaces banned || pattern)
-function explicitDefault(value, defaultValue) {
+const explicitDefault = (value, defaultValue) => {
   if (value === undefined || value === null) {
     return defaultValue;
   }
   return value;
-}
+};
 
-exports.fetch = function(url) {
-  return function(options) {
-    return function() {
-      return new Promise(function(resolve) {
-        var headers = new Headers();
-        options.headers.forEach(function(h) {
-          headers.set(h.key, h.value);
-        });
-        
-        var init = {
-          method: options.method,
-          headers: headers,
-        };
-        
-        if (options.body) {
-          init.body = options.body;
-        }
-        
-        globalThis.fetch(url, init).then(function(response) {
-          resolve({ tag: "Right", value: response });
-        }).catch(function(error) {
-          var errorMessage = error.message !== undefined && error.message !== null ? error.message : String(error);
-          resolve({ tag: "Left", value: errorMessage });
-        });
+export const fetch = (url) => (options) => () => {
+  return new Promise((resolve) => {
+    const headers = new Headers();
+    if (options.headers) {
+      options.headers.forEach((h) => {
+        headers.set(h.key, h.value);
       });
+    }
+    
+    const init = {
+      method: options.method,
+      headers: headers,
     };
-  };
-};
-
-exports.getHeaders = function(response) {
-  return function() {
-    return response.headers;
-  };
-};
-
-exports.getHeader = function(headers) {
-  return function(name) {
-    return function() {
-      var value = headers.get(name);
-      return value ? { tag: "Just", value: value } : { tag: "Nothing" };
-    };
-  };
-};
-
-exports.json = function(response) {
-  return function() {
-    return new Promise(function(resolve) {
-      response.json().then(function(data) {
-        resolve({ tag: "Right", value: JSON.stringify(data) });
-      }).catch(function(error) {
-        var errorMessage = error.message !== undefined && error.message !== null ? error.message : String(error);
-        resolve({ tag: "Left", value: errorMessage });
-      });
+    
+    if (options.body) {
+      init.body = options.body;
+    }
+    
+    globalThis.fetch(url, init).then((response) => {
+      resolve({ tag: "Right", value: response });
+    }).catch((error) => {
+      const errorMessage = error.message !== undefined && error.message !== null ? error.message : String(error);
+      resolve({ tag: "Left", value: errorMessage });
     });
-  };
+  });
 };
 
-exports.ok = function(response) {
-  return function() {
-    return response.ok;
-  };
+export const getHeaders = (response) => () => {
+  return response.headers;
 };
 
-exports.status = function(response) {
-  return function() {
-    return response.status;
-  };
+export const getHeader = (headers) => (name) => () => {
+  const value = headers.get(name);
+  return value !== null ? value : null; // PureScript Maybe
+};
+
+export const json = (response) => () => {
+  return new Promise((resolve) => {
+    response.json().then((data) => {
+      resolve({ tag: "Right", value: JSON.stringify(data) });
+    }).catch((error) => {
+      const errorMessage = error.message !== undefined && error.message !== null ? error.message : String(error);
+      resolve({ tag: "Left", value: errorMessage });
+    });
+  });
+};
+
+export const ok = (response) => () => {
+  return response.ok;
+};
+
+export const status = (response) => () => {
+  return response.status;
 };

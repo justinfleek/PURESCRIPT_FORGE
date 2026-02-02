@@ -5,7 +5,7 @@
 // For now, provide basic structure
 
 // Create tracer
-exports.createTracerImpl = function(serviceName) {
+export const createTracerImpl = function(serviceName) {
   return function(serviceVersion) {
     return function() {
       // In production, use OpenTelemetry API
@@ -22,7 +22,7 @@ exports.createTracerImpl = function(serviceName) {
 };
 
 // Start span
-exports.startSpanImpl = function(tracer) {
+export const startSpanImpl = function(tracer) {
   return function(spanName) {
     return function(parentContext) {
       return function() {
@@ -49,7 +49,7 @@ exports.startSpanImpl = function(tracer) {
 };
 
 // End span
-exports.endSpanImpl = function(span) {
+export const endSpanImpl = function(span) {
   return function() {
     // In production, use OpenTelemetry API
     // span.end();
@@ -62,7 +62,7 @@ exports.endSpanImpl = function(span) {
 };
 
 // Set span attribute
-exports.setAttributeImpl = function(span) {
+export const setAttributeImpl = function(span) {
   return function(key) {
     return function(value) {
       return function() {
@@ -79,7 +79,7 @@ exports.setAttributeImpl = function(span) {
 };
 
 // Add span event
-exports.addEventImpl = function(span) {
+export const addEventImpl = function(span) {
   return function(eventName) {
     return function(attributes) {
       return function() {
@@ -100,7 +100,7 @@ exports.addEventImpl = function(span) {
 };
 
 // Get span context
-exports.getSpanContextImpl = function(span) {
+export const getSpanContextImpl = function(span) {
   return function() {
     // In production, use OpenTelemetry API
     // const context = span.spanContext();
@@ -115,7 +115,7 @@ exports.getSpanContextImpl = function(span) {
 };
 
 // Inject trace context
-exports.injectTraceContextImpl = function(spanContext) {
+export const injectTraceContextImpl = function(spanContext) {
   return function() {
     // In production, use OpenTelemetry API propagation
     // Format: traceparent: 00-{traceId}-{spanId}-{flags}
@@ -128,7 +128,7 @@ exports.injectTraceContextImpl = function(spanContext) {
 };
 
 // Extract trace context
-exports.extractTraceContextImpl = function(headers) {
+export const extractTraceContextImpl = function(headers) {
   return function() {
     // Find traceparent header
     const traceparentHeader = headers.find(h => h.key.toLowerCase() === 'traceparent');

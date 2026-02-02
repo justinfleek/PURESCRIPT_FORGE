@@ -32,9 +32,13 @@
 module Bridge.Error.Taxonomy where
 
 import Prelude
-import Data.Either (Either(..))
-import Data.Maybe (Maybe(..))
-import Bridge.FFI.Node.Pino (Logger)
+import Effect.Unsafe (unsafePerformEffect)
+import Effect (Effect)
+
+import Data.Maybe (Maybe(..), fromMaybe)
+
+-- | FFI: Get current timestamp as ISO string
+foreign import getCurrentTimestampImpl :: Effect String
 
 -- | Error category
 data ErrorCategory =
@@ -51,31 +55,65 @@ derive instance eqErrorCategory :: Eq ErrorCategory
 
 -- | Error code constants
 -- | Network Errors (1xxx)
-foreign import NETWORK_UNREACHABLE :: Int
-foreign import CONNECTION_TIMEOUT :: Int
-foreign import CONNECTION_REFUSED :: Int
-foreign import SSL_ERROR :: Int
-foreign import DNS_FAILURE :: Int
+networkUnreachableCode :: Int
+networkUnreachableCode = 1001
+
+connectionTimeoutCode :: Int
+connectionTimeoutCode = 1002
+
+connectionRefusedCode :: Int
+connectionRefusedCode = 1003
+
+sslErrorCode :: Int
+sslErrorCode = 1004
+
+dnsFailureCode :: Int
+dnsFailureCode = 1005
 
 -- | Authentication Errors (2xxx)
-foreign import INVALID_API_KEY :: Int
-foreign import API_KEY_EXPIRED :: Int
-foreign import INSUFFICIENT_PERMISSIONS :: Int
-foreign import SESSION_EXPIRED :: Int
-foreign import TOKEN_INVALID :: Int
+invalidApiKeyCode :: Int
+invalidApiKeyCode = 2001
+
+apiKeyExpiredCode :: Int
+apiKeyExpiredCode = 2002
+
+insufficientPermissionsCode :: Int
+insufficientPermissionsCode = 2003
+
+sessionExpiredCode :: Int
+sessionExpiredCode = 2004
+
+tokenInvalidCode :: Int
+tokenInvalidCode = 2005
 
 -- | Rate Limit Errors (3xxx)
-foreign import RATE_LIMITED_REQUESTS :: Int
-foreign import RATE_LIMITED_TOKENS :: Int
-foreign import DAILY_LIMIT_REACHED :: Int
-foreign import BALANCE_DEPLETED :: Int
+rateLimitedRequestsCode :: Int
+rateLimitedRequestsCode = 3001
+
+rateLimitedTokensCode :: Int
+rateLimitedTokensCode = 3002
+
+dailyLimitReachedCode :: Int
+dailyLimitReachedCode = 3003
+
+balanceDepletedCode :: Int
+balanceDepletedCode = 3004
 
 -- | Validation Errors (4xxx)
-foreign import INVALID_JSON :: Int
-foreign import MISSING_FIELD :: Int
-foreign import INVALID_TYPE :: Int
-foreign import VALUE_OUT_OF_RANGE :: Int
-foreign import MESSAGE_TOO_LARGE :: Int
+invalidJsonCode :: Int
+invalidJsonCode = 4001
+
+missingFieldCode :: Int
+missingFieldCode = 4002
+
+invalidTypeCode :: Int
+invalidTypeCode = 4003
+
+valueOutOfRangeCode :: Int
+valueOutOfRangeCode = 4004
+
+messageTooLargeCode :: Int
+messageTooLargeCode = 4005
 
 -- | Error data structure
 type BridgeError =
@@ -111,7 +149,7 @@ derive instance eqRecoveryStrategy :: Eq RecoveryStrategy
 -- | - `details`: Optional error details
 -- | **Returns:** BridgeError instance
 createError :: ErrorCategory -> Int -> String -> String -> Boolean -> RecoveryStrategy -> Maybe String -> BridgeError
-createError category code message userMessage retryable recovery details = do
+createError category code message userMessage retryable recovery details =
   { category
   , code
   , message
@@ -119,10 +157,8 @@ createError category code message userMessage retryable recovery details = do
   , retryable
   , recovery
   , details
-  , timestamp: getCurrentTimestamp()
+  , timestamp: unsafePerformEffect getCurrentTimestampImpl
   }
-  where
-    foreign import getCurrentTimestamp :: String
 
 -- | Check if error is retryable
 -- |
@@ -143,8 +179,8 @@ getRecoveryStrategy :: BridgeError -> RecoveryStrategy
 getRecoveryStrategy error = error.recovery
 
 -- | Network error constructors
-networkUnreachable :: String -> BridgeError
-networkUnreachable details = createError NetworkError NETWORK_UNREACHABLE
+networkUnreachableErr :: String -> BridgeError
+networkUnreachableErr details = createError NetworkError networkUnreachableCode
   "Network unreachable"
   "Unable to reach Venice API. Please check your internet connection."
   true
@@ -152,7 +188,7 @@ networkUnreachable details = createError NetworkError NETWORK_UNREACHABLE
   (Just details)
 
 connectionTimeout :: String -> BridgeError
-connectionTimeout details = createError NetworkError CONNECTION_TIMEOUT
+connectionTimeout details = createError NetworkError connectionTimeoutCode
   "Connection timeout"
   "Request timed out. Please try again."
   true
@@ -161,7 +197,7 @@ connectionTimeout details = createError NetworkError CONNECTION_TIMEOUT
 
 -- | Authentication error constructors
 invalidApiKey :: String -> BridgeError
-invalidApiKey details = createError AuthenticationError INVALID_API_KEY
+invalidApiKey details = createError AuthenticationError invalidApiKeyCode
   "Invalid API key"
   "API key is invalid. Please check your settings."
   false
@@ -169,7 +205,7 @@ invalidApiKey details = createError AuthenticationError INVALID_API_KEY
   (Just details)
 
 sessionExpired :: String -> BridgeError
-sessionExpired details = createError AuthenticationError SESSION_EXPIRED
+sessionExpired details = createError AuthenticationError sessionExpiredCode
   "Session expired"
   "Your session has expired. Please re-authenticate."
   false
@@ -178,7 +214,7 @@ sessionExpired details = createError AuthenticationError SESSION_EXPIRED
 
 -- | Rate limit error constructors
 rateLimited :: String -> Int -> BridgeError -- retryAfter seconds
-rateLimited operation retryAfter = createError RateLimitError RATE_LIMITED_REQUESTS
+rateLimited operation retryAfter = createError RateLimitError rateLimitedRequestsCode
   ("Rate limit exceeded for " <> operation)
   ("Too many requests. Please wait " <> show retryAfter <> " seconds.")
   true
@@ -186,7 +222,7 @@ rateLimited operation retryAfter = createError RateLimitError RATE_LIMITED_REQUE
   (Just operation)
 
 balanceDepleted :: String -> BridgeError
-balanceDepleted details = createError RateLimitError BALANCE_DEPLETED
+balanceDepleted details = createError RateLimitError balanceDepletedCode
   "Balance depleted"
   "Your Diem balance has been depleted. Wait for daily reset."
   false
@@ -195,7 +231,7 @@ balanceDepleted details = createError RateLimitError BALANCE_DEPLETED
 
 -- | Validation error constructors
 invalidJson :: String -> BridgeError
-invalidJson details = createError ValidationError INVALID_JSON
+invalidJson details = createError ValidationError invalidJsonCode
   "Invalid JSON format"
   "Invalid request format. Please check your input."
   false
@@ -203,7 +239,7 @@ invalidJson details = createError ValidationError INVALID_JSON
   (Just details)
 
 missingField :: String -> BridgeError
-missingField field = createError ValidationError MISSING_FIELD
+missingField field = createError ValidationError missingFieldCode
   ("Required field missing: " <> field)
   ("Missing required field: " <> field)
   false

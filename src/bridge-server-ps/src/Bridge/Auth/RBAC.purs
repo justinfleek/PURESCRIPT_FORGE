@@ -35,8 +35,8 @@
 module Bridge.Auth.RBAC where
 
 import Prelude
-import Data.Array (elem, any, foldMap)
-import Data.Maybe (Maybe(..), mapMaybe)
+import Data.Array (elem, any, foldMap, mapMaybe, uncons)
+import Data.Maybe (Maybe(..))
 import Bridge.Auth.JWT (Claims)
 
 -- | Role type
@@ -164,8 +164,10 @@ getEffectivePermissions userRoles = do
   where
     nub :: forall a. Eq a => Array a -> Array a
     nub arr = go [] arr
-    go acc [] = acc
-    go acc (x:xs) = if elem x acc then go acc xs else go (acc <> [x]) xs
+      where
+        go acc arr' = case uncons arr' of
+          Nothing -> acc
+          Just { head: x, tail: xs } -> if elem x acc then go acc xs else go (acc <> [x]) xs
 
 -- | Check if user has minimum role level
 -- |
