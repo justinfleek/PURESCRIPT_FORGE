@@ -1,0 +1,24 @@
+# Prism Rose Gold - Alacritty
+[colors.primary]
+background = "#a5385f"
+foreground = "#f7dcbc"
+
+[colors.normal]
+black = "#430a1d"
+red = "#8c3050"
+green = "#f7dcbc"
+yellow = "#ffa6ab"
+blue = "#c4586e"
+magenta = "#da627a"
+cyan = "#f9e3c9"
+white = "#f7dcbc"
+
+[colors.bright]
+black = "#430a1d"
+red = "#8c3050"
+green = "#f7dcbc"
+yellow = "#ffa6ab"
+blue = "#c4586e"
+magenta = "#da627a"
+cyan = "#f9e3c9"
+white = "#f7dcbc"

@@ -1,0 +1,30 @@
+# Prism Theme: forest-canopy
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on forest-canopy
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #90d870)"
+# error_symbol = "[❯](bold #f87171)"
+
+# [directory]
+# style = "bold #90d870"
+
+# [git_branch]
+# style = "bold #a78bfa"
+
+# [git_status]
+# style = "#fbbf24"
+
+# Color reference:
+# background: #0a100a
+# foreground: #d0e8d0
+# accent: #90d870
+# keyword: #a78bfa
+# string: #90d870
+# function: #60a5fa
+# comment: #406040
+# number: #fb923c
+# type: #90d870

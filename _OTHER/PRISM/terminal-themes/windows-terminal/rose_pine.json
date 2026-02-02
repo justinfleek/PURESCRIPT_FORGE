@@ -1,0 +1,22 @@
+{
+  "name": "Prism Rose Pine",
+  "background": "#191724",
+  "foreground": "#c4a7e7",
+  "cursorColor": "#31748f",
+  "black": "#191724",
+  "red": "#ebbcba",
+  "green": "#9ccfd8",
+  "yellow": "#31748f",
+  "blue": "#ebbcba",
+  "purple": "#31748f",
+  "cyan": "#9ccfd8",
+  "white": "#c4a7e7",
+  "brightBlack": "#191724",
+  "brightRed": "#ebbcba",
+  "brightGreen": "#9ccfd8",
+  "brightYellow": "#31748f",
+  "brightBlue": "#ebbcba",
+  "brightPurple": "#31748f",
+  "brightCyan": "#9ccfd8",
+  "brightWhite": "#c4a7e7"
+}

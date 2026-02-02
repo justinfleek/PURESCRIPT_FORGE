@@ -1,0 +1,30 @@
+# Prism Theme: nero-marquina
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on nero-marquina
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #54c878)"
+# error_symbol = "[❯](bold #e85454)"
+
+# [directory]
+# style = "bold #d4af37"
+
+# [git_branch]
+# style = "bold #b454e8"
+
+# [git_status]
+# style = "#d4af37"
+
+# Color reference:
+# background: #08080a
+# foreground: #e8e4dc
+# accent: #d4af37
+# keyword: #b454e8
+# string: #54c878
+# function: #5494e8
+# comment: #3a3a45
+# number: #e8a054
+# type: #d4af37

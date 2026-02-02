@@ -1,0 +1,12 @@
+#!/bin/bash
+# Prism CLI - Theme Installation & Management
+# 
+# Installation:
+#   chmod +x prism
+#   sudo ln -s $(pwd)/prism /usr/local/bin/prism
+#
+# Or add to PATH:
+#   export PATH="$PATH:/path/to/prism-color-core/tools"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+python3 "$SCRIPT_DIR/prism_cli.py" "$@"

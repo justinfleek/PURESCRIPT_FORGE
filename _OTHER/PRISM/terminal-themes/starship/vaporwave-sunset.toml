@@ -1,0 +1,30 @@
+# Prism Theme: vaporwave-sunset
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on vaporwave-sunset
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #00ffaa)"
+# error_symbol = "[❯](bold #ff6b9d)"
+
+# [directory]
+# style = "bold #00ffff"
+
+# [git_branch]
+# style = "bold #c44dff"
+
+# [git_status]
+# style = "#ffcc00"
+
+# Color reference:
+# background: #100818
+# foreground: #f0e0ff
+# accent: #00ffff
+# keyword: #ff6b9d
+# string: #00ffaa
+# function: #00ffff
+# comment: #705090
+# number: #ffcc00
+# type: #c44dff

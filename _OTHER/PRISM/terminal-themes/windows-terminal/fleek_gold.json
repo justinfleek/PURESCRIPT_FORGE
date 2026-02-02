@@ -1,0 +1,22 @@
+{
+  "name": "Prism Fleek Gold",
+  "background": "#161616",
+  "foreground": "#fefefe",
+  "cursorColor": "#cbba9f",
+  "black": "#161616",
+  "red": "#ad9e87",
+  "green": "#d5c7b0",
+  "yellow": "#cbba9f",
+  "blue": "#9a886c",
+  "purple": "#98856f",
+  "cyan": "#ad9a80",
+  "white": "#fefefe",
+  "brightBlack": "#161616",
+  "brightRed": "#ad9e87",
+  "brightGreen": "#d5c7b0",
+  "brightYellow": "#cbba9f",
+  "brightBlue": "#9a886c",
+  "brightPurple": "#98856f",
+  "brightCyan": "#ad9a80",
+  "brightWhite": "#fefefe"
+}

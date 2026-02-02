@@ -1,0 +1,24 @@
+# Prism Dracula Pro - Alacritty
+[colors.primary]
+background = "#282a36"
+foreground = "#f1fa8c"
+
+[colors.normal]
+black = "#282a36"
+red = "#ff79c6"
+green = "#50fa7b"
+yellow = "#bd93f9"
+blue = "#ff79c6"
+magenta = "#bd93f9"
+cyan = "#50fa7b"
+white = "#f1fa8c"
+
+[colors.bright]
+black = "#282a36"
+red = "#ff79c6"
+green = "#50fa7b"
+yellow = "#bd93f9"
+blue = "#ff79c6"
+magenta = "#bd93f9"
+cyan = "#50fa7b"
+white = "#f1fa8c"

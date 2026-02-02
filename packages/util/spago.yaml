@@ -1,0 +1,18 @@
+package:
+  name: opencode-util
+  dependencies:
+    - prelude
+    - effect
+    - aff
+    - maybe
+    - either
+    - arrays
+    - strings
+    - integers
+    - numbers
+    - random
+    - refs
+    - datetime
+    - now
+  build:
+    strict: true

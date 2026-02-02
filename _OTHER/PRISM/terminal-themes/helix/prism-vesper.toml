@@ -1,0 +1,73 @@
+# Prism Theme: vesper
+# Place in ~/.config/helix/themes/prism-vesper.toml
+
+"ui.background" = { bg = "#101010" }
+"ui.text" = "#b0b0b0"
+"ui.text.focus" = "#ffc799"
+"ui.cursor" = { bg = "#ffc799", fg = "#101010" }
+"ui.cursor.match" = { bg = "#44475a" }
+"ui.selection" = { bg = "#44475a" }
+"ui.linenr" = "#606060"
+"ui.linenr.selected" = "#ffc799"
+"ui.cursorline.primary" = { bg = "#171717" }
+"ui.statusline" = { fg = "#b0b0b0", bg = "#101010" }
+"ui.statusline.inactive" = { fg = "#606060", bg = "#101010" }
+"ui.popup" = { bg = "#101010" }
+"ui.menu" = { bg = "#101010" }
+"ui.menu.selected" = { bg = "#44475a" }
+"ui.help" = { fg = "#b0b0b0", bg = "#101010" }
+
+"comment" = { fg = "#505050", modifiers = ["italic"] }
+"keyword" = { fg = "#ffc799", modifiers = ["bold"] }
+"keyword.control" = "#ffc799"
+"keyword.function" = "#ffc799"
+"keyword.return" = "#ffc799"
+"keyword.exception" = "#ffc799"
+"keyword.operator" = "#ffc799"
+
+"string" = "#99c794"
+"string.special" = "#99c794"
+
+"function" = "#ffc799"
+"function.builtin" = "#ffc799"
+"function.method" = "#ffc799"
+"function.macro" = "#ffc799"
+
+"constant" = "#ffc799"
+"constant.numeric" = "#ffc799"
+"constant.character" = "#99c794"
+"constant.builtin" = "#ffc799"
+
+"type" = "#ffc799"
+"type.builtin" = "#ffc799"
+
+"variable" = "#b0b0b0"
+"variable.builtin" = "#ffc799"
+"variable.parameter" = "#b0b0b0"
+
+"attribute" = "#ffc799"
+"namespace" = "#ffc799"
+
+"operator" = "#ffc799"
+"punctuation" = "#b0b0b0"
+"punctuation.delimiter" = "#b0b0b0"
+"punctuation.bracket" = "#b0b0b0"
+
+"label" = "#ffc799"
+"tag" = "#ffc799"
+
+"markup.heading" = { fg = "#ffc799", modifiers = ["bold"] }
+"markup.bold" = { modifiers = ["bold"] }
+"markup.italic" = { modifiers = ["italic"] }
+"markup.link.url" = "#ffc799"
+"markup.link.text" = "#99c794"
+"markup.raw" = "#99c794"
+
+"diff.plus" = "#99c794"
+"diff.minus" = "#f5a191"
+"diff.delta" = "#ffc799"
+
+[palette]
+background = "#101010"
+foreground = "#b0b0b0"
+accent = "#ffc799"

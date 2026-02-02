@@ -1,0 +1,121 @@
+{
+  "$schema": "https://opencode.ai/schemas/theme.json",
+  "name": "Prism Emerald Velvet",
+  "description": "Rich emerald on black velvet with gold filigree",
+  "author": "Weyl AI",
+  "version": "1.0.0",
+  "type": "dark",
+  
+  "colors": {
+    "background": "#040806",
+    "backgroundSecondary": "#081008",
+    "backgroundTertiary": "#101810",
+    
+    "text": "#e0f0e0",
+    "textMuted": "#485848",
+    "textSubtle": "#283828",
+    
+    "border": "#101810",
+    "borderMuted": "#081008",
+    "borderFocus": "#50c878",
+    
+    "accent": "#d4af37",
+    "accentMuted": "#8fa878",
+    "accentText": "#040806",
+    
+    "error": "#f87171",
+    "errorMuted": "#3a1818",
+    "warning": "#d4af37",
+    "warningMuted": "#3a3018",
+    "success": "#50c878",
+    "successMuted": "#183a20",
+    "info": "#60a5fa",
+    "infoMuted": "#18283a",
+    
+    "selection": "#101810",
+    "selectionText": "#e0f0e0",
+    "highlight": "#50c87830",
+    
+    "link": "#5fd4b8",
+    "linkHover": "#50c878",
+    
+    "scrollbar": "#283828",
+    "scrollbarHover": "#485848",
+    
+    "syntax": {
+      "comment": "#283828",
+      "keyword": "#a78bfa",
+      "function": "#60a5fa",
+      "string": "#50c878",
+      "number": "#d4af37",
+      "type": "#d4af37",
+      "variable": "#e0f0e0",
+      "constant": "#d4af37",
+      "operator": "#e0f0e0",
+      "punctuation": "#485848",
+      "tag": "#f87171",
+      "attribute": "#d4af37",
+      "property": "#e0f0e0",
+      "class": "#d4af37",
+      "regex": "#5fd4b8",
+      "escape": "#5fd4b8"
+    },
+    
+    "diff": {
+      "added": "#50c878",
+      "addedBackground": "#183a20",
+      "removed": "#f87171",
+      "removedBackground": "#3a1818",
+      "modified": "#60a5fa",
+      "modifiedBackground": "#18283a"
+    },
+    
+    "markdown": {
+      "heading": "#60a5fa",
+      "bold": "#e0f0e0",
+      "italic": "#a78bfa",
+      "code": "#50c878",
+      "codeBackground": "#081008",
+      "blockquote": "#485848",
+      "list": "#d4af37",
+      "link": "#5fd4b8",
+      "image": "#60a5fa"
+    },
+    
+    "terminal": {
+      "black": "#040806",
+      "red": "#f87171",
+      "green": "#50c878",
+      "yellow": "#d4af37",
+      "blue": "#60a5fa",
+      "magenta": "#a78bfa",
+      "cyan": "#5fd4b8",
+      "white": "#e0f0e0",
+      "brightBlack": "#283828",
+      "brightRed": "#f87171",
+      "brightGreen": "#50c878",
+      "brightYellow": "#d4af37",
+      "brightBlue": "#60a5fa",
+      "brightMagenta": "#a78bfa",
+      "brightCyan": "#5fd4b8",
+      "brightWhite": "#f8fff8"
+    }
+  },
+  
+  "ui": {
+    "borderRadius": "8px",
+    "panelShadow": "0 8px 32px rgba(0,0,0,0.5)",
+    "glowColor": "#50c878",
+    "glowIntensity": 0.10
+  },
+  
+  "_prism": {
+    "category": "luxury",
+    "inspiration": "Rich emerald on black velvet with gold filigree",
+    "heroColor": "#50c878",
+    "effects": {
+      "glow": true,
+      "filigree": { "color": "#d4af3708", "pattern": "ornate" }
+    }
+  }
+}

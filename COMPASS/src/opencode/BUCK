@@ -1,0 +1,161 @@
+# src/opencode/BUCK
+#
+# OpenCode - AI coding assistant implementation
+#
+# Language breakdown:
+#   - PureScript: Types, CLI, client-side logic
+#   - Haskell: Server, database, validation
+#   - Lean4: Proofs, verification, invariants
+#
+# Build with: buck2 build //src/opencode:opencode
+
+load("//toolchains:purescript.bzl", "purescript_library")
+load("//toolchains:haskell.bzl", "haskell_library")
+load("//toolchains:lean.bzl", "lean_library")
+
+# ============================================================================
+# LEAN4 PROOFS
+# ============================================================================
+
+lean_library(
+    name = "proofs",
+    srcs = glob(["proofs/lean/**/*.lean"]),
+    deps = ["//src/compass:compass"],
+    visibility = ["PUBLIC"],
+)
+
+lean_library(
+    name = "rules-lean",
+    srcs = glob(["rules/lean/**/*.lean"]),
+    deps = [":proofs"],
+    visibility = ["PUBLIC"],
+)
+
+# ============================================================================
+# PURESCRIPT TYPES AND CLI
+# ============================================================================
+
+purescript_library(
+    name = "types-ps",
+    srcs = glob(["types/ps/**/*.purs"]),
+    deps = [],
+    visibility = ["PUBLIC"],
+)
+
+purescript_library(
+    name = "bridge-ps",
+    srcs = glob(["bridge/ps/**/*.purs"]),
+    deps = [":types-ps"],
+    visibility = ["PUBLIC"],
+)
+
+purescript_library(
+    name = "cli-ps",
+    srcs = glob(["cli/**/*.purs"]),
+    deps = [":types-ps", ":bridge-ps"],
+    visibility = ["PUBLIC"],
+)
+
+purescript_library(
+    name = "tool-ps",
+    srcs = glob(["tool/**/*.purs"]),
+    deps = [":types-ps"],
+    visibility = ["PUBLIC"],
+)
+
+purescript_library(
+    name = "session-ps",
+    srcs = glob(["session/**/*.purs"]),
+    deps = [":types-ps", ":tool-ps"],
+    visibility = ["PUBLIC"],
+)
+
+purescript_library(
+    name = "provider-ps",
+    srcs = glob(["provider/**/*.purs"]),
+    deps = [":types-ps"],
+    visibility = ["PUBLIC"],
+)
+
+purescript_library(
+    name = "server-ps",
+    srcs = glob(["server/**/*.purs"]),
+    deps = [":types-ps", ":session-ps"],
+    visibility = ["PUBLIC"],
+)
+
+# ============================================================================
+# HASKELL VALIDATOR AND SERVER
+# ============================================================================
+
+haskell_library(
+    name = "validator-hs",
+    srcs = glob(["validator/hs/**/*.hs"]),
+    deps = [],
+    visibility = ["PUBLIC"],
+)
+
+haskell_library(
+    name = "rules-hs",
+    srcs = glob(["rules/hs/**/*.hs"]),
+    deps = [":validator-hs"],
+    visibility = ["PUBLIC"],
+)
+
+haskell_library(
+    name = "bridge-hs",
+    srcs = glob(["bridge/hs/**/*.hs"]),
+    deps = [":validator-hs"],
+    visibility = ["PUBLIC"],
+)
+
+# ============================================================================
+# AGGREGATE TARGETS
+# ============================================================================
+
+# All PureScript
+filegroup(
+    name = "all-ps",
+    srcs = [
+        ":types-ps",
+        ":bridge-ps",
+        ":cli-ps",
+        ":tool-ps",
+        ":session-ps",
+        ":provider-ps",
+        ":server-ps",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# All Haskell
+filegroup(
+    name = "all-hs",
+    srcs = [
+        ":validator-hs",
+        ":rules-hs",
+        ":bridge-hs",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# All Lean4
+filegroup(
+    name = "all-lean",
+    srcs = [
+        ":proofs",
+        ":rules-lean",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# Everything
+filegroup(
+    name = "opencode",
+    srcs = [
+        ":all-ps",
+        ":all-hs",
+        ":all-lean",
+    ],
+    visibility = ["PUBLIC"],
+)

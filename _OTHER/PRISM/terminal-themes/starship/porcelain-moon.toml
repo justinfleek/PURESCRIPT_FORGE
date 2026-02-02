@@ -1,0 +1,30 @@
+# Prism Theme: porcelain-moon
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on porcelain-moon
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #16a34a)"
+# error_symbol = "[❯](bold #dc2626)"
+
+# [directory]
+# style = "bold #ca8a04"
+
+# [git_branch]
+# style = "bold #7c3aed"
+
+# [git_status]
+# style = "#ca8a04"
+
+# Color reference:
+# background: #e8eaee
+# foreground: #1a1c20
+# accent: #ca8a04
+# keyword: #7c3aed
+# string: #16a34a
+# function: #2563eb
+# comment: #a0a4aa
+# number: #ea580c
+# type: #ca8a04

@@ -1,0 +1,1303 @@
+{
+  "metadata": {
+    "version": "2.0.0",
+    "generator": "Prism Theme Generator",
+    "description": "Premium luxury themes with performance-optimized micro-interactions",
+    "performance": {
+      "targetFPS": 60,
+      "framebudgetMs": 4,
+      "maxParticles": 12,
+      "useGPUAcceleration": true,
+      "respectsReducedMotion": true,
+      "lazyLoadEffects": true
+    }
+  },
+
+  "luxury_marble": {
+    "nero_marquina": {
+      "name": "Nero Marquina",
+      "category": "luxury",
+      "inspiration": "Black Spanish marble with white veining and warm gold leaf accents",
+      "baseColor": { "hue": 220, "saturation": 0.06, "lightness": 0.04 },
+      "heroColor": { "hue": 45, "saturation": 0.85, "lightness": 0.55 },
+      "monitorType": "OLED",
+      "blackBalance": 0.04,
+      "mode": "dark",
+      "tags": ["luxury", "marble", "gold", "premium", "elegant"],
+      "palette": {
+        "base00": "#08080a",
+        "base01": "#101014",
+        "base02": "#18181e",
+        "base03": "#3a3a45",
+        "base04": "#5a5a68",
+        "base05": "#e8e4dc",
+        "base06": "#f5f2ea",
+        "base07": "#fffef8",
+        "base08": "#e85454",
+        "base09": "#e8a054",
+        "base0A": "#d4af37",
+        "base0B": "#54c878",
+        "base0C": "#54b4b8",
+        "base0D": "#5494e8",
+        "base0E": "#b454e8",
+        "base0F": "#a89050"
+      },
+      "effects": {
+        "marbleVeins": {
+          "enabled": true,
+          "color": "rgba(255,255,255,0.025)",
+          "secondaryColor": "rgba(212,175,55,0.015)",
+          "frequency": 0.4,
+          "turbulence": 0.3,
+          "cssFilter": "url(#marble-texture)"
+        },
+        "goldAccentGlow": {
+          "enabled": true,
+          "color": "#d4af37",
+          "intensity": 0.08,
+          "blur": 20,
+          "spread": 0
+        },
+        "ambientParticles": {
+          "enabled": true,
+          "type": "gold-dust",
+          "count": 4,
+          "size": [1, 2],
+          "color": "#d4af3725",
+          "speed": 0.15,
+          "drift": "gentle-rise"
+        },
+        "surfaceShimmer": {
+          "enabled": true,
+          "intensity": 0.03,
+          "angle": 135,
+          "speed": 0.0005
+        }
+      },
+      "microInteractions": {
+        "hoverGlow": {
+          "color": "#d4af37",
+          "intensity": 0.12,
+          "radius": 80,
+          "blur": 30,
+          "transitionMs": 300,
+          "easing": "ease-out"
+        },
+        "focusRing": {
+          "color": "#d4af3740",
+          "width": 2,
+          "offset": 2,
+          "style": "solid"
+        },
+        "activePress": {
+          "scale": 0.995,
+          "brightness": 0.95,
+          "transitionMs": 100
+        }
+      }
+    },
+
+    "calacatta_oro": {
+      "name": "Calacatta Oro",
+      "category": "luxury",
+      "inspiration": "Italian white marble with dramatic gold veining",
+      "baseColor": { "hue": 40, "saturation": 0.05, "lightness": 0.95 },
+      "heroColor": { "hue": 42, "saturation": 0.90, "lightness": 0.45 },
+      "monitorType": "LCD",
+      "blackBalance": 0.05,
+      "mode": "light",
+      "tags": ["luxury", "marble", "light", "italian", "gold"],
+      "palette": {
+        "base00": "#f8f6f2",
+        "base01": "#f0ede8",
+        "base02": "#e8e4de",
+        "base03": "#a0998a",
+        "base04": "#706a5a",
+        "base05": "#2a2820",
+        "base06": "#1a1815",
+        "base07": "#0a0908",
+        "base08": "#c44040",
+        "base09": "#c47840",
+        "base0A": "#b8960b",
+        "base0B": "#408040",
+        "base0C": "#408080",
+        "base0D": "#4060a0",
+        "base0E": "#804080",
+        "base0F": "#887040"
+      },
+      "effects": {
+        "marbleVeins": {
+          "enabled": true,
+          "color": "rgba(184,150,11,0.08)",
+          "secondaryColor": "rgba(160,130,80,0.04)",
+          "frequency": 0.5,
+          "turbulence": 0.4
+        },
+        "warmAmbience": {
+          "enabled": true,
+          "temperature": 3200,
+          "intensity": 0.04
+        }
+      }
+    },
+
+    "obsidian_rose_gold": {
+      "name": "Obsidian Rose Gold",
+      "category": "luxury",
+      "inspiration": "Volcanic glass with delicate rose gold veining",
+      "baseColor": { "hue": 340, "saturation": 0.08, "lightness": 0.03 },
+      "heroColor": { "hue": 15, "saturation": 0.55, "lightness": 0.68 },
+      "monitorType": "OLED",
+      "blackBalance": 0.03,
+      "mode": "dark",
+      "tags": ["luxury", "obsidian", "rose-gold", "feminine", "elegant"],
+      "palette": {
+        "base00": "#050404",
+        "base01": "#0c0a0a",
+        "base02": "#141210",
+        "base03": "#3a3535",
+        "base04": "#5a5555",
+        "base05": "#f0e8e8",
+        "base06": "#f8f2f2",
+        "base07": "#fffafa",
+        "base08": "#e87878",
+        "base09": "#e8a878",
+        "base0A": "#e8b4b8",
+        "base0B": "#78c8a8",
+        "base0C": "#78b8c8",
+        "base0D": "#7898e8",
+        "base0E": "#c878e8",
+        "base0F": "#a88878"
+      },
+      "effects": {
+        "roseGoldShimmer": {
+          "enabled": true,
+          "color": "#e8b4b8",
+          "intensity": 0.06,
+          "blur": 25
+        },
+        "softBloom": {
+          "enabled": true,
+          "color": "#e8b4b815",
+          "radius": 100,
+          "intensity": 0.04
+        },
+        "ambientParticles": {
+          "enabled": true,
+          "type": "soft-sparkle",
+          "count": 3,
+          "color": "#e8b4b820",
+          "size": [1, 2],
+          "speed": 0.1
+        }
+      }
+    },
+
+    "champagne_noir": {
+      "name": "Champagne Noir",
+      "category": "luxury",
+      "inspiration": "Matte black with rising champagne gold bubbles",
+      "baseColor": { "hue": 45, "saturation": 0.04, "lightness": 0.05 },
+      "heroColor": { "hue": 48, "saturation": 0.75, "lightness": 0.65 },
+      "monitorType": "OLED",
+      "blackBalance": 0.05,
+      "mode": "dark",
+      "tags": ["luxury", "champagne", "celebration", "matte", "elegant"],
+      "palette": {
+        "base00": "#0a0a08",
+        "base01": "#121210",
+        "base02": "#1a1a18",
+        "base03": "#3a3a35",
+        "base04": "#5a5a55",
+        "base05": "#f0ece0",
+        "base06": "#f8f4e8",
+        "base07": "#fffff0",
+        "base08": "#e86060",
+        "base09": "#e89060",
+        "base0A": "#f7e7ce",
+        "base0B": "#60c080",
+        "base0C": "#60b0c0",
+        "base0D": "#6090e0",
+        "base0E": "#a060e0",
+        "base0F": "#a09060"
+      },
+      "effects": {
+        "champagneBubbles": {
+          "enabled": true,
+          "particleCount": 3,
+          "color": "#f7e7ce",
+          "minSize": 1,
+          "maxSize": 2,
+          "opacity": 0.12,
+          "riseSpeed": 0.0006,
+          "wobble": 0.3
+        },
+        "goldenHourGlow": {
+          "enabled": true,
+          "color": "#f7e7ce",
+          "intensity": 0.08,
+          "blur": 30
+        }
+      }
+    },
+
+    "midnight_sapphire": {
+      "name": "Midnight Sapphire",
+      "category": "luxury",
+      "inspiration": "Deep blue gemstone with platinum accents and inner fire",
+      "baseColor": { "hue": 230, "saturation": 0.40, "lightness": 0.04 },
+      "heroColor": { "hue": 220, "saturation": 0.85, "lightness": 0.62 },
+      "monitorType": "OLED",
+      "blackBalance": 0.04,
+      "mode": "dark",
+      "tags": ["luxury", "sapphire", "platinum", "royal", "deep"],
+      "palette": {
+        "base00": "#050810",
+        "base01": "#0a1018",
+        "base02": "#101825",
+        "base03": "#2a3548",
+        "base04": "#4a5568",
+        "base05": "#e0e8f8",
+        "base06": "#f0f4ff",
+        "base07": "#fafcff",
+        "base08": "#f87171",
+        "base09": "#fb923c",
+        "base0A": "#c0c0d0",
+        "base0B": "#6ee7b7",
+        "base0C": "#67e8f9",
+        "base0D": "#60a5fa",
+        "base0E": "#a78bfa",
+        "base0F": "#8090a0"
+      },
+      "effects": {
+        "gemSparkle": {
+          "enabled": true,
+          "probability": 0.003,
+          "color": "#ffffff",
+          "intensity": 0.35,
+          "duration": 200
+        },
+        "innerFire": {
+          "enabled": true,
+          "color": "#60a5fa",
+          "intensity": 0.03,
+          "pulse": true,
+          "pulseSpeed": 0.001
+        },
+        "platinumHighlight": {
+          "enabled": true,
+          "color": "#c0c0d0",
+          "intensity": 0.06,
+          "angle": 145
+        }
+      }
+    },
+
+    "emerald_velvet": {
+      "name": "Emerald Velvet",
+      "category": "luxury",
+      "inspiration": "Rich emerald on black velvet with gold filigree",
+      "baseColor": { "hue": 160, "saturation": 0.18, "lightness": 0.04 },
+      "heroColor": { "hue": 145, "saturation": 0.75, "lightness": 0.48 },
+      "monitorType": "OLED",
+      "blackBalance": 0.04,
+      "mode": "dark",
+      "tags": ["luxury", "emerald", "velvet", "opulent", "gold"],
+      "palette": {
+        "base00": "#040806",
+        "base01": "#081008",
+        "base02": "#101810",
+        "base03": "#283828",
+        "base04": "#485848",
+        "base05": "#e0f0e0",
+        "base06": "#f0fff0",
+        "base07": "#f8fff8",
+        "base08": "#f87171",
+        "base09": "#d4af37",
+        "base0A": "#d4af37",
+        "base0B": "#50c878",
+        "base0C": "#5fd4b8",
+        "base0D": "#60a5fa",
+        "base0E": "#a78bfa",
+        "base0F": "#8fa878"
+      },
+      "effects": {
+        "velvetTexture": {
+          "enabled": true,
+          "intensity": 0.02,
+          "nap": "subtle"
+        },
+        "goldFiligree": {
+          "enabled": true,
+          "color": "#d4af3708",
+          "pattern": "corner-flourish"
+        },
+        "emeraldGlow": {
+          "enabled": true,
+          "color": "#50c878",
+          "intensity": 0.10,
+          "blur": 25
+        }
+      }
+    }
+  },
+
+  "neumorphism": {
+    "soft_charcoal": {
+      "name": "Soft Charcoal",
+      "category": "neumorphism",
+      "inspiration": "Pressed surfaces in warm charcoal clay",
+      "baseColor": { "hue": 220, "saturation": 0.08, "lightness": 0.18 },
+      "heroColor": { "hue": 35, "saturation": 0.80, "lightness": 0.55 },
+      "monitorType": "LCD",
+      "blackBalance": 0.18,
+      "mode": "dark",
+      "tags": ["neumorphism", "soft", "tactile", "modern"],
+      "palette": {
+        "base00": "#2a2a32",
+        "base01": "#2a2a32",
+        "base02": "#32323a",
+        "base03": "#50505a",
+        "base04": "#70707a",
+        "base05": "#e8e8f0",
+        "base06": "#f0f0f8",
+        "base07": "#fafaff",
+        "base08": "#f87171",
+        "base09": "#fb923c",
+        "base0A": "#fbbf24",
+        "base0B": "#4ade80",
+        "base0C": "#22d3ee",
+        "base0D": "#60a5fa",
+        "base0E": "#a78bfa",
+        "base0F": "#9ca3af"
+      },
+      "neumorphism": {
+        "enabled": true,
+        "surfaceColor": "#2a2a32",
+        "lightSource": { "x": -1, "y": -1 },
+        "raised": {
+          "lightShadow": "rgba(58,58,66,0.5)",
+          "darkShadow": "rgba(18,18,22,0.7)",
+          "distance": 6,
+          "blur": 12
+        },
+        "pressed": {
+          "lightShadow": "rgba(58,58,66,0.3)",
+          "darkShadow": "rgba(18,18,22,0.5)",
+          "distance": 3,
+          "blur": 6,
+          "inset": true
+        }
+      },
+      "microInteractions": {
+        "press": {
+          "translateY": 2,
+          "transitionMs": 150,
+          "easing": "cubic-bezier(0.4, 0, 0.2, 1)"
+        },
+        "hover": {
+          "translateY": -2,
+          "shadowBoost": 1.3,
+          "transitionMs": 200
+        }
+      }
+    },
+
+    "porcelain_moon": {
+      "name": "Porcelain Moon",
+      "category": "neumorphism",
+      "inspiration": "Fine bone china in soft moonlight",
+      "baseColor": { "hue": 220, "saturation": 0.05, "lightness": 0.92 },
+      "heroColor": { "hue": 220, "saturation": 0.65, "lightness": 0.45 },
+      "monitorType": "LCD",
+      "blackBalance": 0.08,
+      "mode": "light",
+      "tags": ["neumorphism", "light", "delicate", "porcelain"],
+      "palette": {
+        "base00": "#e8eaee",
+        "base01": "#e8eaee",
+        "base02": "#dfe1e5",
+        "base03": "#a0a4aa",
+        "base04": "#707478",
+        "base05": "#1a1c20",
+        "base06": "#101214",
+        "base07": "#050608",
+        "base08": "#dc2626",
+        "base09": "#ea580c",
+        "base0A": "#ca8a04",
+        "base0B": "#16a34a",
+        "base0C": "#0891b2",
+        "base0D": "#2563eb",
+        "base0E": "#7c3aed",
+        "base0F": "#6b7280"
+      },
+      "neumorphism": {
+        "enabled": true,
+        "surfaceColor": "#e8eaee",
+        "lightSource": { "x": -1, "y": -1 },
+        "raised": {
+          "lightShadow": "rgba(255,255,255,0.8)",
+          "darkShadow": "rgba(163,177,198,0.5)",
+          "distance": 8,
+          "blur": 16
+        },
+        "pressed": {
+          "lightShadow": "rgba(255,255,255,0.5)",
+          "darkShadow": "rgba(163,177,198,0.3)",
+          "distance": 4,
+          "blur": 8,
+          "inset": true
+        }
+      }
+    },
+
+    "clay_terracotta": {
+      "name": "Clay Terracotta",
+      "category": "neumorphism",
+      "inspiration": "Artisan clay in warm earth tones",
+      "baseColor": { "hue": 20, "saturation": 0.15, "lightness": 0.22 },
+      "heroColor": { "hue": 18, "saturation": 0.70, "lightness": 0.52 },
+      "monitorType": "LCD",
+      "blackBalance": 0.22,
+      "mode": "dark",
+      "tags": ["neumorphism", "warm", "organic", "artisan"],
+      "palette": {
+        "base00": "#3a3230",
+        "base01": "#3a3230",
+        "base02": "#443c38",
+        "base03": "#685850",
+        "base04": "#887870",
+        "base05": "#f0e8e0",
+        "base06": "#f8f0e8",
+        "base07": "#fff8f0",
+        "base08": "#ef5350",
+        "base09": "#ff7043",
+        "base0A": "#ffb74d",
+        "base0B": "#66bb6a",
+        "base0C": "#26c6da",
+        "base0D": "#42a5f5",
+        "base0E": "#ab47bc",
+        "base0F": "#a1887f"
+      },
+      "neumorphism": {
+        "enabled": true,
+        "surfaceColor": "#3a3230",
+        "warmth": 0.1,
+        "raised": {
+          "lightShadow": "rgba(78,70,66,0.6)",
+          "darkShadow": "rgba(20,18,16,0.8)",
+          "distance": 5,
+          "blur": 10
+        }
+      }
+    }
+  },
+
+  "glassmorphism": {
+    "aurora_frost": {
+      "name": "Aurora Frost",
+      "category": "glassmorphism",
+      "inspiration": "Northern lights through frosted ice panels",
+      "baseColor": { "hue": 260, "saturation": 0.25, "lightness": 0.06 },
+      "heroColor": { "hue": 160, "saturation": 0.85, "lightness": 0.55 },
+      "monitorType": "OLED",
+      "blackBalance": 0.06,
+      "mode": "dark",
+      "tags": ["glassmorphism", "aurora", "ethereal", "magical"],
+      "palette": {
+        "base00": "#0a0815",
+        "base01": "#12101f",
+        "base02": "#1a1828",
+        "base03": "#3a3550",
+        "base04": "#5a5570",
+        "base05": "#e8f0f8",
+        "base06": "#f0f8ff",
+        "base07": "#faffff",
+        "base08": "#f87171",
+        "base09": "#fb923c",
+        "base0A": "#a78bfa",
+        "base0B": "#4ade80",
+        "base0C": "#22d3ee",
+        "base0D": "#60a5fa",
+        "base0E": "#c084fc",
+        "base0F": "#64ffda"
+      },
+      "glassmorphism": {
+        "enabled": true,
+        "blur": 20,
+        "opacity": 0.72,
+        "saturation": 1.4,
+        "border": {
+          "color": "rgba(255,255,255,0.12)",
+          "width": 1
+        },
+        "gradientBorder": {
+          "enabled": true,
+          "colors": ["#64ffda", "#a78bfa", "#60a5fa"],
+          "opacity": 0.20,
+          "animate": true,
+          "speed": 0.0002
+        }
+      },
+      "effects": {
+        "auroraShift": {
+          "enabled": true,
+          "colors": ["rgba(100,255,218,0.08)", "rgba(167,139,250,0.08)", "rgba(96,165,250,0.08)"],
+          "speed": 0.00015,
+          "blend": "soft-light"
+        },
+        "ambientParticles": {
+          "enabled": true,
+          "type": "aurora-motes",
+          "count": 6,
+          "colors": ["#64ffda30", "#a78bfa30", "#60a5fa30"],
+          "size": [1, 3],
+          "speed": 0.08,
+          "drift": "wave"
+        }
+      }
+    },
+
+    "smoke_crystal": {
+      "name": "Smoke Crystal",
+      "category": "glassmorphism",
+      "inspiration": "Smoky quartz with light refracting through",
+      "baseColor": { "hue": 280, "saturation": 0.10, "lightness": 0.08 },
+      "heroColor": { "hue": 280, "saturation": 0.60, "lightness": 0.68 },
+      "monitorType": "OLED",
+      "blackBalance": 0.08,
+      "mode": "dark",
+      "tags": ["glassmorphism", "crystal", "mysterious", "refined"],
+      "palette": {
+        "base00": "#100e14",
+        "base01": "#18151e",
+        "base02": "#201c28",
+        "base03": "#403850",
+        "base04": "#605870",
+        "base05": "#f0e8f8",
+        "base06": "#f8f0ff",
+        "base07": "#fffaff",
+        "base08": "#f87171",
+        "base09": "#fb923c",
+        "base0A": "#e879f9",
+        "base0B": "#4ade80",
+        "base0C": "#22d3ee",
+        "base0D": "#818cf8",
+        "base0E": "#c084fc",
+        "base0F": "#a78bfa"
+      },
+      "glassmorphism": {
+        "enabled": true,
+        "blur": 18,
+        "opacity": 0.78,
+        "saturation": 1.2,
+        "border": {
+          "color": "rgba(200,180,255,0.10)",
+          "width": 1
+        }
+      },
+      "effects": {
+        "lightRefraction": {
+          "enabled": true,
+          "color": "#e0d0f0",
+          "intensity": 0.04,
+          "angle": 135
+        }
+      }
+    },
+
+    "diamond_dust": {
+      "name": "Diamond Dust",
+      "category": "glassmorphism",
+      "inspiration": "Ice crystals catching light like scattered diamonds",
+      "baseColor": { "hue": 210, "saturation": 0.18, "lightness": 0.05 },
+      "heroColor": { "hue": 200, "saturation": 0.90, "lightness": 0.62 },
+      "monitorType": "OLED",
+      "blackBalance": 0.05,
+      "mode": "dark",
+      "tags": ["glassmorphism", "diamond", "ice", "brilliant", "sparkle"],
+      "palette": {
+        "base00": "#08090d",
+        "base01": "#0f1118",
+        "base02": "#161922",
+        "base03": "#303540",
+        "base04": "#505560",
+        "base05": "#e8f0ff",
+        "base06": "#f0f8ff",
+        "base07": "#fafeff",
+        "base08": "#f87171",
+        "base09": "#fb923c",
+        "base0A": "#38bdf8",
+        "base0B": "#4ade80",
+        "base0C": "#22d3ee",
+        "base0D": "#60a5fa",
+        "base0E": "#818cf8",
+        "base0F": "#94a3b8"
+      },
+      "glassmorphism": {
+        "enabled": true,
+        "blur": 24,
+        "opacity": 0.68,
+        "saturation": 1.3,
+        "border": {
+          "color": "rgba(255,255,255,0.15)",
+          "width": 1
+        }
+      },
+      "effects": {
+        "diamondSparkle": {
+          "enabled": true,
+          "particleCount": 5,
+          "color": "#ffffff",
+          "size": [1, 2],
+          "opacity": 0.30,
+          "frequency": 0.004,
+          "duration": 150
+        }
+      }
+    }
+  },
+
+  "bento": {
+    "tokyo_night_bento": {
+      "name": "Tokyo Night Bento",
+      "category": "bento",
+      "inspiration": "Japanese minimalism meets neon-lit cityscape",
+      "baseColor": { "hue": 230, "saturation": 0.28, "lightness": 0.07 },
+      "heroColor": { "hue": 280, "saturation": 0.85, "lightness": 0.68 },
+      "monitorType": "OLED",
+      "blackBalance": 0.07,
+      "mode": "dark",
+      "tags": ["bento", "japanese", "minimal", "neon", "modern"],
+      "palette": {
+        "base00": "#0f0f18",
+        "base01": "#16161f",
+        "base02": "#1e1e28",
+        "base03": "#3a3a4a",
+        "base04": "#5a5a6a",
+        "base05": "#e8e8f0",
+        "base06": "#f0f0f8",
+        "base07": "#fafaff",
+        "base08": "#f7768e",
+        "base09": "#ff9e64",
+        "base0A": "#e0af68",
+        "base0B": "#9ece6a",
+        "base0C": "#73daca",
+        "base0D": "#7aa2f7",
+        "base0E": "#bb9af7",
+        "base0F": "#c792ea"
+      },
+      "bento": {
+        "enabled": true,
+        "cardBg": "rgba(30,30,45,0.85)",
+        "cardBorder": "rgba(255,255,255,0.05)",
+        "cardRadius": 16,
+        "cardGap": 12,
+        "shadowLayers": 3,
+        "shadowBase": {
+          "color": "rgba(0,0,0,0.25)",
+          "offset": 8,
+          "blur": 24
+        }
+      },
+      "effects": {
+        "glow": true,
+        "glowIntensity": 0.10,
+        "glowColor": "#bb9af7",
+        "accentLine": {
+          "enabled": true,
+          "position": "top",
+          "height": 2,
+          "gradient": ["#f7768e", "#bb9af7"]
+        }
+      },
+      "microInteractions": {
+        "cardHover": {
+          "translateY": -4,
+          "scale": 1.008,
+          "shadowBoost": 1.6,
+          "borderGlow": {
+            "color": "#bb9af7",
+            "opacity": 0.15
+          },
+          "transitionMs": 250,
+          "easing": "cubic-bezier(0.34, 1.56, 0.64, 1)"
+        },
+        "cardPress": {
+          "translateY": 0,
+          "scale": 0.995,
+          "transitionMs": 100
+        }
+      }
+    },
+
+    "zen_garden": {
+      "name": "Zen Garden",
+      "category": "bento",
+      "inspiration": "Raked sand, moss, and stone in perfect balance",
+      "baseColor": { "hue": 80, "saturation": 0.08, "lightness": 0.09 },
+      "heroColor": { "hue": 90, "saturation": 0.45, "lightness": 0.52 },
+      "monitorType": "OLED",
+      "blackBalance": 0.09,
+      "mode": "dark",
+      "tags": ["bento", "zen", "peaceful", "natural", "minimal"],
+      "palette": {
+        "base00": "#101210",
+        "base01": "#181a18",
+        "base02": "#202220",
+        "base03": "#404540",
+        "base04": "#606560",
+        "base05": "#e8f0e8",
+        "base06": "#f0f8f0",
+        "base07": "#f8fff8",
+        "base08": "#e87878",
+        "base09": "#d4a870",
+        "base0A": "#c8b878",
+        "base0B": "#78b878",
+        "base0C": "#70b8a8",
+        "base0D": "#7090b8",
+        "base0E": "#a078a0",
+        "base0F": "#8a9878"
+      },
+      "bento": {
+        "enabled": true,
+        "cardBg": "rgba(35,40,35,0.92)",
+        "cardBorder": "rgba(100,120,100,0.08)",
+        "cardRadius": 12,
+        "cardGap": 16
+      },
+      "effects": {
+        "fineGrain": {
+          "enabled": true,
+          "opacity": 0.015
+        }
+      },
+      "microInteractions": {
+        "breathe": {
+          "enabled": true,
+          "scale": [1.0, 1.003],
+          "duration": 5000,
+          "easing": "ease-in-out"
+        },
+        "cardHover": {
+          "translateY": -3,
+          "transitionMs": 300
+        }
+      }
+    },
+
+    "floating_islands": {
+      "name": "Floating Islands",
+      "category": "bento",
+      "inspiration": "Suspended landmasses in a twilight sky",
+      "baseColor": { "hue": 250, "saturation": 0.22, "lightness": 0.06 },
+      "heroColor": { "hue": 30, "saturation": 0.90, "lightness": 0.62 },
+      "monitorType": "OLED",
+      "blackBalance": 0.06,
+      "mode": "dark",
+      "tags": ["bento", "fantasy", "floating", "dreamy", "warm"],
+      "palette": {
+        "base00": "#0a0812",
+        "base01": "#12101a",
+        "base02": "#1a1822",
+        "base03": "#3a3548",
+        "base04": "#5a5568",
+        "base05": "#f0ece0",
+        "base06": "#f8f4e8",
+        "base07": "#fffcf0",
+        "base08": "#f87171",
+        "base09": "#ffa94d",
+        "base0A": "#fbbf24",
+        "base0B": "#4ade80",
+        "base0C": "#38bdf8",
+        "base0D": "#818cf8",
+        "base0E": "#c084fc",
+        "base0F": "#fb923c"
+      },
+      "bento": {
+        "enabled": true,
+        "cardBg": "rgba(40,35,60,0.88)",
+        "cardBorder": "rgba(255,200,150,0.06)",
+        "cardRadius": 20,
+        "cardGap": 14,
+        "shadowLayers": 4,
+        "shadowBase": {
+          "color": "rgba(0,0,0,0.30)",
+          "offset": 12,
+          "blur": 32
+        }
+      },
+      "effects": {
+        "glow": true,
+        "glowIntensity": 0.12,
+        "glowColor": "#ffa94d",
+        "ambientFloat": {
+          "enabled": true,
+          "amplitude": 3,
+          "period": 6000
+        }
+      }
+    }
+  },
+
+  "skeuomorphism": {
+    "vintage_leather": {
+      "name": "Vintage Leather",
+      "category": "skeuomorphism",
+      "inspiration": "Worn leather journal with brass hardware",
+      "baseColor": { "hue": 25, "saturation": 0.28, "lightness": 0.12 },
+      "heroColor": { "hue": 40, "saturation": 0.75, "lightness": 0.52 },
+      "monitorType": "LCD",
+      "blackBalance": 0.12,
+      "mode": "dark",
+      "tags": ["skeuomorphism", "leather", "vintage", "crafted", "warm"],
+      "palette": {
+        "base00": "#1c1612",
+        "base01": "#241c16",
+        "base02": "#2c241c",
+        "base03": "#4a4030",
+        "base04": "#6a5a48",
+        "base05": "#f0e8d8",
+        "base06": "#f8f0e0",
+        "base07": "#fff8e8",
+        "base08": "#d9534f",
+        "base09": "#d4a04a",
+        "base0A": "#c8a050",
+        "base0B": "#5cb85c",
+        "base0C": "#5bc0de",
+        "base0D": "#428bca",
+        "base0E": "#a070b0",
+        "base0F": "#b08850"
+      },
+      "skeuomorphism": {
+        "texture": {
+          "type": "leather-grain",
+          "opacity": 0.06,
+          "scale": 1.0
+        },
+        "stitching": {
+          "enabled": true,
+          "color": "rgba(200,180,140,0.12)",
+          "pattern": "running",
+          "spacing": 8
+        },
+        "hardware": {
+          "type": "brushed-brass",
+          "color": "#b8860b"
+        }
+      },
+      "effects": {
+        "innerShadow": {
+          "enabled": true,
+          "blur": 10,
+          "opacity": 0.18
+        },
+        "wearPatterns": {
+          "enabled": true,
+          "intensity": 0.025,
+          "locations": ["corners", "edges"]
+        }
+      }
+    },
+
+    "brushed_titanium": {
+      "name": "Brushed Titanium",
+      "category": "skeuomorphism",
+      "inspiration": "Aerospace-grade titanium with precision machining",
+      "baseColor": { "hue": 220, "saturation": 0.06, "lightness": 0.18 },
+      "heroColor": { "hue": 200, "saturation": 0.75, "lightness": 0.58 },
+      "monitorType": "LCD",
+      "blackBalance": 0.18,
+      "mode": "dark",
+      "tags": ["skeuomorphism", "metal", "precision", "aerospace", "modern"],
+      "palette": {
+        "base00": "#282a30",
+        "base01": "#303238",
+        "base02": "#383a42",
+        "base03": "#585a65",
+        "base04": "#787a85",
+        "base05": "#e8eaf0",
+        "base06": "#f0f2f8",
+        "base07": "#f8faff",
+        "base08": "#f07178",
+        "base09": "#f78c6c",
+        "base0A": "#82aaff",
+        "base0B": "#c3e88d",
+        "base0C": "#89ddff",
+        "base0D": "#82aaff",
+        "base0E": "#c792ea",
+        "base0F": "#a0a4b0"
+      },
+      "skeuomorphism": {
+        "texture": {
+          "type": "brushed-metal",
+          "direction": 90,
+          "opacity": 0.03
+        },
+        "bevel": {
+          "enabled": true,
+          "width": 1,
+          "lightColor": "rgba(255,255,255,0.08)",
+          "shadowColor": "rgba(0,0,0,0.12)"
+        }
+      },
+      "effects": {
+        "metalHighlight": {
+          "enabled": true,
+          "angle": 135,
+          "intensity": 0.06,
+          "width": 250
+        }
+      }
+    },
+
+    "dark_walnut": {
+      "name": "Dark Walnut",
+      "category": "skeuomorphism",
+      "inspiration": "Rich walnut with subtle grain and brass inlays",
+      "baseColor": { "hue": 25, "saturation": 0.35, "lightness": 0.10 },
+      "heroColor": { "hue": 35, "saturation": 0.82, "lightness": 0.50 },
+      "monitorType": "OLED",
+      "blackBalance": 0.10,
+      "mode": "dark",
+      "tags": ["skeuomorphism", "wood", "natural", "warm", "crafted"],
+      "palette": {
+        "base00": "#161210",
+        "base01": "#1e1814",
+        "base02": "#26201a",
+        "base03": "#463a2e",
+        "base04": "#665a4a",
+        "base05": "#f0e8d8",
+        "base06": "#f8f0e0",
+        "base07": "#fff8e8",
+        "base08": "#e85050",
+        "base09": "#e89050",
+        "base0A": "#d4a040",
+        "base0B": "#50b850",
+        "base0C": "#50a8b8",
+        "base0D": "#5080c0",
+        "base0E": "#a050a0",
+        "base0F": "#a08050"
+      },
+      "skeuomorphism": {
+        "texture": {
+          "type": "wood-grain",
+          "opacity": 0.05,
+          "scale": 0.9
+        },
+        "inlay": {
+          "enabled": true,
+          "material": "brass",
+          "color": "#d4a040",
+          "pattern": "line-accent"
+        }
+      },
+      "effects": {
+        "woodSheen": {
+          "enabled": true,
+          "angle": 125,
+          "intensity": 0.04
+        }
+      }
+    }
+  },
+
+  "responsive_micro": {
+    "living_ink": {
+      "name": "Living Ink",
+      "category": "responsive",
+      "inspiration": "Ink that responds to your presence, pooling and flowing",
+      "baseColor": { "hue": 240, "saturation": 0.18, "lightness": 0.05 },
+      "heroColor": { "hue": 220, "saturation": 0.88, "lightness": 0.58 },
+      "monitorType": "OLED",
+      "blackBalance": 0.05,
+      "mode": "dark",
+      "tags": ["responsive", "organic", "fluid", "alive", "subtle"],
+      "palette": {
+        "base00": "#08080f",
+        "base01": "#0f0f18",
+        "base02": "#161620",
+        "base03": "#303040",
+        "base04": "#505060",
+        "base05": "#e0e8f8",
+        "base06": "#f0f4ff",
+        "base07": "#fafcff",
+        "base08": "#f87171",
+        "base09": "#fb923c",
+        "base0A": "#60a5fa",
+        "base0B": "#4ade80",
+        "base0C": "#22d3ee",
+        "base0D": "#60a5fa",
+        "base0E": "#a78bfa",
+        "base0F": "#818cf8"
+      },
+      "effects": {
+        "glow": true,
+        "glowIntensity": 0.10,
+        "glowColor": "#60a5fa"
+      },
+      "microInteractions": {
+        "cursorSpotlight": {
+          "enabled": true,
+          "radius": 150,
+          "color": "#60a5fa",
+          "opacity": 0.04,
+          "blur": 60,
+          "smoothing": 0.08,
+          "fadeOnIdle": true,
+          "idleTimeout": 2500
+        },
+        "typingPulse": {
+          "enabled": true,
+          "color": "#60a5fa",
+          "intensity": 0.03,
+          "duration": 80
+        }
+      }
+    },
+
+    "ember_hearth": {
+      "name": "Ember Hearth",
+      "category": "responsive",
+      "inspiration": "Warm fireplace with embers responding to activity",
+      "baseColor": { "hue": 15, "saturation": 0.22, "lightness": 0.06 },
+      "heroColor": { "hue": 25, "saturation": 0.95, "lightness": 0.58 },
+      "monitorType": "OLED",
+      "blackBalance": 0.06,
+      "mode": "dark",
+      "tags": ["responsive", "warm", "cozy", "dynamic", "comfort"],
+      "palette": {
+        "base00": "#0c0908",
+        "base01": "#141010",
+        "base02": "#1c1614",
+        "base03": "#3a302a",
+        "base04": "#5a4a40",
+        "base05": "#f8f0e0",
+        "base06": "#fff8e8",
+        "base07": "#fffff0",
+        "base08": "#ff6b6b",
+        "base09": "#ffa94d",
+        "base0A": "#ffd93d",
+        "base0B": "#6bcb77",
+        "base0C": "#4d96ff",
+        "base0D": "#ff8c42",
+        "base0E": "#c792ea",
+        "base0F": "#ffb347"
+      },
+      "effects": {
+        "glow": true,
+        "glowIntensity": 0.14,
+        "glowColor": "#ff6b35",
+        "embers": {
+          "enabled": true,
+          "count": 4,
+          "colors": ["#ff6b35", "#ffa500", "#ffcc00"],
+          "size": [1, 2],
+          "speed": 0.0008,
+          "opacity": 0.18,
+          "triggerOnActivity": true
+        },
+        "warmPulse": {
+          "enabled": true,
+          "color": "#ff6b35",
+          "intensity": 0.02,
+          "period": 3500
+        }
+      },
+      "microInteractions": {
+        "activityEmbers": {
+          "enabled": true,
+          "trigger": "keystroke",
+          "spawnCount": 1,
+          "cooldownMs": 400
+        }
+      }
+    },
+
+    "quantum_field": {
+      "name": "Quantum Field",
+      "category": "responsive",
+      "inspiration": "Probability waves collapsing at interaction points",
+      "baseColor": { "hue": 260, "saturation": 0.20, "lightness": 0.04 },
+      "heroColor": { "hue": 170, "saturation": 0.92, "lightness": 0.52 },
+      "monitorType": "OLED",
+      "blackBalance": 0.04,
+      "mode": "dark",
+      "tags": ["responsive", "quantum", "scientific", "mysterious", "subtle"],
+      "palette": {
+        "base00": "#06050a",
+        "base01": "#0c0a14",
+        "base02": "#14101e",
+        "base03": "#2a2538",
+        "base04": "#4a4558",
+        "base05": "#e8f0f8",
+        "base06": "#f0f8ff",
+        "base07": "#faffff",
+        "base08": "#f87171",
+        "base09": "#fb923c",
+        "base0A": "#00d4aa",
+        "base0B": "#4ade80",
+        "base0C": "#22d3ee",
+        "base0D": "#00d4aa",
+        "base0E": "#a78bfa",
+        "base0F": "#64ffda"
+      },
+      "effects": {
+        "glow": true,
+        "glowIntensity": 0.15,
+        "glowColor": "#00d4aa"
+      },
+      "microInteractions": {
+        "waveCollapse": {
+          "enabled": true,
+          "trigger": "click",
+          "rippleColor": "#00d4aa",
+          "rippleOpacity": 0.12,
+          "rippleDuration": 500,
+          "rippleSize": 80
+        },
+        "quantumFlicker": {
+          "enabled": true,
+          "probability": 0.0008,
+          "duration": 40,
+          "intensity": 0.025
+        }
+      }
+    },
+
+    "tide_pool": {
+      "name": "Tide Pool",
+      "category": "responsive",
+      "inspiration": "Bioluminescent creatures responding to movement",
+      "baseColor": { "hue": 200, "saturation": 0.28, "lightness": 0.05 },
+      "heroColor": { "hue": 175, "saturation": 0.92, "lightness": 0.52 },
+      "monitorType": "OLED",
+      "blackBalance": 0.05,
+      "mode": "dark",
+      "tags": ["responsive", "ocean", "bioluminescent", "magical", "organic"],
+      "palette": {
+        "base00": "#06090c",
+        "base01": "#0c1218",
+        "base02": "#121a20",
+        "base03": "#283540",
+        "base04": "#485560",
+        "base05": "#e0f0f8",
+        "base06": "#f0faff",
+        "base07": "#f8ffff",
+        "base08": "#f87171",
+        "base09": "#fb923c",
+        "base0A": "#40e0d0",
+        "base0B": "#00ff88",
+        "base0C": "#00d4ff",
+        "base0D": "#40e0d0",
+        "base0E": "#a78bfa",
+        "base0F": "#64ffda"
+      },
+      "effects": {
+        "glow": true,
+        "glowIntensity": 0.14,
+        "glowColor": "#40e0d0",
+        "bioLumParticles": {
+          "enabled": true,
+          "count": 5,
+          "colors": ["#40e0d0", "#00ff88", "#00d4ff"],
+          "size": [1, 3],
+          "speed": 0.0004,
+          "opacity": 0.22,
+          "drift": "organic"
+        }
+      },
+      "microInteractions": {
+        "disturbanceResponse": {
+          "enabled": true,
+          "trigger": "cursor-move",
+          "radius": 70,
+          "attractParticles": true,
+          "glowBoost": 1.4,
+          "decayMs": 1800
+        }
+      }
+    }
+  },
+
+  "easter_eggs": {
+    "constellation_map": {
+      "name": "Constellation Map",
+      "category": "easter_eggs",
+      "inspiration": "Star charts with connections forming over time",
+      "baseColor": { "hue": 230, "saturation": 0.18, "lightness": 0.04 },
+      "heroColor": { "hue": 45, "saturation": 0.88, "lightness": 0.62 },
+      "monitorType": "OLED",
+      "blackBalance": 0.04,
+      "mode": "dark",
+      "tags": ["easter-egg", "stars", "exploration", "reward", "discovery"],
+      "palette": {
+        "base00": "#050608",
+        "base01": "#0a0c10",
+        "base02": "#10141a",
+        "base03": "#283040",
+        "base04": "#485060",
+        "base05": "#e8f0ff",
+        "base06": "#f0f8ff",
+        "base07": "#fafeff",
+        "base08": "#f87171",
+        "base09": "#fbbf24",
+        "base0A": "#ffd700",
+        "base0B": "#4ade80",
+        "base0C": "#22d3ee",
+        "base0D": "#60a5fa",
+        "base0E": "#a78bfa",
+        "base0F": "#c4b5fd"
+      },
+      "effects": {
+        "glow": true,
+        "glowIntensity": 0.10,
+        "glowColor": "#ffd700",
+        "starField": {
+          "enabled": true,
+          "count": 25,
+          "size": [0.5, 1.5],
+          "opacity": 0.18,
+          "twinkle": true,
+          "twinkleSpeed": 0.0015
+        }
+      },
+      "microInteractions": {
+        "shootingStar": {
+          "enabled": true,
+          "probability": 0.00015,
+          "color": "#ffffff",
+          "opacity": 0.35,
+          "duration": 700,
+          "trail": true
+        }
+      },
+      "easterEggs": {
+        "constellationReveal": {
+          "trigger": "idle-45s",
+          "effect": "draw-constellation-lines",
+          "lineColor": "rgba(255,215,0,0.06)",
+          "lineWidth": 0.5,
+          "fadeInMs": 3000
+        },
+        "konami": {
+          "sequence": ["up", "up", "down", "down", "left", "right", "left", "right", "b", "a"],
+          "effect": "aurora-burst",
+          "durationMs": 6000
+        },
+        "midnightMagic": {
+          "trigger": "system-time-00:00",
+          "effect": "shooting-star-shower",
+          "durationMs": 12000
+        },
+        "milestoneGlow": {
+          "trigger": ["save", "compile-success", "test-pass"],
+          "effect": "gentle-pulse",
+          "color": "#ffd700",
+          "intensity": 0.08,
+          "durationMs": 800
+        }
+      }
+    }
+  }
+}

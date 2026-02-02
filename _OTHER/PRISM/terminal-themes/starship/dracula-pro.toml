@@ -1,0 +1,30 @@
+# Prism Theme: dracula-pro
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on dracula-pro
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #50fa7b)"
+# error_symbol = "[❯](bold #ff5555)"
+
+# [directory]
+# style = "bold #bd93f9"
+
+# [git_branch]
+# style = "bold #ff79c6"
+
+# [git_status]
+# style = "#f1fa8c"
+
+# Color reference:
+# background: #0d0d14
+# foreground: #f8f8f2
+# accent: #bd93f9
+# keyword: #ff79c6
+# string: #f1fa8c
+# function: #50fa7b
+# comment: #6272a4
+# number: #bd93f9
+# type: #8be9fd

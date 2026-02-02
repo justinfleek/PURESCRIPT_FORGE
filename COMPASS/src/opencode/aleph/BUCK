@@ -1,0 +1,48 @@
+# src/opencode/aleph/BUCK
+#
+# Aleph protocol types - System F-ω foundations
+#
+# Implements:
+# - Coeffect algebra (Resource semilattice, discharge proofs)
+# - Attestation (content-addressing, ed25519 signing)
+# - Trust policies
+# - Sandbox isolation (gVisor integration)
+#
+# See: docs/rfc/aleph-008-continuity/
+
+load("//toolchains:purescript.bzl", "purescript_library")
+
+purescript_library(
+    name = "aleph",
+    srcs = [
+        "Coeffect.purs",
+        "Attestation.purs",
+        "Sandbox.purs",
+    ],
+    deps = [],
+    visibility = ["PUBLIC"],
+)
+
+# Coeffect algebra - graded resource tracking
+purescript_library(
+    name = "coeffect",
+    srcs = ["Coeffect.purs"],
+    deps = [],
+    visibility = ["PUBLIC"],
+)
+
+# Attestation system - content-addressed proofs
+purescript_library(
+    name = "attestation",
+    srcs = ["Attestation.purs"],
+    deps = [":coeffect"],
+    visibility = ["PUBLIC"],
+)
+
+# Sandbox isolation - gVisor container runtime
+purescript_library(
+    name = "sandbox",
+    srcs = ["Sandbox.purs"],
+    deps = [":coeffect"],
+    visibility = ["PUBLIC"],
+)

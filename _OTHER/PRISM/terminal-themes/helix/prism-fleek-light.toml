@@ -1,0 +1,73 @@
+# Prism Theme: fleek-light
+# Place in ~/.config/helix/themes/prism-fleek-light.toml
+
+"ui.background" = { bg = "#fafaf8" }
+"ui.text" = "#1a1a18"
+"ui.text.focus" = "#2a9860"
+"ui.cursor" = { bg = "#2a9860", fg = "#fafaf8" }
+"ui.cursor.match" = { bg = "#44475a" }
+"ui.selection" = { bg = "#44475a" }
+"ui.linenr" = "#6a6a68"
+"ui.linenr.selected" = "#2a9860"
+"ui.cursorline.primary" = { bg = "#f9f9f7" }
+"ui.statusline" = { fg = "#1a1a18", bg = "#fafaf8" }
+"ui.statusline.inactive" = { fg = "#6a6a68", bg = "#fafaf8" }
+"ui.popup" = { bg = "#fafaf8" }
+"ui.menu" = { bg = "#fafaf8" }
+"ui.menu.selected" = { bg = "#44475a" }
+"ui.help" = { fg = "#1a1a18", bg = "#fafaf8" }
+
+"comment" = { fg = "#9a9a98", modifiers = ["italic"] }
+"keyword" = { fg = "#d85030", modifiers = ["bold"] }
+"keyword.control" = "#d85030"
+"keyword.function" = "#d85030"
+"keyword.return" = "#d85030"
+"keyword.exception" = "#d85030"
+"keyword.operator" = "#d85030"
+
+"string" = "#2a9860"
+"string.special" = "#2a9860"
+
+"function" = "#0088c8"
+"function.builtin" = "#0088c8"
+"function.method" = "#0088c8"
+"function.macro" = "#0088c8"
+
+"constant" = "#b08010"
+"constant.numeric" = "#b08010"
+"constant.character" = "#2a9860"
+"constant.builtin" = "#b08010"
+
+"type" = "#2a9860"
+"type.builtin" = "#2a9860"
+
+"variable" = "#1a1a18"
+"variable.builtin" = "#2a9860"
+"variable.parameter" = "#1a1a18"
+
+"attribute" = "#2a9860"
+"namespace" = "#2a9860"
+
+"operator" = "#d85030"
+"punctuation" = "#1a1a18"
+"punctuation.delimiter" = "#1a1a18"
+"punctuation.bracket" = "#1a1a18"
+
+"label" = "#2a9860"
+"tag" = "#d85030"
+
+"markup.heading" = { fg = "#d85030", modifiers = ["bold"] }
+"markup.bold" = { modifiers = ["bold"] }
+"markup.italic" = { modifiers = ["italic"] }
+"markup.link.url" = "#2a9860"
+"markup.link.text" = "#2a9860"
+"markup.raw" = "#2a9860"
+
+"diff.plus" = "#2a9860"
+"diff.minus" = "#d85030"
+"diff.delta" = "#b08010"
+
+[palette]
+background = "#fafaf8"
+foreground = "#1a1a18"
+accent = "#2a9860"

@@ -1,0 +1,45 @@
+{
+  "name": "Prism nero-marquina",
+  "variables": {
+    "bg": "#08080a",
+    "fg": "#e8e4dc"
+  },
+  "globals": {
+    "background": "#08080a",
+    "foreground": "#e8e4dc",
+    "caret": "#d4af37",
+    "selection": "#44475a",
+    "line_highlight": "#0f0f11"
+  },
+  "rules": [
+    {
+      "scope": "comment",
+      "foreground": "#3a3a45",
+      "font_style": "italic"
+    },
+    {
+      "scope": "keyword",
+      "foreground": "#b454e8"
+    },
+    {
+      "scope": "string",
+      "foreground": "#54c878"
+    },
+    {
+      "scope": "entity.name.function",
+      "foreground": "#5494e8"
+    },
+    {
+      "scope": "constant.numeric",
+      "foreground": "#e8a054"
+    },
+    {
+      "scope": "entity.name.type, support.type",
+      "foreground": "#d4af37"
+    },
+    {
+      "scope": "variable",
+      "foreground": "#e8e4dc"
+    }
+  ]
+}

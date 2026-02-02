@@ -1,0 +1,45 @@
+{
+  "name": "Prism cobalt2",
+  "variables": {
+    "bg": "#122738",
+    "fg": "#ffffff"
+  },
+  "globals": {
+    "background": "#122738",
+    "foreground": "#ffffff",
+    "caret": "#ffc600",
+    "selection": "#44475a",
+    "line_highlight": "#192d3d"
+  },
+  "rules": [
+    {
+      "scope": "comment",
+      "foreground": "#0088ff",
+      "font_style": "italic"
+    },
+    {
+      "scope": "keyword",
+      "foreground": "#ff9d00"
+    },
+    {
+      "scope": "string",
+      "foreground": "#3ad900"
+    },
+    {
+      "scope": "entity.name.function",
+      "foreground": "#ffc600"
+    },
+    {
+      "scope": "constant.numeric",
+      "foreground": "#ff628c"
+    },
+    {
+      "scope": "entity.name.type, support.type",
+      "foreground": "#80fcff"
+    },
+    {
+      "scope": "variable",
+      "foreground": "#ffffff"
+    }
+  ]
+}

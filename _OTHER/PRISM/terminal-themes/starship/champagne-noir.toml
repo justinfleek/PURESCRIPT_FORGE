@@ -1,0 +1,30 @@
+# Prism Theme: champagne-noir
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on champagne-noir
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #60c080)"
+# error_symbol = "[❯](bold #e86060)"
+
+# [directory]
+# style = "bold #f7e7ce"
+
+# [git_branch]
+# style = "bold #a060e0"
+
+# [git_status]
+# style = "#f7e7ce"
+
+# Color reference:
+# background: #0a0a08
+# foreground: #f0ece0
+# accent: #f7e7ce
+# keyword: #a060e0
+# string: #60c080
+# function: #6090e0
+# comment: #3a3a35
+# number: #e89060
+# type: #f7e7ce

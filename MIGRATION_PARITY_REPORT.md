@@ -27,11 +27,11 @@
 | **opencode** | 313 | 325 | 63 | 62 | **450** | DONE | +137 |
 | **app** | 163 | 79 | 0 | 0 | **79** | PARTIAL | -84 |
 | **console** | 156 | 0 | 0 | 0 | **0** | TODO | -156 |
-| **enterprise** | 18 | 2 | 14 | 0 | **16** | PARTIAL | -2 |
+| **enterprise** | 18 | 2 | 16 | 0 | **18** | DONE | 0 |
 | **sdk** | 40 | 0 | 0 | 0 | **0** | TODO | -40 |
 | **ui** | 87 | 0 | 0 | 0 | **0** | TODO | -87 |
 | **plugin** | 6 | 8 | 0 | 0 | **8** | DONE | +2 |
-| **util** | 12 | 11 | 0 | 0 | **11** | PARTIAL | -1 |
+| **util** | 12 | 14 | 0 | 0 | **14** | DONE | +2 |
 | **desktop** | 26 | 0 | 0 | 0 | **0** | TODO | -26 |
 | **web** | 16 | 0 | 0 | 0 | **0** | TODO | -16 |
 | **slack** | 2 | 0 | 0 | 0 | **0** | TODO | -2 |
@@ -71,14 +71,15 @@
 - Sidepanel/Utils (Cache, Currency, Keyboard, Time)
 - Sidepanel/WebSocket (Client)
 
+**Migrated (2026-02-02):**
+- Voice (AudioVisualizer, MicrophoneButton, TranscriptView, VoiceSelector)
+- Hooks (UseVoice, UseProviders)
+- I18n (Types, En base translations)
+
 **Still needs migration:**
 | Module | TS Files | Notes |
 |--------|----------|-------|
-| components/voice | 6 | VoiceController, MicrophoneButton, etc. |
-| hooks | 2 | use-voice, custom hooks |
-| i18n | 15 | Internationalization strings |
 | addons | 2 | Extension addons |
-| api | 1 | voice.ts |
 | pages | 6 | Route pages |
 | context | 21 | React context providers |
 | utils | 14 | Utility functions |
@@ -92,12 +93,12 @@
 - ClickHouse (Client)
 - Compliance (AuditTrail)
 
-**Still needs:**
-- core/share.ts
-- core/storage.ts
+**Status:** COMPLETE - Share.hs and Storage.hs fully cover TypeScript functionality
 
-#### `util` - 12 TS -> 11 PS (need ~1 more)
-- Minor gap, nearly complete
+#### `util` - 12 TS -> 14 PS
+- **Status:** COMPLETE (2026-02-02)
+- Migrated: Array, Binary, Encode, Error, Fn, Identifier, Iife, Lazy, Path, Retry, Slug
+- Added FFI for: Encode, Identifier, Retry
 
 ---
 

@@ -1,0 +1,30 @@
+# Prism Theme: neon-nexus
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on neon-nexus
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #00ff88)"
+# error_symbol = "[❯](bold #ff4444)"
+
+# [directory]
+# style = "bold #00ff88"
+
+# [git_branch]
+# style = "bold #ff00ff"
+
+# [git_status]
+# style = "#ffaa00"
+
+# Color reference:
+# background: #040804
+# foreground: #d0ffd0
+# accent: #00ff88
+# keyword: #00ff88
+# string: #00ff88
+# function: #00aaff
+# comment: #306030
+# number: #ffaa00
+# type: #00ff88

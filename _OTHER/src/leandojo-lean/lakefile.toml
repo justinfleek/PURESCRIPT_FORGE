@@ -1,0 +1,15 @@
+name = "LeanDojo"
+version = "0.1.0"
+reservoir = false
+defaultTargets = ["LeanDojo"]
+
+[leanOptions]
+pp.unicode.fun = true
+
+[[lean_lib]]
+name = "ExtractData"
+roots = ["data_extraction.ExtractData"]
+
+[[lean_lib]]
+name = "Lean4Repl"
+roots = ["interaction.Lean4Repl"]

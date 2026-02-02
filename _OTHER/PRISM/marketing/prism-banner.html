@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prism Marketing Assets</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+      background: #0a0a0a;
+    }
+    
+    /* Banner 1280x800 */
+    .banner {
+      width: 1280px;
+      height: 800px;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .banner::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: conic-gradient(from 0deg at 50% 50%, 
+        transparent 0deg, 
+        rgba(0, 160, 228, 0.1) 60deg,
+        transparent 120deg,
+        rgba(60, 184, 120, 0.1) 180deg,
+        transparent 240deg,
+        rgba(255, 217, 61, 0.1) 300deg,
+        transparent 360deg
+      );
+      animation: rotate 30s linear infinite;
+    }
+    
+    @keyframes rotate {
+      to { transform: rotate(360deg); }
+    }
+    
+    .banner-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+    
+    .logo {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 30px;
+    }
+    
+    .title {
+      font-size: 72px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #00a0e4, #3cb878, #ffd93d, #ff6b35);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 20px;
+    }
+    
+    .subtitle {
+      font-size: 28px;
+      color: #888;
+      margin-bottom: 50px;
+    }
+    
+    .themes-preview {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .theme-card {
+      width: 200px;
+      height: 280px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      transition: transform 0.3s;
+    }
+    
+    .theme-card:hover {
+      transform: translateY(-10px);
+    }
+    
+    .code-preview {
+      padding: 15px;
+      font-size: 11px;
+      line-height: 1.6;
+      height: 220px;
+    }
+    
+    .theme-name {
+      background: rgba(0,0,0,0.5);
+      color: #fff;
+      padding: 12px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    
+    /* Theme colors */
+    .fleek { background: #0a0a0a; }
+    .fleek .kw { color: #ff6b35; }
+    .fleek .fn { color: #00a0e4; }
+    .fleek .str { color: #3cb878; }
+    .fleek .num { color: #ffd93d; }
+    .fleek .cm { color: #4a4540; }
+    .fleek .var { color: #f0ece0; }
+    
+    .nero { background: #08080a; }
+    .nero .kw { color: #d4af37; }
+    .nero .fn { color: #5494e8; }
+    .nero .str { color: #54c878; }
+    .nero .num { color: #e8a054; }
+    .nero .cm { color: #3a3a45; }
+    .nero .var { color: #e8e4dc; }
+    
+    .vaporwave { background: #1a0a2e; }
+    .vaporwave .kw { color: #ff71ce; }
+    .vaporwave .fn { color: #01cdfe; }
+    .vaporwave .str { color: #05ffa1; }
+    .vaporwave .num { color: #b967ff; }
+    .vaporwave .cm { color: #444466; }
+    .vaporwave .var { color: #fffb96; }
+    
+    .nord { background: #2e3440; }
+    .nord .kw { color: #81a1c1; }
+    .nord .fn { color: #88c0d0; }
+    .nord .str { color: #a3be8c; }
+    .nord .num { color: #b48ead; }
+    .nord .cm { color: #616e88; }
+    .nord .var { color: #d8dee9; }
+    
+    .stats {
+      display: flex;
+      gap: 60px;
+      margin-top: 60px;
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-num {
+      font-size: 48px;
+      font-weight: 700;
+      color: #3cb878;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      color: #666;
+      margin-top: 5px;
+    }
+    
+    .controls {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #333;
+    }
+    
+    .controls button {
+      background: linear-gradient(135deg, #00a0e4, #3cb878);
+      border: none;
+      color: #000;
+      padding: 10px 20px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <button onclick="downloadBanner()">Download Banner (1280×800)</button>
+    <br>
+    <small style="color:#666">Right-click banner → Save as Image</small>
+  </div>
+
+  <div class="banner" id="banner">
+    <div class="banner-content">
+      <!-- Prism icon SVG inline -->
+      <svg class="logo" viewBox="0 0 128 128">
+        <defs>
+          <linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#00a0e4"/>
+            <stop offset="33%" style="stop-color:#3cb878"/>
+            <stop offset="66%" style="stop-color:#ffd93d"/>
+            <stop offset="100%" style="stop-color:#ff6b35"/>
+          </linearGradient>
+          <radialGradient id="bg" cx="50%" cy="50%" r="70%">
+            <stop offset="0%" style="stop-color:#1a1a1a"/>
+            <stop offset="100%" style="stop-color:#0a0a0a"/>
+          </radialGradient>
+        </defs>
+        <circle cx="64" cy="64" r="60" fill="url(#bg)" stroke="#2a2a2a" stroke-width="2"/>
+        <polygon points="64,20 100,90 28,90" fill="none" stroke="url(#pg)" stroke-width="4" stroke-linejoin="round"/>
+        <line x1="20" y1="50" x2="52" y2="55" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+        <line x1="76" y1="55" x2="108" y2="35" stroke="#00a0e4" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="78" y1="60" x2="110" y2="50" stroke="#3cb878" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="80" y1="65" x2="112" y2="65" stroke="#ffd93d" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="78" y1="70" x2="110" y2="80" stroke="#ff6b35" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      
+      <h1 class="title">PRISM</h1>
+      <p class="subtitle">40 Formally Verified Color Themes</p>
+      
+      <div class="themes-preview">
+        <div class="theme-card fleek">
+          <div class="code-preview">
+            <span class="cm">// Fleek theme</span><br>
+            <span class="kw">const</span> <span class="var">theme</span> = {<br>
+            &nbsp;&nbsp;<span class="str">"name"</span>: <span class="str">"Fleek"</span>,<br>
+            &nbsp;&nbsp;<span class="str">"colors"</span>: {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"accent"</span>: <span class="str">"#3cb878"</span><br>
+            &nbsp;&nbsp;}<br>
+            };<br><br>
+            <span class="kw">function</span> <span class="fn">apply</span>() {<br>
+            &nbsp;&nbsp;<span class="kw">return</span> <span class="num">42</span>;<br>
+            }
+          </div>
+          <div class="theme-name">Fleek</div>
+        </div>
+        
+        <div class="theme-card nero">
+          <div class="code-preview">
+            <span class="cm">// Nero Marquina</span><br>
+            <span class="kw">const</span> <span class="var">marble</span> = {<br>
+            &nbsp;&nbsp;<span class="str">"type"</span>: <span class="str">"luxury"</span>,<br>
+            &nbsp;&nbsp;<span class="str">"origin"</span>: {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"gold"</span>: <span class="str">"#d4af37"</span><br>
+            &nbsp;&nbsp;}<br>
+            };<br><br>
+            <span class="kw">function</span> <span class="fn">render</span>() {<br>
+            &nbsp;&nbsp;<span class="kw">return</span> <span class="num">true</span>;<br>
+            }
+          </div>
+          <div class="theme-name">Nero Marquina</div>
+        </div>
+        
+        <div class="theme-card vaporwave">
+          <div class="code-preview">
+            <span class="cm">// Vaporwave</span><br>
+            <span class="kw">const</span> <span class="var">retro</span> = {<br>
+            &nbsp;&nbsp;<span class="str">"era"</span>: <span class="str">"80s"</span>,<br>
+            &nbsp;&nbsp;<span class="str">"vibes"</span>: {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"neon"</span>: <span class="str">"#ff71ce"</span><br>
+            &nbsp;&nbsp;}<br>
+            };<br><br>
+            <span class="kw">function</span> <span class="fn">aesthetic</span>() {<br>
+            &nbsp;&nbsp;<span class="kw">return</span> <span class="num">1984</span>;<br>
+            }
+          </div>
+          <div class="theme-name">Vaporwave Sunset</div>
+        </div>
+        
+        <div class="theme-card nord">
+          <div class="code-preview">
+            <span class="cm">// Nord Aurora</span><br>
+            <span class="kw">const</span> <span class="var">arctic</span> = {<br>
+            &nbsp;&nbsp;<span class="str">"region"</span>: <span class="str">"polar"</span>,<br>
+            &nbsp;&nbsp;<span class="str">"colors"</span>: {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"frost"</span>: <span class="str">"#88c0d0"</span><br>
+            &nbsp;&nbsp;}<br>
+            };<br><br>
+            <span class="kw">function</span> <span class="fn">freeze</span>() {<br>
+            &nbsp;&nbsp;<span class="kw">return</span> <span class="num">-40</span>;<br>
+            }
+          </div>
+          <div class="theme-name">Nord Aurora</div>
+        </div>
+      </div>
+      
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-num">40</div>
+          <div class="stat-label">THEMES</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">OKLCH</div>
+          <div class="stat-label">COLOR SCIENCE</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">AA</div>
+          <div class="stat-label">WCAG COMPLIANT</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">Lean4</div>
+          <div class="stat-label">VERIFIED</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    function downloadBanner() {
+      alert('To save the banner:\n1. Right-click on the banner\n2. Select "Save image as..."\n\nOr use a screenshot tool to capture at 1280x800');
+    }
+  </script>
+</body>
+</html>

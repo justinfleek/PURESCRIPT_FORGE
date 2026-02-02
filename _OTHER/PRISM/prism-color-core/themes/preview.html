@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prism Theme Presets - Visual Gallery</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #16161f;
+      --text: #e0e0e0;
+      --text-dim: #888;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem;
+    }
+    
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #00ffff, #ff00ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: var(--text-dim);
+      margin-bottom: 3rem;
+    }
+    
+    .category {
+      margin-bottom: 4rem;
+    }
+    
+    .category-title {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #333;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .category-title .icon {
+      font-size: 1.2rem;
+    }
+    
+    .themes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .theme-card {
+      background: var(--surface);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .theme-card:hover {
+      transform: translateY(-4px);
+    }
+    
+    .theme-preview {
+      height: 120px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    .theme-preview.has-glow::after {
+      content: '';
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      filter: blur(40px);
+      opacity: 0.6;
+    }
+    
+    .theme-preview .code-preview {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 11px;
+      padding: 12px;
+      border-radius: 6px;
+      position: relative;
+      z-index: 1;
+      width: 90%;
+      max-width: 280px;
+    }
+    
+    .theme-preview .code-line {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .theme-info {
+      padding: 1rem;
+    }
+    
+    .theme-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    
+    .theme-inspiration {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      margin-bottom: 0.75rem;
+      font-style: italic;
+    }
+    
+    .palette-row {
+      display: flex;
+      gap: 2px;
+      margin-bottom: 0.75rem;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .palette-swatch {
+      flex: 1;
+      height: 24px;
+      transition: transform 0.15s;
+    }
+    
+    .palette-swatch:hover {
+      transform: scaleY(1.5);
+      z-index: 1;
+    }
+    
+    .theme-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    
+    .tag {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      color: var(--text-dim);
+    }
+    
+    .effect-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 0.65rem;
+      padding: 0.2rem 0.4rem;
+      background: rgba(0,0,0,0.6);
+      border-radius: 4px;
+      color: #fff;
+      backdrop-filter: blur(4px);
+    }
+    
+    /* Scanlines effect */
+    .scanlines::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.1) 2px,
+        rgba(0,0,0,0.1) 4px
+      );
+      pointer-events: none;
+    }
+    
+    /* Glass effect */
+    .glass-effect {
+      backdrop-filter: blur(8px);
+      background: rgba(255,255,255,0.05) !important;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    @media (max-width: 768px) {
+      .themes-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Prism Theme Presets</h1>
+  <p class="subtitle">Curated color themes for code editors • Harmonious & Experimental</p>
+  
+  <!-- Harmonious Themes -->
+  <section class="category">
+    <h2 class="category-title"><span class="icon">🎨</span> Harmonious Themes</h2>
+    <div class="themes-grid">
+      
+      <!-- Ocean Depths -->
+      <div class="theme-card">
+        <div class="theme-preview has-glow" style="background: #0d141c;">
+          <style>.ocean-glow::after { background: #61e8e1; }</style>
+          <div class="code-preview" style="background: #0d141c; border: 1px solid #1a3040;">
+            <div class="code-line" style="color: #4a6a7a;">// Ocean Depths</div>
+            <div class="code-line"><span style="color: #61e8e1;">const</span> <span style="color: #a9d6e5;">depth</span> = <span style="color: #81d4fa;">ocean</span>.<span style="color: #4dd0e1;">measure</span>();</div>
+            <div class="code-line"><span style="color: #61e8e1;">return</span> <span style="color: #80cbc4;">glow</span>(<span style="color: #b2ebf2;">bioluminescence</span>);</div>
+          </div>
+          <span class="effect-badge">✨ Glow</span>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Ocean Depths</div>
+          <div class="theme-inspiration">Deep sea bioluminescence meets midnight water</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background: #0d141c;" title="base00"></div>
+            <div class="palette-swatch" style="background: #1a3040;" title="base01"></div>
+            <div class="palette-swatch" style="background: #2a4a5a;" title="base02"></div>
+            <div class="palette-swatch" style="background: #4a6a7a;" title="base03"></div>
+            <div class="palette-swatch" style="background: #61e8e1;" title="hero"></div>
+            <div class="palette-swatch" style="background: #81d4fa;" title="accent1"></div>
+            <div class="palette-swatch" style="background: #4dd0e1;" title="accent2"></div>
+            <div class="palette-swatch" style="background: #a9d6e5;" title="text"></div>
+          </div>
+          <div class="theme-tags">
+            <span class="tag">calm</span>
+            <span class="tag">professional</span>
+            <span class="tag">deep</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Forest Canopy -->
+      <div class="theme-card">
+        <div class="theme-preview" style="background: #121f12;">
+          <div class="code-preview" style="background: #121f12; border: 1px solid #2a4a2a;">
+            <div class="code-line" style="color: #5a7a5a;">// Forest Canopy</div>
+            <div class="code-line"><span style="color: #a5d6a7;">func</span> <span style="color: #c8e6c9;">photosynthesis</span>() {</div>
+            <div class="code-line">  <span style="color: #81c784;">absorb</span>(<span style="color: #aed581;">sunlight</span>);</div>
+          </div>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Forest Canopy</div>
+          <div class="theme-inspiration">Dappled sunlight through ancient trees</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background: #121f12;"></div>
+            <div class="palette-swatch" style="background: #1f3d1f;"></div>
+            <div class="palette-swatch" style="background: #2a4a2a;"></div>
+            <div class="palette-swatch" style="background: #5a7a5a;"></div>
+            <div class="palette-swatch" style="background: #aed581;"></div>
+            <div class="palette-swatch" style="background: #81c784;"></div>
+            <div class="palette-swatch" style="background: #a5d6a7;"></div>
+            <div class="palette-swatch" style="background: #c8e6c9;"></div>
+          </div>
+          <div class="theme-tags">
+            <span class="tag">natural</span>
+            <span class="tag">calm</span>
+            <span class="tag">organic</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sunset Ember -->
+      <div class="theme-card">
+        <div class="theme-preview has-glow" style="background: #1f1510;">
+          <div class="code-preview" style="background: #1f1510; border: 1px solid #4a3020;">
+            <div class="code-line" style="color: #8a6050;">// Sunset Ember</div>
+            <div class="code-line"><span style="color: #ffb347;">let</span> <span style="color: #ffd6a5;">warmth</span> = <span style="color: #ff8a65;">ember</span>.<span style="color: #ffab91;">glow</span>();</div>
+            <div class="code-line"><span style="color: #ffb347;">return</span> <span style="color: #ffcc80;">golden_hour</span>;</div>
+          </div>
+          <span class="effect-badge">✨ Glow</span>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Sunset Ember</div>
+          <div class="theme-inspiration">Warm coals and golden hour</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background: #1f1510;"></div>
+            <div class="palette-swatch" style="background: #3a2a1a;"></div>
+            <div class="palette-swatch" style="background: #4a3020;"></div>
+            <div class="palette-swatch" style="background: #8a6050;"></div>
+            <div class="palette-swatch" style="background: #ffb347;"></div>
+            <div class="palette-swatch" style="background: #ff8a65;"></div>
+            <div class="palette-swatch" style="background: #ffab91;"></div>
+            <div class="palette-swatch" style="background: #ffd6a5;"></div>
+          </div>
+          <div class="theme-tags">
+            <span class="tag">warm</span>
+            <span class="tag">cozy</span>
+            <span class="tag">focused</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Lavender Dusk -->
+      <div class="theme-card">
+        <div class="theme-preview has-glow" style="background: #1a161f;">
+          <div class="code-preview" style="background: #1a161f; border: 1px solid #3a2a4a;">
+            <div class="code-line" style="color: #7a6a8a;">// Lavender Dusk</div>
+            <div class="code-line"><span style="color: #b388ff;">import</span> { <span style="color: #e1bee7;">twilight</span> };</div>
+            <div class="code-line"><span style="color: #ce93d8;">dusk</span>.<span style="color: #ea80fc;">fade</span>(<span style="color: #f3e5f5;">softly</span>);</div>
+          </div>
+          <span class="effect-badge">✨ Glow</span>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Lavender Dusk</div>
+          <div class="theme-inspiration">Twilight purple meeting soft blue</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background: #1a161f;"></div>
+            <div class="palette-swatch" style="background: #2a2035;"></div>
+            <div class="palette-swatch" style="background: #3a2a4a;"></div>
+            <div class="palette-swatch" style="background: #7a6a8a;"></div>
+            <div class="palette-swatch" style="background: #b388ff;"></div>
+            <div class="palette-swatch" style="background: #ce93d8;"></div>
+            <div class="palette-swatch" style="background: #ea80fc;"></div>
+            <div class="palette-swatch" style="background: #e1bee7;"></div>
+          </div>
+          <div class="theme-tags">
+            <span class="tag">elegant</span>
+            <span class="tag">creative</span>
+            <span class="tag">soft</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Arctic Aurora -->
+      <div class="theme-card">
+        <div class="theme-preview has-glow" style="background: #0a1014;">
+          <div class="code-preview" style="background: #0a1014; border: 1px solid #1a2a35;">
+            <div class="code-line" style="color: #4a6a7a;">// Arctic Aurora</div>
+            <div class="code-line"><span style="color: #69f0ae;">aurora</span>.<span style="color: #b2dfdb;">dance</span>(<span style="color: #80cbc4;">northern_sky</span>);</div>
+            <div class="code-line"><span style="color: #4db6ac;">ice</span>.<span style="color: #a7ffeb;">reflect</span>();</div>
+          </div>
+          <span class="effect-badge">✨ Glow</span>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Arctic Aurora</div>
+          <div class="theme-inspiration">Northern lights over ice fields</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background: #0a1014;"></div>
+            <div class="palette-swatch" style="background: #121f25;"></div>
+            <div class="palette-swatch" style="background: #1a2a35;"></div>
+            <div class="palette-swatch" style="background: #4a6a7a;"></div>
+            <div class="palette-swatch" style="background: #69f0ae;"></div>
+            <div class="palette-swatch" style="background: #4db6ac;"></div>
+            <div class="palette-swatch" style="background: #80cbc4;"></div>
+            <div class="palette-swatch" style="background: #b2dfdb;"></div>
+          </div>
+          <div class="theme-tags">
+            <span class="tag">cold</span>
+            <span class="tag">ethereal</span>
+            <span class="tag">magical</span>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </section>
+  
+  <!-- Wild Themes -->
+  <section class="category">
+    <h2 class="category-title"><span class="icon">⚡</span> Wild & Experimental</h2>
+    <div class="themes-grid">
+      
+      <!-- Cyberpunk 2099 -->
+      <div class="theme-card">
+        <div class="theme-preview has-glow scanlines" style="background: #06060a;">
+          <div class="code-preview" style="background: #06060a; border: 1px solid #ff00ff40;">
+            <div class="code-line" style="color: #444;">// Cyberpunk 2099</div>
+            <div class="code-line"><span style="color: #ff00ff;">hack</span>(<span style="color: #00ffff;">megacorp</span>);</div>
+            <div class="code-line"><span style="color: #ff00ff; text-shadow: 0 0 10px #ff00ff;">BREACH</span> <span style="color: #888;">==</span> <span style="color: #00ffff;">SUCCESS</span></div>
+          </div>
+          <span class="effect-badge">📺 Scanlines</span>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Cyberpunk 2099</div>
+          <div class="theme-inspiration">Neon-soaked dystopian megacity</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background: #06060a;"></div>
+            <div class="palette-swatch" style="background: #12121a;"></div>
+            <div class="palette-swatch" style="background: #1a1a25;"></div>
+            <div class="palette-swatch" style="background: #444;"></div>
+            <div class="palette-swatch" style="background: #ff00ff;"></div>
+            <div class="palette-swatch" style="background: #00ffff;"></div>
+            <div class="palette-swatch" style="background: #ff40ff;"></div>
+            <div class="palette-swatch" style="background: #40ffff;"></div>
+          </div>
+          <div class="theme-tags">
+            <span class="tag">aggressive</span>
+            <span class="tag">futuristic</span>
+            <span class="tag">neon</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Neon Nexus -->
+      <div class="theme-card">
+        <div class="theme-preview has-glow" style="background: #040806;">
+          <div class="code-preview" style="background: #040806; border: 1px solid #00ff8840;">
+            <div class="code-line" style="color: #2a4a3a;">// Neon Nexus</div>
+            <div class="code-line"><span style="color: #00ff88; text-shadow: 0 0 8px #00ff88;">matrix</span>.<span style="color: #00cc66;">load</span>();</div>
+            <div class="code-line"><span style="color: #00ff88;">stream</span>(<span style="color: #88ffaa;">digital_rain</span>);</div>
+          </div>
+          <span class="effect-badge">✨ High Glow</span>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Neon Nexus</div>
+          <div class="theme-inspiration">Matrix-style digital green rain</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background: #040806;"></div>
+            <div class="palette-swatch" style="background: #0a1a10;"></div>
+            <div class="palette-swatch" style="background: #1a3020;"></div>
+            <div class="palette-swatch" style="background: #2a4a3a;"></div>
+            <div class="palette-swatch" style="background: #00ff88;"></div>
+            <div class="palette-swatch" style="background: #00cc66;"></div>
+            <div class="palette-swatch" style="background: #00ff44;"></div>
+            <div class="palette-swatch" style="background: #88ffaa;"></div>
+          </div>
+          <div class="theme-tags">
+            <span class="tag">hacker</span>
+            <span class="tag">matrix</span>
+            <span class="tag">digital</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Cosmic Ripple -->
+      <div class="theme-card">
+        <div class="theme-preview has-glow" style="background: #0a060f;">
+          <div class="code-preview" style="background: #0a060f; border: 1px solid #aa00ff40;">
+            <div class="code-line" style="color: #4a3a5a;">// Cosmic Ripple</div>
+            <div class="code-line"><span style="color: #ff00ff;">nebula</span>.<span style="color: #aa00ff;">expand</span>();</div>
+            <div class="code-line"><span style="color: #e040fb; text-shadow: 0 0 8px #e040fb;">darkMatter</span>.<span style="color: #ea80fc;">pulse</span>();</div>
+          </div>
+          <span class="effect-badge">✨ Glow</span>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Cosmic Ripple</div>
+          <div class="theme-inspiration">Galactic nebulae and dark matter</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background: #0a060f;"></div>
+            <div class="palette-swatch" style="background: #1a101f;"></div>
+            <div class="palette-swatch" style="background: #2a1a35;"></div>
+            <div class="palette-swatch" style="background: #4a3a5a;"></div>
+            <div class="palette-swatch" style="background: #ff00ff;"></div>
+            <div class="palette-swatch" style="background: #aa00ff;"></div>
+            <div class="palette-swatch" style="background: #e040fb;"></div>
+            <div class="palette-swatch" style="background: #ea80fc;"></div>
+          </div>
+          <div class="theme-tags">
+            <span class="tag">cosmic</span>
+            <span class="tag">psychedelic</span>
+            <span class="tag">deep</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Vaporwave Sunset -->
+      <div class="theme-card">
+        <div class="theme-preview has-glow scanlines" style="background: linear-gradient(180deg, #1a0a2e 0%, #0f1020 100%);">
+          <div class="code-preview" style="background: #12081f; border: 1px solid #ff6b9d40;">
+            <div class="code-line" style="color: #6a4a8a;">// Vaporwave Sunset</div>
+            <div class="code-line"><span style="color: #ff6b9d;">aesthetic</span> = <span style="color: #00ffff;">true</span>;</div>
+            <div class="code-line"><span style="color: #c44dff;">nostalgia</span>.<span style="color: #00ffff;">load</span>(<span style="color: #ff6b9d;">'80s'</span>);</div>
+          </div>
+          <span class="effect-badge">🌅 Gradient</span>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Vaporwave Sunset</div>
+          <div class="theme-inspiration">Retro 80s aesthetics meets future nostalgia</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background: #12081f;"></div>
+            <div class="palette-swatch" style="background: #1a0a2e;"></div>
+            <div class="palette-swatch" style="background: #2a1a4a;"></div>
+            <div class="palette-swatch" style="background: #6a4a8a;"></div>
+            <div class="palette-swatch" style="background: #ff6b9d;"></div>
+            <div class="palette-swatch" style="background: #c44dff;"></div>
+            <div class="palette-swatch" style="background: #00ffff;"></div>
+            <div class="palette-swatch" style="background: #ff9ecd;"></div>
+          </div>
+          <div class="theme-tags">
+            <span class="tag">retro</span>
+            <span class="tag">nostalgic</span>
+            <span class="tag">aesthetic</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Blood Moon -->
+      <div class="theme-card">
+        <div class="theme-preview has-glow" style="background: #0f0606;">
+          <div class="code-preview" style="background: #0f0606; border: 1px solid #ff174440;">
+            <div class="code-line" style="color: #5a3030;">// Blood Moon</div>
+            <div class="code-line"><span style="color: #ff1744; text-shadow: 0 0 6px #ff1744;">eclipse</span>.<span style="color: #ff5252;">rise</span>();</div>
+            <div class="code-line"><span style="color: #d32f2f;">crimson</span>.<span style="color: #ef5350;">reflect</span>(<span style="color: #ffcdd2;">darkness</span>);</div>
+          </div>
+          <span class="effect-badge">✨ Glow</span>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Blood Moon</div>
+          <div class="theme-inspiration">Lunar eclipse crimson darkness</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background: #0f0606;"></div>
+            <div class="palette-swatch" style="background: #1f0a0a;"></div>
+            <div class="palette-swatch" style="background: #3a1515;"></div>
+            <div class="palette-swatch" style="background: #5a3030;"></div>
+            <div class="palette-swatch" style="background: #ff1744;"></div>
+            <div class="palette-swatch" style="background: #d32f2f;"></div>
+            <div class="palette-swatch" style="background: #ff5252;"></div>
+            <div class="palette-swatch" style="background: #ef5350;"></div>
+          </div>
+          <div class="theme-tags">
+            <span class="tag">dark</span>
+            <span class="tag">intense</span>
+            <span class="tag">dramatic</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Electric Dreams -->
+      <div class="theme-card">
+        <div class="theme-preview has-glow" style="background: #08080f;">
+          <div class="code-preview" style="background: #08080f; border: 1px solid #ffea0040;">
+            <div class="code-line" style="color: #4a4a6a;">// Electric Dreams</div>
+            <div class="code-line"><span style="color: #ffea00; text-shadow: 0 0 8px #ffea00;">voltage</span> = <span style="color: #ffd600;">HIGH</span>;</div>
+            <div class="code-line"><span style="color: #ffff00;">spark</span>.<span style="color: #fff59d;">ignite</span>();</div>
+          </div>
+          <span class="effect-badge">⚡ Spark</span>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Electric Dreams</div>
+          <div class="theme-inspiration">Synth-wave electricity arcing through circuits</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background: #08080f;"></div>
+            <div class="palette-swatch" style="background: #10101f;"></div>
+            <div class="palette-swatch" style="background: #1a1a35;"></div>
+            <div class="palette-swatch" style="background: #4a4a6a;"></div>
+            <div class="palette-swatch" style="background: #ffea00;"></div>
+            <div class="palette-swatch" style="background: #ffd600;"></div>
+            <div class="palette-swatch" style="background: #ffff00;"></div>
+            <div class="palette-swatch" style="background: #fff59d;"></div>
+          </div>
+          <div class="theme-tags">
+            <span class="tag">electric</span>
+            <span class="tag">contrast</span>
+            <span class="tag">energetic</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Ultraviolet -->
+      <div class="theme-card">
+        <div class="theme-preview has-glow" style="background: #050208;">
+          <div class="code-preview" style="background: #050208; border: 1px solid #bf00ff40;">
+            <div class="code-line" style="color: #3a2a4a;">// Ultraviolet</div>
+            <div class="code-line"><span style="color: #bf00ff; text-shadow: 0 0 12px #bf00ff;">blacklight</span>.<span style="color: #d500f9;">on</span>();</div>
+            <div class="code-line"><span style="color: #e040fb;">glow</span>(<span style="color: #ea80fc;">everything</span>);</div>
+          </div>
+          <span class="effect-badge">💜 UV Glow</span>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Ultraviolet</div>
+          <div class="theme-inspiration">Blacklight poster in a dark room</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background: #050208;"></div>
+            <div class="palette-swatch" style="background: #0f0815;"></div>
+            <div class="palette-swatch" style="background: #1a1025;"></div>
+            <div class="palette-swatch" style="background: #3a2a4a;"></div>
+            <div class="palette-swatch" style="background: #bf00ff;"></div>
+            <div class="palette-swatch" style="background: #d500f9;"></div>
+            <div class="palette-swatch" style="background: #e040fb;"></div>
+            <div class="palette-swatch" style="background: #ea80fc;"></div>
+          </div>
+          <div class="theme-tags">
+            <span class="tag">blacklight</span>
+            <span class="tag">psychedelic</span>
+            <span class="tag">trippy</span>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </section>
+  
+  <!-- Glassmorphism -->
+  <section class="category">
+    <h2 class="category-title"><span class="icon">💎</span> Glassmorphism</h2>
+    <div class="themes-grid">
+      
+      <!-- Frosted Midnight -->
+      <div class="theme-card">
+        <div class="theme-preview has-glow" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
+          <div class="code-preview glass-effect" style="border: 1px solid rgba(255,255,255,0.1);">
+            <div class="code-line" style="color: #8899aa;">// Frosted Midnight</div>
+            <div class="code-line"><span style="color: #00d4ff;">glass</span>.<span style="color: #88ccff;">frost</span>();</div>
+            <div class="code-line"><span style="color: #64b5f6;">blur</span>(<span style="color: #90caf9;">cityscape</span>);</div>
+          </div>
+          <span class="effect-badge">🧊 Glass</span>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Frosted Midnight</div>
+          <div class="theme-inspiration">Frosted glass over night cityscape</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background: #1a1a2e;"></div>
+            <div class="palette-swatch" style="background: #16213e;"></div>
+            <div class="palette-swatch" style="background: #2a3a5a;"></div>
+            <div class="palette-swatch" style="background: #8899aa;"></div>
+            <div class="palette-swatch" style="background: #00d4ff;"></div>
+            <div class="palette-swatch" style="background: #64b5f6;"></div>
+            <div class="palette-swatch" style="background: #88ccff;"></div>
+            <div class="palette-swatch" style="background: #90caf9;"></div>
+          </div>
+          <div class="theme-tags">
+            <span class="tag">modern</span>
+            <span class="tag">elegant</span>
+            <span class="tag">translucent</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Crystal Cave -->
+      <div class="theme-card">
+        <div class="theme-preview has-glow" style="background: linear-gradient(135deg, #1f1a2e 0%, #2a1f3e 100%);">
+          <div class="code-preview glass-effect" style="border: 1px solid rgba(224,64,251,0.2);">
+            <div class="code-line" style="color: #9a8aaa;">// Crystal Cave</div>
+            <div class="code-line"><span style="color: #e040fb;">crystal</span>.<span style="color: #ce93d8;">refract</span>();</div>
+            <div class="code-line"><span style="color: #ba68c8;">light</span>.<span style="color: #e1bee7;">scatter</span>();</div>
+          </div>
+          <span class="effect-badge">🧊 Glass</span>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Crystal Cave</div>
+          <div class="theme-inspiration">Translucent crystals in underground cavern</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background: #1f1a2e;"></div>
+            <div class="palette-swatch" style="background: #2a1f3e;"></div>
+            <div class="palette-swatch" style="background: #3a2a4e;"></div>
+            <div class="palette-swatch" style="background: #9a8aaa;"></div>
+            <div class="palette-swatch" style="background: #e040fb;"></div>
+            <div class="palette-swatch" style="background: #ba68c8;"></div>
+            <div class="palette-swatch" style="background: #ce93d8;"></div>
+            <div class="palette-swatch" style="background: #e1bee7;"></div>
+          </div>
+          <div class="theme-tags">
+            <span class="tag">crystalline</span>
+            <span class="tag">mystical</span>
+            <span class="tag">elegant</span>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </section>
+  
+  <!-- Light Themes -->
+  <section class="category">
+    <h2 class="category-title"><span class="icon">☀️</span> Light Themes</h2>
+    <div class="themes-grid">
+      
+      <!-- Paper & Ink -->
+      <div class="theme-card">
+        <div class="theme-preview" style="background: #faf8f5;">
+          <div class="code-preview" style="background: #faf8f5; border: 1px solid #e0d8d0;">
+            <div class="code-line" style="color: #8a8a7a;">// Paper & Ink</div>
+            <div class="code-line"><span style="color: #1565c0;">const</span> <span style="color: #2a2a2a;">manuscript</span> = <span style="color: #0d47a1;">ancient</span>;</div>
+            <div class="code-line"><span style="color: #1976d2;">ink</span>.<span style="color: #1e88e5;">flow</span>(<span style="color: #42a5f5;">parchment</span>);</div>
+          </div>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Paper & Ink</div>
+          <div class="theme-inspiration">Classic manuscript on cream paper</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background: #faf8f5;"></div>
+            <div class="palette-swatch" style="background: #f5f0e8;"></div>
+            <div class="palette-swatch" style="background: #e0d8d0;"></div>
+            <div class="palette-swatch" style="background: #8a8a7a;"></div>
+            <div class="palette-swatch" style="background: #1565c0;"></div>
+            <div class="palette-swatch" style="background: #1976d2;"></div>
+            <div class="palette-swatch" style="background: #1e88e5;"></div>
+            <div class="palette-swatch" style="background: #2a2a2a;"></div>
+          </div>
+          <div class="theme-tags">
+            <span class="tag">classic</span>
+            <span class="tag">readable</span>
+            <span class="tag">literary</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Morning Frost -->
+      <div class="theme-card">
+        <div class="theme-preview" style="background: #f5f8fa;">
+          <div class="code-preview" style="background: #f5f8fa; border: 1px solid #d0e0f0;">
+            <div class="code-line" style="color: #90a0b0;">// Morning Frost</div>
+            <div class="code-line"><span style="color: #0277bd;">let</span> <span style="color: #1a1a1a;">crystal</span> = <span style="color: #0288d1;">frost</span>.<span style="color: #039be5;">form</span>();</div>
+            <div class="code-line"><span style="color: #03a9f4;">sunlight</span>.<span style="color: #29b6f6;">catch</span>(<span style="color: #4fc3f7;">ice</span>);</div>
+          </div>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Morning Frost</div>
+          <div class="theme-inspiration">Ice crystals catching first sunlight</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background: #f5f8fa;"></div>
+            <div class="palette-swatch" style="background: #ecf2f8;"></div>
+            <div class="palette-swatch" style="background: #d0e0f0;"></div>
+            <div class="palette-swatch" style="background: #90a0b0;"></div>
+            <div class="palette-swatch" style="background: #0277bd;"></div>
+            <div class="palette-swatch" style="background: #0288d1;"></div>
+            <div class="palette-swatch" style="background: #039be5;"></div>
+            <div class="palette-swatch" style="background: #1a1a1a;"></div>
+          </div>
+          <div class="theme-tags">
+            <span class="tag">clean</span>
+            <span class="tag">crisp</span>
+            <span class="tag">professional</span>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </section>
+  
+  <!-- Accessibility -->
+  <section class="category">
+    <h2 class="category-title"><span class="icon">♿</span> Accessibility</h2>
+    <div class="themes-grid">
+      
+      <!-- High Contrast Dark -->
+      <div class="theme-card">
+        <div class="theme-preview" style="background: #000000;">
+          <div class="code-preview" style="background: #000000; border: 1px solid #333;">
+            <div class="code-line" style="color: #888;">// High Contrast</div>
+            <div class="code-line"><span style="color: #ffea00;">const</span> <span style="color: #ffffff;">contrast</span> = <span style="color: #ffea00;">MAXIMUM</span>;</div>
+            <div class="code-line"><span style="color: #00ff00;">readable</span>(<span style="color: #ffffff;">always</span>);</div>
+          </div>
+          <span class="effect-badge">AAA WCAG</span>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">High Contrast Dark</div>
+          <div class="theme-inspiration">Maximum readability, WCAG AAA compliant</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background: #000000;"></div>
+            <div class="palette-swatch" style="background: #1a1a1a;"></div>
+            <div class="palette-swatch" style="background: #333333;"></div>
+            <div class="palette-swatch" style="background: #888888;"></div>
+            <div class="palette-swatch" style="background: #ffea00;"></div>
+            <div class="palette-swatch" style="background: #00ff00;"></div>
+            <div class="palette-swatch" style="background: #00ffff;"></div>
+            <div class="palette-swatch" style="background: #ffffff;"></div>
+          </div>
+          <div class="theme-tags">
+            <span class="tag">accessible</span>
+            <span class="tag">high-contrast</span>
+            <span class="tag">wcag-aaa</span>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </section>
+  
+  <footer style="text-align: center; padding: 3rem 0; color: var(--text-dim);">
+    <p>Prism Theme Generator • Perceptually uniform OKLCH color science</p>
+    <p style="font-size: 0.85rem; margin-top: 0.5rem;">Inspired by Niutonian Themes & Enhanced Links and Nodes</p>
+  </footer>
+  
+</body>
+</html>

@@ -1,0 +1,30 @@
+# Prism Theme: constellation-map
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on constellation-map
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #4ade80)"
+# error_symbol = "[❯](bold #f87171)"
+
+# [directory]
+# style = "bold #ffd700"
+
+# [git_branch]
+# style = "bold #a78bfa"
+
+# [git_status]
+# style = "#ffd700"
+
+# Color reference:
+# background: #050608
+# foreground: #e8f0ff
+# accent: #ffd700
+# keyword: #a78bfa
+# string: #4ade80
+# function: #60a5fa
+# comment: #283040
+# number: #fbbf24
+# type: #ffd700

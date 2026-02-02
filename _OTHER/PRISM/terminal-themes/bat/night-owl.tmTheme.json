@@ -1,0 +1,45 @@
+{
+  "name": "Prism night-owl",
+  "variables": {
+    "bg": "#011627",
+    "fg": "#d6deeb"
+  },
+  "globals": {
+    "background": "#011627",
+    "foreground": "#d6deeb",
+    "caret": "#7fdbca",
+    "selection": "#44475a",
+    "line_highlight": "#081c2d"
+  },
+  "rules": [
+    {
+      "scope": "comment",
+      "foreground": "#637777",
+      "font_style": "italic"
+    },
+    {
+      "scope": "keyword",
+      "foreground": "#c792ea"
+    },
+    {
+      "scope": "string",
+      "foreground": "#ecc48d"
+    },
+    {
+      "scope": "entity.name.function",
+      "foreground": "#82aaff"
+    },
+    {
+      "scope": "constant.numeric",
+      "foreground": "#f78c6c"
+    },
+    {
+      "scope": "entity.name.type, support.type",
+      "foreground": "#ffcb8b"
+    },
+    {
+      "scope": "variable",
+      "foreground": "#d6deeb"
+    }
+  ]
+}

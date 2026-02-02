@@ -1,0 +1,30 @@
+# Prism Theme: nord-aurora
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on nord-aurora
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #a3be8c)"
+# error_symbol = "[❯](bold #bf616a)"
+
+# [directory]
+# style = "bold #88c0d0"
+
+# [git_branch]
+# style = "bold #b48ead"
+
+# [git_status]
+# style = "#ebcb8b"
+
+# Color reference:
+# background: #1a1f2a
+# foreground: #d8dee9
+# accent: #88c0d0
+# keyword: #81a1c1
+# string: #a3be8c
+# function: #88c0d0
+# comment: #616e88
+# number: #b48ead
+# type: #8fbcbb

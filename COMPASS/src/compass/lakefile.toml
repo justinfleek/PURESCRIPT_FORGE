@@ -1,0 +1,11 @@
+name = "Compass"
+version = "0.1.0"
+reservoir = false
+defaultTargets = ["Compass"]
+
+[leanOptions]
+pp.unicode.fun = true
+
+[[lean_lib]]
+name = "Compass"
+globs = ["Compass", "Compass.**"]

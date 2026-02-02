@@ -1,0 +1,45 @@
+{
+  "name": "Prism forest-canopy",
+  "variables": {
+    "bg": "#0a100a",
+    "fg": "#d0e8d0"
+  },
+  "globals": {
+    "background": "#0a100a",
+    "foreground": "#d0e8d0",
+    "caret": "#90d870",
+    "selection": "#44475a",
+    "line_highlight": "#111711"
+  },
+  "rules": [
+    {
+      "scope": "comment",
+      "foreground": "#406040",
+      "font_style": "italic"
+    },
+    {
+      "scope": "keyword",
+      "foreground": "#a78bfa"
+    },
+    {
+      "scope": "string",
+      "foreground": "#90d870"
+    },
+    {
+      "scope": "entity.name.function",
+      "foreground": "#60a5fa"
+    },
+    {
+      "scope": "constant.numeric",
+      "foreground": "#fb923c"
+    },
+    {
+      "scope": "entity.name.type, support.type",
+      "foreground": "#90d870"
+    },
+    {
+      "scope": "variable",
+      "foreground": "#d0e8d0"
+    }
+  ]
+}

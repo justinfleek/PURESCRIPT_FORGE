@@ -1,0 +1,45 @@
+{
+  "name": "Prism ember-hearth",
+  "variables": {
+    "bg": "#0c0908",
+    "fg": "#f8f0e0"
+  },
+  "globals": {
+    "background": "#0c0908",
+    "foreground": "#f8f0e0",
+    "caret": "#ffd93d",
+    "selection": "#44475a",
+    "line_highlight": "#13100f"
+  },
+  "rules": [
+    {
+      "scope": "comment",
+      "foreground": "#3a302a",
+      "font_style": "italic"
+    },
+    {
+      "scope": "keyword",
+      "foreground": "#c792ea"
+    },
+    {
+      "scope": "string",
+      "foreground": "#6bcb77"
+    },
+    {
+      "scope": "entity.name.function",
+      "foreground": "#ff8c42"
+    },
+    {
+      "scope": "constant.numeric",
+      "foreground": "#ffa94d"
+    },
+    {
+      "scope": "entity.name.type, support.type",
+      "foreground": "#ffd93d"
+    },
+    {
+      "scope": "variable",
+      "foreground": "#f8f0e0"
+    }
+  ]
+}

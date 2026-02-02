@@ -1,0 +1,30 @@
+# Prism Theme: vesper
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on vesper
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #99c794)"
+# error_symbol = "[❯](bold #f5a191)"
+
+# [directory]
+# style = "bold #ffc799"
+
+# [git_branch]
+# style = "bold #ffc799"
+
+# [git_status]
+# style = "#ffc799"
+
+# Color reference:
+# background: #101010
+# foreground: #b0b0b0
+# accent: #ffc799
+# keyword: #ffc799
+# string: #99c794
+# function: #ffc799
+# comment: #505050
+# number: #ffc799
+# type: #ffc799

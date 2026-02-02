@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scheme name="Prism holographic" version="142" parent_scheme="Darcula">
+  <metaInfo>
+    <property name="created">Prism Theme Generator</property>
+    <property name="ideVersion">2024.1</property>
+    <property name="modified">Prism Theme Generator</property>
+  </metaInfo>
+  <colors>
+    <option name="CARET_COLOR" value="00FFFF" />
+    <option name="CARET_ROW_COLOR" value="16141B" />
+    <option name="CONSOLE_BACKGROUND_KEY" value="0A0810" />
+    <option name="GUTTER_BACKGROUND" value="0A0810" />
+    <option name="LINE_NUMBERS_COLOR" value="6060A0" />
+    <option name="SELECTION_BACKGROUND" value="44475A" />
+    <option name="SELECTION_FOREGROUND" value="E8E0F8" />
+  </colors>
+  <attributes>
+    <option name="DEFAULT_KEYWORD">
+      <value>
+        <option name="FOREGROUND" value="FF0080" />
+        <option name="FONT_TYPE" value="1" />
+      </value>
+    </option>
+    <option name="DEFAULT_STRING">
+      <value>
+        <option name="FOREGROUND" value="00FF80" />
+      </value>
+    </option>
+    <option name="DEFAULT_FUNCTION_DECLARATION">
+      <value>
+        <option name="FOREGROUND" value="0080FF" />
+      </value>
+    </option>
+    <option name="DEFAULT_FUNCTION_CALL">
+      <value>
+        <option name="FOREGROUND" value="0080FF" />
+      </value>
+    </option>
+    <option name="DEFAULT_LINE_COMMENT">
+      <value>
+        <option name="FOREGROUND" value="505080" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_BLOCK_COMMENT">
+      <value>
+        <option name="FOREGROUND" value="505080" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_DOC_COMMENT">
+      <value>
+        <option name="FOREGROUND" value="505080" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_NUMBER">
+      <value>
+        <option name="FOREGROUND" value="FFCC00" />
+      </value>
+    </option>
+    <option name="DEFAULT_CLASS_NAME">
+      <value>
+        <option name="FOREGROUND" value="00FFFF" />
+      </value>
+    </option>
+    <option name="DEFAULT_INTERFACE_NAME">
+      <value>
+        <option name="FOREGROUND" value="00FFFF" />
+        <option name="FONT_TYPE" value="2" />
+      </value>
+    </option>
+    <option name="DEFAULT_CONSTANT">
+      <value>
+        <option name="FOREGROUND" value="FFCC00" />
+        <option name="FONT_TYPE" value="1" />
+      </value>
+    </option>
+    <option name="DEFAULT_IDENTIFIER">
+      <value>
+        <option name="FOREGROUND" value="E8E0F8" />
+      </value>
+    </option>
+  </attributes>
+</scheme>

@@ -1,0 +1,30 @@
+# Prism Theme: one-dark-pro
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on one-dark-pro
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #98c379)"
+# error_symbol = "[❯](bold #e06c75)"
+
+# [directory]
+# style = "bold #61afef"
+
+# [git_branch]
+# style = "bold #c678dd"
+
+# [git_status]
+# style = "#e5c07b"
+
+# Color reference:
+# background: #1e2127
+# foreground: #abb2bf
+# accent: #61afef
+# keyword: #c678dd
+# string: #98c379
+# function: #61afef
+# comment: #5c6370
+# number: #d19a66
+# type: #e5c07b

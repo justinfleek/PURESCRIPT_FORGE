@@ -1,0 +1,22 @@
+{
+  "name": "Prism Vesper",
+  "background": "#F8F8F7",
+  "foreground": "#272727",
+  "cursorColor": "#676266",
+  "black": "#272727",
+  "red": "#53132D",
+  "green": "#C39B83",
+  "yellow": "#676266",
+  "blue": "#53132D",
+  "purple": "#676266",
+  "cyan": "#C39B83",
+  "white": "#F8F8F7",
+  "brightBlack": "#272727",
+  "brightRed": "#53132D",
+  "brightGreen": "#C39B83",
+  "brightYellow": "#676266",
+  "brightBlue": "#53132D",
+  "brightPurple": "#676266",
+  "brightCyan": "#C39B83",
+  "brightWhite": "#F8F8F7"
+}

@@ -1,0 +1,22 @@
+{
+  "name": "Prism Forest",
+  "background": "#0D1F0A",
+  "foreground": "#ACD322",
+  "cursorColor": "#62A527",
+  "black": "#0D1F0A",
+  "red": "#1E483C",
+  "green": "#8AD0A2",
+  "yellow": "#62A527",
+  "blue": "#1E483C",
+  "purple": "#62A527",
+  "cyan": "#8AD0A2",
+  "white": "#ACD322",
+  "brightBlack": "#0D1F0A",
+  "brightRed": "#1E483C",
+  "brightGreen": "#8AD0A2",
+  "brightYellow": "#62A527",
+  "brightBlue": "#1E483C",
+  "brightPurple": "#62A527",
+  "brightCyan": "#8AD0A2",
+  "brightWhite": "#ACD322"
+}

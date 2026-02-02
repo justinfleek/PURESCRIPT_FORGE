@@ -1,0 +1,11 @@
+name = "LLMAgent"
+version = "0.1.0"
+reservoir = false
+defaultTargets = ["LLMAgent"]
+
+[leanOptions]
+pp.unicode.fun = true
+
+[[lean_lib]]
+name = "LLMAgent"
+roots = ["Lean4CodeGenerator"]

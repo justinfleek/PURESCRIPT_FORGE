@@ -1,0 +1,45 @@
+{
+  "name": "Prism synthwave-84",
+  "variables": {
+    "bg": "#1a1024",
+    "fg": "#f0e0ff"
+  },
+  "globals": {
+    "background": "#1a1024",
+    "foreground": "#f0e0ff",
+    "caret": "#ff7edb",
+    "selection": "#44475a",
+    "line_highlight": "#20172a"
+  },
+  "rules": [
+    {
+      "scope": "comment",
+      "foreground": "#8060a0",
+      "font_style": "italic"
+    },
+    {
+      "scope": "keyword",
+      "foreground": "#fede5d"
+    },
+    {
+      "scope": "string",
+      "foreground": "#72f1b8"
+    },
+    {
+      "scope": "entity.name.function",
+      "foreground": "#36f9f6"
+    },
+    {
+      "scope": "constant.numeric",
+      "foreground": "#f97e72"
+    },
+    {
+      "scope": "entity.name.type, support.type",
+      "foreground": "#ff7edb"
+    },
+    {
+      "scope": "variable",
+      "foreground": "#f0e0ff"
+    }
+  ]
+}

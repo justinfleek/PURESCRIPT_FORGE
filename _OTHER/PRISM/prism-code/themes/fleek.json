@@ -1,0 +1,132 @@
+{
+  "$schema": "https://opencode.ai/schemas/theme.json",
+  "name": "Fleek",
+  "description": "Official Fleek theme - AI inference optimization meets polyhedral elegance. The gradient flows from compute to insight.",
+  "author": "Weyl AI / Fleek",
+  "version": "1.0.0",
+  "type": "dark",
+  "colors": {
+    "background": "#0a0a0a",
+    "backgroundSecondary": "#101010",
+    "backgroundTertiary": "#161616",
+    
+    "text": "#f0ece0",
+    "textMuted": "#6a6560",
+    "textSubtle": "#4a4540",
+    
+    "border": "#1c1c1c",
+    "borderMuted": "#141414",
+    "borderFocus": "#3cb878",
+    
+    "accent": "#3cb878",
+    "accentMuted": "#b8a078",
+    "accentText": "#0a0a0a",
+    
+    "error": "#ff6b35",
+    "errorMuted": "#3a1808",
+    "warning": "#ffd93d",
+    "warningMuted": "#3a3008",
+    "success": "#3cb878",
+    "successMuted": "#0a3a20",
+    "info": "#00a0e4",
+    "infoMuted": "#0a2838",
+    
+    "selection": "#1c1c1c",
+    "selectionText": "#f0ece0",
+    "highlight": "#3cb87830",
+    
+    "link": "#00a0e4",
+    "linkHover": "#3cb878",
+    
+    "scrollbar": "#4a4540",
+    "scrollbarHover": "#6a6560",
+    
+    "syntax": {
+      "comment": "#4a4540",
+      "keyword": "#ff6b35",
+      "function": "#00a0e4",
+      "string": "#3cb878",
+      "number": "#ffd93d",
+      "type": "#3cb878",
+      "variable": "#f0ece0",
+      "constant": "#ffd93d",
+      "operator": "#f0ece0",
+      "punctuation": "#6a6560",
+      "tag": "#ff6b35",
+      "attribute": "#3cb878",
+      "property": "#f0ece0",
+      "class": "#3cb878",
+      "regex": "#00a0e4",
+      "escape": "#00a0e4"
+    },
+    
+    "diff": {
+      "added": "#3cb878",
+      "addedBackground": "#0a3a20",
+      "removed": "#ff6b35",
+      "removedBackground": "#3a1808",
+      "modified": "#00a0e4",
+      "modifiedBackground": "#0a2838"
+    },
+    
+    "markdown": {
+      "heading": "#00a0e4",
+      "bold": "#f0ece0",
+      "italic": "#ff6b35",
+      "code": "#3cb878",
+      "codeBackground": "#101010",
+      "blockquote": "#6a6560",
+      "list": "#ffd93d",
+      "link": "#00a0e4",
+      "image": "#3cb878"
+    },
+    
+    "terminal": {
+      "black": "#0a0a0a",
+      "red": "#ff6b35",
+      "green": "#3cb878",
+      "yellow": "#ffd93d",
+      "blue": "#00a0e4",
+      "magenta": "#b8a078",
+      "cyan": "#00a0e4",
+      "white": "#f0ece0",
+      "brightBlack": "#4a4540",
+      "brightRed": "#ff6b35",
+      "brightGreen": "#3cb878",
+      "brightYellow": "#ffd93d",
+      "brightBlue": "#00a0e4",
+      "brightMagenta": "#b8a078",
+      "brightCyan": "#00a0e4",
+      "brightWhite": "#fffff0"
+    }
+  },
+  
+  "ui": {
+    "borderRadius": "8px",
+    "panelShadow": "0 8px 32px rgba(0,0,0,0.6)",
+    "glowColor": "#3cb878",
+    "glowIntensity": 0.08
+  },
+  
+  "_prism": {
+    "category": "flagship",
+    "inspiration": "AI inference optimization meets polyhedral elegance - compute to insight gradient",
+    "heroColor": "#3cb878",
+    "brandColors": {
+      "cyan": "#00a0e4",
+      "green": "#3cb878", 
+      "yellow": "#ffd93d",
+      "orange": "#ff6b35"
+    },
+    "genesis": {
+      "date": "2026-01-26",
+      "authors": ["j-pyxal", "claude-opus-4.5-20260126"],
+      "note": "Formally verified with Lean4. Every color conversion proven bijective. May your code be readable and your contrast ratios always >= 4.5."
+    },
+    "gradient": ["#00a0e4", "#3cb878", "#ffd93d", "#ff6b35"],
+    "effects": {
+      "glow": true,
+      "gradientAccent": true
+    }
+  }
+}

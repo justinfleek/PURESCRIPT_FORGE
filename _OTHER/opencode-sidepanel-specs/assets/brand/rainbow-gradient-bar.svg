@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="8" viewBox="0 0 1200 8">
+  <!-- Fleek Rainbow Gradient Bar - Horizontal accent line -->
+  <defs>
+    <linearGradient id="rainbow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0090ff"/>
+      <stop offset="33%" stop-color="#32e48e"/>
+      <stop offset="66%" stop-color="#ffe629"/>
+      <stop offset="100%" stop-color="#f76b15"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#rainbow)"/>
+</svg>
+

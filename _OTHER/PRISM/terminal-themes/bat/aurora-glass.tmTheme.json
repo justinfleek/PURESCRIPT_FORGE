@@ -1,0 +1,45 @@
+{
+  "name": "Prism aurora-glass",
+  "variables": {
+    "bg": "#0a0815",
+    "fg": "#e8f0f8"
+  },
+  "globals": {
+    "background": "#0a0815",
+    "foreground": "#e8f0f8",
+    "caret": "#a78bfa",
+    "selection": "#44475a",
+    "line_highlight": "#110f1c"
+  },
+  "rules": [
+    {
+      "scope": "comment",
+      "foreground": "#3a3550",
+      "font_style": "italic"
+    },
+    {
+      "scope": "keyword",
+      "foreground": "#c084fc"
+    },
+    {
+      "scope": "string",
+      "foreground": "#4ade80"
+    },
+    {
+      "scope": "entity.name.function",
+      "foreground": "#60a5fa"
+    },
+    {
+      "scope": "constant.numeric",
+      "foreground": "#fb923c"
+    },
+    {
+      "scope": "entity.name.type, support.type",
+      "foreground": "#a78bfa"
+    },
+    {
+      "scope": "variable",
+      "foreground": "#e8f0f8"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+# Prism Theme: ayu-mirage
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on ayu-mirage
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #87d96c)"
+# error_symbol = "[❯](bold #f28779)"
+
+# [directory]
+# style = "bold #ffcc66"
+
+# [git_branch]
+# style = "bold #d4bfff"
+
+# [git_status]
+# style = "#ffcc66"
+
+# Color reference:
+# background: #1f2430
+# foreground: #cccac2
+# accent: #ffcc66
+# keyword: #ffa759
+# string: #d5ff80
+# function: #ffd580
+# comment: #5c6773
+# number: #ffcc66
+# type: #73d0ff

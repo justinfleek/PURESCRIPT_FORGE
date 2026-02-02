@@ -1,0 +1,30 @@
+# Prism Theme: rose-pine
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on rose-pine
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #9ccfd8)"
+# error_symbol = "[❯](bold #eb6f92)"
+
+# [directory]
+# style = "bold #c4a7e7"
+
+# [git_branch]
+# style = "bold #c4a7e7"
+
+# [git_status]
+# style = "#f6c177"
+
+# Color reference:
+# background: #191724
+# foreground: #e0def4
+# accent: #c4a7e7
+# keyword: #31748f
+# string: #f6c177
+# function: #ebbcba
+# comment: #6e6a86
+# number: #c4a7e7
+# type: #9ccfd8

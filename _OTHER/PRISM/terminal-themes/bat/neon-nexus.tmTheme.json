@@ -1,0 +1,45 @@
+{
+  "name": "Prism neon-nexus",
+  "variables": {
+    "bg": "#040804",
+    "fg": "#d0ffd0"
+  },
+  "globals": {
+    "background": "#040804",
+    "foreground": "#d0ffd0",
+    "caret": "#00ff88",
+    "selection": "#44475a",
+    "line_highlight": "#0b0f0b"
+  },
+  "rules": [
+    {
+      "scope": "comment",
+      "foreground": "#306030",
+      "font_style": "italic"
+    },
+    {
+      "scope": "keyword",
+      "foreground": "#00ff88"
+    },
+    {
+      "scope": "string",
+      "foreground": "#00ff88"
+    },
+    {
+      "scope": "entity.name.function",
+      "foreground": "#00aaff"
+    },
+    {
+      "scope": "constant.numeric",
+      "foreground": "#ffaa00"
+    },
+    {
+      "scope": "entity.name.type, support.type",
+      "foreground": "#00ff88"
+    },
+    {
+      "scope": "variable",
+      "foreground": "#d0ffd0"
+    }
+  ]
+}

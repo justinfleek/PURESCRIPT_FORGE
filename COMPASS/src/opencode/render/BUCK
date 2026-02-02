@@ -1,0 +1,47 @@
+# src/opencode/render/BUCK
+#
+# Render API types and Triton client
+#
+# Aligned with:
+# - render.openapi.yaml (REST API)
+# - trtllm-serve (Triton/TRT-LLM)
+# - Aleph protocols (coeffects, attestation)
+
+load("//toolchains:purescript.bzl", "purescript_library")
+
+purescript_library(
+    name = "render",
+    srcs = [
+        "Types.purs",
+        "Models.purs",
+        "Triton.purs",
+    ],
+    deps = [
+        "//src/opencode/aleph:aleph",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# Types only (for code generation)
+purescript_library(
+    name = "types",
+    srcs = ["Types.purs"],
+    deps = [],
+    visibility = ["PUBLIC"],
+)
+
+# Model registry
+purescript_library(
+    name = "models",
+    srcs = ["Models.purs"],
+    deps = [":types"],
+    visibility = ["PUBLIC"],
+)
+
+# Triton client
+purescript_library(
+    name = "triton",
+    srcs = ["Triton.purs"],
+    deps = [":types"],
+    visibility = ["PUBLIC"],
+)

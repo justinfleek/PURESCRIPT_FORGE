@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prism Premium Themes - Luxury Collection</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+    
+    :root {
+      --bg: #050506;
+      --surface: #0a0a0c;
+      --elevated: #12121a;
+      --text: #f0f0f5;
+      --text-muted: #6a6a75;
+      --gold: #d4af37;
+      --gold-subtle: rgba(212, 175, 55, 0.08);
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    
+    /* ===== HERO SECTION ===== */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(212, 175, 55, 0.04) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    
+    .hero-title {
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      font-weight: 300;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    
+    .hero-title span {
+      background: linear-gradient(135deg, var(--gold) 0%, #f7e7ce 50%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .hero-subtitle {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      font-weight: 300;
+    }
+    
+    .hero-tags {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .hero-tag {
+      padding: 0.5rem 1rem;
+      background: var(--gold-subtle);
+      border: 1px solid rgba(212, 175, 55, 0.15);
+      border-radius: 100px;
+      font-size: 0.85rem;
+      color: var(--gold);
+    }
+    
+    /* ===== NAVIGATION ===== */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(5, 5, 6, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding: 1rem 2rem;
+    }
+    
+    nav ul {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      list-style: none;
+      flex-wrap: wrap;
+    }
+    
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    
+    nav a:hover {
+      color: var(--gold);
+    }
+    
+    /* ===== SECTIONS ===== */
+    section {
+      padding: 5rem 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .section-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+    
+    .section-title {
+      font-size: 2rem;
+      font-weight: 400;
+      margin-bottom: 0.5rem;
+    }
+    
+    .section-description {
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    /* ===== THEME GRID ===== */
+    .themes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 2rem;
+    }
+    
+    /* ===== THEME CARD ===== */
+    .theme-card {
+      background: var(--surface);
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.04);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                  box-shadow 0.3s ease;
+    }
+    
+    .theme-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 
+        0 20px 40px rgba(0,0,0,0.4),
+        0 0 0 1px rgba(255,255,255,0.06);
+    }
+    
+    /* ===== CODE PREVIEW ===== */
+    .code-preview {
+      height: 200px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    
+    .code-preview .line {
+      white-space: nowrap;
+    }
+    
+    .code-preview .comment { opacity: 0.5; }
+    
+    /* Effect overlays */
+    .code-preview .effect-glow {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    
+    .code-preview .effect-particles {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    
+    .code-preview .particle {
+      position: absolute;
+      border-radius: 50%;
+      animation: float 8s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+      25% { transform: translateY(-20px) translateX(10px); opacity: 0.5; }
+      50% { transform: translateY(-10px) translateX(-5px); opacity: 0.4; }
+      75% { transform: translateY(-30px) translateX(5px); opacity: 0.3; }
+    }
+    
+    .code-preview .effect-vignette {
+      position: absolute;
+      inset: 0;
+      box-shadow: inset 0 0 60px rgba(0,0,0,0.5);
+      pointer-events: none;
+    }
+    
+    .code-preview .effect-shimmer {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.02) 50%, transparent 60%);
+      background-size: 300% 300%;
+      animation: shimmer 8s linear infinite;
+    }
+    
+    @keyframes shimmer {
+      from { background-position: 200% 0; }
+      to { background-position: -200% 0; }
+    }
+    
+    /* ===== THEME INFO ===== */
+    .theme-info {
+      padding: 1.5rem;
+    }
+    
+    .theme-name {
+      font-size: 1.25rem;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+    
+    .theme-inspiration {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-bottom: 1rem;
+    }
+    
+    /* ===== PALETTE ROW ===== */
+    .palette-row {
+      display: flex;
+      gap: 3px;
+      margin-bottom: 1rem;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    
+    .palette-swatch {
+      flex: 1;
+      height: 32px;
+      transition: transform 0.2s;
+      cursor: pointer;
+      position: relative;
+    }
+    
+    .palette-swatch:hover {
+      transform: scaleY(1.3);
+      z-index: 1;
+    }
+    
+    .palette-swatch::after {
+      content: attr(data-color);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--elevated);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-family: 'JetBrains Mono', monospace;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+    }
+    
+    .palette-swatch:hover::after {
+      opacity: 1;
+    }
+    
+    /* ===== EFFECT BADGES ===== */
+    .effect-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    
+    .badge {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 100px;
+      background: rgba(255,255,255,0.05);
+      color: var(--text-muted);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .badge.gold {
+      background: var(--gold-subtle);
+      color: var(--gold);
+      border-color: rgba(212, 175, 55, 0.2);
+    }
+    
+    /* ===== SPECIFIC THEME STYLES ===== */
+    
+    /* Nero Marquina - Black Marble + Gold */
+    .nero-marquina {
+      background: #08080a;
+    }
+    .nero-marquina .effect-glow {
+      background: #d4af37;
+      right: -50px;
+      bottom: -50px;
+    }
+    .nero-marquina .particle {
+      background: rgba(212, 175, 55, 0.3);
+    }
+    
+    /* Obsidian Rose Gold */
+    .obsidian-rose {
+      background: #050404;
+    }
+    .obsidian-rose .effect-glow {
+      background: #e8b4b8;
+      right: -30px;
+      top: -30px;
+      opacity: 0.3;
+    }
+    
+    /* Midnight Sapphire */
+    .midnight-sapphire {
+      background: linear-gradient(135deg, #050810 0%, #0a1020 100%);
+    }
+    .midnight-sapphire .effect-glow {
+      background: #4a90d9;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0.25;
+    }
+    
+    /* Emerald Velvet */
+    .emerald-velvet {
+      background: #040806;
+    }
+    .emerald-velvet .effect-glow {
+      background: #50c878;
+      left: -40px;
+      bottom: -40px;
+      opacity: 0.35;
+    }
+    
+    /* Aurora Glass */
+    .aurora-glass {
+      background: linear-gradient(135deg, #0a0815 0%, #0a1520 50%, #0a1510 100%);
+    }
+    .aurora-glass::before {
+      content: '';
+      position: absolute;
+      inset: 20px;
+      background: rgba(30, 30, 50, 0.6);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .aurora-glass .effect-glow {
+      background: linear-gradient(135deg, #64ffda, #a78bfa, #60a5fa);
+      left: 0;
+      right: 0;
+      top: -100px;
+      height: 200px;
+      border-radius: 0;
+      opacity: 0.15;
+    }
+    
+    /* Tokyo Night Bento */
+    .tokyo-bento {
+      background: #0f0f18;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 8px;
+      padding: 12px;
+    }
+    .tokyo-bento .bento-card {
+      background: rgba(30, 30, 45, 0.85);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.05);
+      padding: 12px;
+      font-size: 11px;
+      position: relative;
+      overflow: hidden;
+    }
+    .tokyo-bento .bento-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #f7768e, #bb9af7);
+    }
+    
+    /* Soft Charcoal Neumorphism */
+    .soft-charcoal {
+      background: #2a2a32;
+    }
+    .soft-charcoal .neu-element {
+      background: #2a2a32;
+      border-radius: 16px;
+      padding: 16px;
+      margin: 20px;
+      box-shadow: 
+        -6px -6px 12px rgba(58, 58, 66, 0.5),
+        6px 6px 12px rgba(18, 18, 22, 0.7);
+    }
+    
+    /* Vintage Leather */
+    .vintage-leather {
+      background: 
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"),
+        linear-gradient(135deg, #1c1612 0%, #241c16 100%);
+      background-blend-mode: overlay;
+    }
+    .vintage-leather::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+      pointer-events: none;
+    }
+    
+    /* Living Ink */
+    .living-ink {
+      background: #08080f;
+    }
+    .living-ink .cursor-spotlight {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(circle, rgba(96, 165, 250, 0.08) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      transition: transform 0.1s ease-out;
+    }
+    
+    /* Ember Hearth */
+    .ember-hearth {
+      background: #0c0908;
+    }
+    .ember-hearth .ember {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: #ff6b35;
+      border-radius: 50%;
+      box-shadow: 0 0 6px #ff6b35;
+      animation: ember-rise 4s ease-out infinite;
+    }
+    
+    @keyframes ember-rise {
+      0% { opacity: 0; transform: translateY(0); }
+      10% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(-150px) translateX(20px); }
+    }
+    
+    /* Diamond Dust */
+    .diamond-dust {
+      background: #08090d;
+    }
+    .diamond-dust .sparkle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: #ffffff;
+      border-radius: 50%;
+      animation: sparkle 2s ease-in-out infinite;
+    }
+    
+    @keyframes sparkle {
+      0%, 100% { opacity: 0; transform: scale(0); }
+      50% { opacity: 0.8; transform: scale(1); }
+    }
+    
+    /* Constellation */
+    .constellation {
+      background: #050608;
+    }
+    .constellation .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: #ffffff;
+      border-radius: 50%;
+      animation: twinkle 3s ease-in-out infinite;
+    }
+    
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.8; }
+    }
+    
+    /* ===== FOOTER ===== */
+    footer {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    footer p {
+      margin-bottom: 0.5rem;
+    }
+    
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .themes-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      nav ul {
+        gap: 1rem;
+      }
+    }
+    
+    /* ===== REDUCED MOTION ===== */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Hero -->
+  <header class="hero">
+    <h1 class="hero-title">Prism <span>Premium</span></h1>
+    <p class="hero-subtitle">
+      Luxury themes with subtle micro-interactions that make coding feel like an experience.
+      Marble, gold, glass, and responsive effects that reward attention.
+    </p>
+    <div class="hero-tags">
+      <span class="hero-tag">✨ Micro-interactions</span>
+      <span class="hero-tag">🎨 Perceptual OKLCH</span>
+      <span class="hero-tag">⚡ 60fps Optimized</span>
+      <span class="hero-tag">♿ Motion-Safe</span>
+    </div>
+  </header>
+  
+  <!-- Navigation -->
+  <nav>
+    <ul>
+      <li><a href="#luxury">Luxury Marble</a></li>
+      <li><a href="#glass">Glassmorphism</a></li>
+      <li><a href="#bento">Bento</a></li>
+      <li><a href="#neumorphism">Neumorphism</a></li>
+      <li><a href="#responsive">Responsive</a></li>
+      <li><a href="#easter-eggs">Easter Eggs</a></li>
+    </ul>
+  </nav>
+  
+  <!-- Luxury Marble Section -->
+  <section id="luxury">
+    <div class="section-header">
+      <h2 class="section-title">Luxury Marble Collection</h2>
+      <p class="section-description">
+        Black marble with gold veining, obsidian with rose gold, sapphire depths.
+        Premium materials for premium code.
+      </p>
+    </div>
+    
+    <div class="themes-grid">
+      <!-- Nero Marquina -->
+      <div class="theme-card">
+        <div class="code-preview nero-marquina">
+          <div class="effect-glow"></div>
+          <div class="effect-particles">
+            <div class="particle" style="width:2px;height:2px;left:20%;top:30%;animation-delay:0s;"></div>
+            <div class="particle" style="width:1px;height:1px;left:70%;top:60%;animation-delay:2s;"></div>
+            <div class="particle" style="width:2px;height:2px;left:50%;top:80%;animation-delay:4s;"></div>
+          </div>
+          <div class="effect-shimmer"></div>
+          <div class="effect-vignette"></div>
+          <div class="line comment" style="color:#3a3a45;">// Nero Marquina</div>
+          <div class="line"><span style="color:#d4af37;">const</span> <span style="color:#e8e4dc;">marble</span> = <span style="color:#5494e8;">obsidian</span>.<span style="color:#54c878;">polish</span>();</div>
+          <div class="line"><span style="color:#d4af37;">const</span> <span style="color:#e8e4dc;">veins</span> = <span style="color:#d4af37;">gold</span>.<span style="color:#54c878;">inlay</span>(<span style="color:#e8a054;">0.08</span>);</div>
+          <div class="line"></div>
+          <div class="line"><span style="color:#b454e8;">export</span> <span style="color:#d4af37;">function</span> <span style="color:#54b4b8;">luxury</span>() {</div>
+          <div class="line">  <span style="color:#d4af37;">return</span> <span style="color:#e8e4dc;">marble</span>.<span style="color:#54c878;">with</span>(<span style="color:#e8e4dc;">veins</span>);</div>
+          <div class="line">}</div>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Nero Marquina</div>
+          <div class="theme-inspiration">Black Spanish marble with white veining and warm gold leaf accents</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background:#08080a;" data-color="#08080a"></div>
+            <div class="palette-swatch" style="background:#101014;" data-color="#101014"></div>
+            <div class="palette-swatch" style="background:#18181e;" data-color="#18181e"></div>
+            <div class="palette-swatch" style="background:#3a3a45;" data-color="#3a3a45"></div>
+            <div class="palette-swatch" style="background:#d4af37;" data-color="#d4af37"></div>
+            <div class="palette-swatch" style="background:#54c878;" data-color="#54c878"></div>
+            <div class="palette-swatch" style="background:#5494e8;" data-color="#5494e8"></div>
+            <div class="palette-swatch" style="background:#e8e4dc;" data-color="#e8e4dc"></div>
+          </div>
+          <div class="effect-badges">
+            <span class="badge gold">✨ Gold Shimmer</span>
+            <span class="badge">🌫️ Vignette</span>
+            <span class="badge">✦ Particles</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Obsidian Rose Gold -->
+      <div class="theme-card">
+        <div class="code-preview obsidian-rose">
+          <div class="effect-glow"></div>
+          <div class="effect-vignette"></div>
+          <div class="line comment" style="color:#3a3535;">// Obsidian Rose Gold</div>
+          <div class="line"><span style="color:#e8b4b8;">import</span> { <span style="color:#f0e8e8;">volcanic</span> } <span style="color:#e8b4b8;">from</span> <span style="color:#e8a878;">'obsidian'</span>;</div>
+          <div class="line"></div>
+          <div class="line"><span style="color:#e8b4b8;">const</span> <span style="color:#f0e8e8;">glow</span> = <span style="color:#c878e8;">roseGold</span>.<span style="color:#78c8a8;">bloom</span>();</div>
+          <div class="line"><span style="color:#e8b4b8;">await</span> <span style="color:#f0e8e8;">glow</span>.<span style="color:#78c8a8;">softly</span>();</div>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Obsidian Rose Gold</div>
+          <div class="theme-inspiration">Volcanic glass with delicate rose gold veining</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background:#050404;" data-color="#050404"></div>
+            <div class="palette-swatch" style="background:#0c0a0a;" data-color="#0c0a0a"></div>
+            <div class="palette-swatch" style="background:#141210;" data-color="#141210"></div>
+            <div class="palette-swatch" style="background:#3a3535;" data-color="#3a3535"></div>
+            <div class="palette-swatch" style="background:#e8b4b8;" data-color="#e8b4b8"></div>
+            <div class="palette-swatch" style="background:#78c8a8;" data-color="#78c8a8"></div>
+            <div class="palette-swatch" style="background:#c878e8;" data-color="#c878e8"></div>
+            <div class="palette-swatch" style="background:#f0e8e8;" data-color="#f0e8e8"></div>
+          </div>
+          <div class="effect-badges">
+            <span class="badge gold">🌸 Soft Bloom</span>
+            <span class="badge">🌫️ Vignette</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Midnight Sapphire -->
+      <div class="theme-card">
+        <div class="code-preview midnight-sapphire">
+          <div class="effect-glow"></div>
+          <div class="line comment" style="color:#2a3548;">// Midnight Sapphire</div>
+          <div class="line"><span style="color:#60a5fa;">class</span> <span style="color:#e0e8f8;">Gemstone</span> {</div>
+          <div class="line">  <span style="color:#c0c0d0;">platinum</span> = <span style="color:#a78bfa;">true</span>;</div>
+          <div class="line">  <span style="color:#60a5fa;">fire</span>() { <span style="color:#67e8f9;">sparkle</span>(); }</div>
+          <div class="line">}</div>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Midnight Sapphire</div>
+          <div class="theme-inspiration">Deep blue gemstone with platinum accents and inner fire</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background:#050810;" data-color="#050810"></div>
+            <div class="palette-swatch" style="background:#0a1018;" data-color="#0a1018"></div>
+            <div class="palette-swatch" style="background:#101825;" data-color="#101825"></div>
+            <div class="palette-swatch" style="background:#2a3548;" data-color="#2a3548"></div>
+            <div class="palette-swatch" style="background:#60a5fa;" data-color="#60a5fa"></div>
+            <div class="palette-swatch" style="background:#c0c0d0;" data-color="#c0c0d0"></div>
+            <div class="palette-swatch" style="background:#a78bfa;" data-color="#a78bfa"></div>
+            <div class="palette-swatch" style="background:#e0e8f8;" data-color="#e0e8f8"></div>
+          </div>
+          <div class="effect-badges">
+            <span class="badge gold">💎 Gem Sparkle</span>
+            <span class="badge">🔥 Inner Fire</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Emerald Velvet -->
+      <div class="theme-card">
+        <div class="code-preview emerald-velvet">
+          <div class="effect-glow"></div>
+          <div class="line comment" style="color:#283828;">// Emerald Velvet</div>
+          <div class="line"><span style="color:#d4a040;">interface</span> <span style="color:#e0f0e0;">Opulent</span> {</div>
+          <div class="line">  <span style="color:#50b850;">emerald</span>: <span style="color:#5fd4b8;">Color</span>;</div>
+          <div class="line">  <span style="color:#d4a040;">gold</span>: <span style="color:#5fd4b8;">Filigree</span>;</div>
+          <div class="line">}</div>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Emerald Velvet</div>
+          <div class="theme-inspiration">Rich emerald on black velvet with gold filigree</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background:#040806;" data-color="#040806"></div>
+            <div class="palette-swatch" style="background:#081008;" data-color="#081008"></div>
+            <div class="palette-swatch" style="background:#101810;" data-color="#101810"></div>
+            <div class="palette-swatch" style="background:#283828;" data-color="#283828"></div>
+            <div class="palette-swatch" style="background:#50c878;" data-color="#50c878"></div>
+            <div class="palette-swatch" style="background:#d4a040;" data-color="#d4a040"></div>
+            <div class="palette-swatch" style="background:#5fd4b8;" data-color="#5fd4b8"></div>
+            <div class="palette-swatch" style="background:#e0f0e0;" data-color="#e0f0e0"></div>
+          </div>
+          <div class="effect-badges">
+            <span class="badge gold">🧵 Gold Filigree</span>
+            <span class="badge">🌿 Velvet Texture</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Glassmorphism Section -->
+  <section id="glass">
+    <div class="section-header">
+      <h2 class="section-title">Glassmorphism</h2>
+      <p class="section-description">
+        Frosted glass with depth, blur, and luminous borders.
+        Floating panels that feel tangible.
+      </p>
+    </div>
+    
+    <div class="themes-grid">
+      <!-- Aurora Glass -->
+      <div class="theme-card">
+        <div class="code-preview aurora-glass" style="position:relative;">
+          <div class="effect-glow"></div>
+          <div style="position:relative;z-index:1;padding:30px;">
+            <div class="line comment" style="color:#3a3550;">// Aurora Glass</div>
+            <div class="line"><span style="color:#64ffda;">const</span> <span style="color:#e8f0f8;">aurora</span> = <span style="color:#a78bfa;">northern</span>.<span style="color:#60a5fa;">lights</span>();</div>
+            <div class="line"><span style="color:#64ffda;">await</span> <span style="color:#e8f0f8;">glass</span>.<span style="color:#60a5fa;">frost</span>(<span style="color:#c084fc;">20</span>);</div>
+          </div>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Aurora Glass</div>
+          <div class="theme-inspiration">Northern lights through frosted ice panels</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background:#0a0815;" data-color="#0a0815"></div>
+            <div class="palette-swatch" style="background:#12101f;" data-color="#12101f"></div>
+            <div class="palette-swatch" style="background:#1a1828;" data-color="#1a1828"></div>
+            <div class="palette-swatch" style="background:#3a3550;" data-color="#3a3550"></div>
+            <div class="palette-swatch" style="background:#64ffda;" data-color="#64ffda"></div>
+            <div class="palette-swatch" style="background:#a78bfa;" data-color="#a78bfa"></div>
+            <div class="palette-swatch" style="background:#60a5fa;" data-color="#60a5fa"></div>
+            <div class="palette-swatch" style="background:#e8f0f8;" data-color="#e8f0f8"></div>
+          </div>
+          <div class="effect-badges">
+            <span class="badge gold">🌈 Gradient Border</span>
+            <span class="badge">🧊 Blur 20px</span>
+            <span class="badge">✦ Aurora Motes</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Diamond Dust -->
+      <div class="theme-card">
+        <div class="code-preview diamond-dust" style="position:relative;">
+          <div class="sparkle" style="left:20%;top:30%;animation-delay:0s;"></div>
+          <div class="sparkle" style="left:60%;top:20%;animation-delay:0.5s;"></div>
+          <div class="sparkle" style="left:80%;top:60%;animation-delay:1s;"></div>
+          <div class="sparkle" style="left:40%;top:70%;animation-delay:1.5s;"></div>
+          <div class="sparkle" style="left:10%;top:80%;animation-delay:0.8s;"></div>
+          <div class="line comment" style="color:#303540;">// Diamond Dust</div>
+          <div class="line"><span style="color:#38bdf8;">interface</span> <span style="color:#e8f0ff;">Crystal</span> {</div>
+          <div class="line">  <span style="color:#60a5fa;">brilliance</span>: <span style="color:#22d3ee;">number</span>;</div>
+          <div class="line">  <span style="color:#60a5fa;">sparkle</span>(): <span style="color:#4ade80;">void</span>;</div>
+          <div class="line">}</div>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Diamond Dust</div>
+          <div class="theme-inspiration">Ice crystals catching light like scattered diamonds</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background:#08090d;" data-color="#08090d"></div>
+            <div class="palette-swatch" style="background:#0f1118;" data-color="#0f1118"></div>
+            <div class="palette-swatch" style="background:#161922;" data-color="#161922"></div>
+            <div class="palette-swatch" style="background:#303540;" data-color="#303540"></div>
+            <div class="palette-swatch" style="background:#38bdf8;" data-color="#38bdf8"></div>
+            <div class="palette-swatch" style="background:#60a5fa;" data-color="#60a5fa"></div>
+            <div class="palette-swatch" style="background:#22d3ee;" data-color="#22d3ee"></div>
+            <div class="palette-swatch" style="background:#e8f0ff;" data-color="#e8f0ff"></div>
+          </div>
+          <div class="effect-badges">
+            <span class="badge gold">💎 Sparkle</span>
+            <span class="badge">🧊 Blur 24px</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Bento Section -->
+  <section id="bento">
+    <div class="section-header">
+      <h2 class="section-title">Floating Bento</h2>
+      <p class="section-description">
+        Organized compartments with depth and subtle hover lift.
+        Cards that invite interaction.
+      </p>
+    </div>
+    
+    <div class="themes-grid">
+      <!-- Tokyo Night Bento -->
+      <div class="theme-card">
+        <div class="code-preview tokyo-bento">
+          <div class="bento-card">
+            <span style="color:#bb9af7;">const</span> <span style="color:#c0caf5;">x</span> = <span style="color:#ff9e64;">42</span>;
+          </div>
+          <div class="bento-card">
+            <span style="color:#7aa2f7;">function</span> <span style="color:#7dcfff;">fn</span>()
+          </div>
+          <div class="bento-card">
+            <span style="color:#9ece6a;">// comment</span>
+          </div>
+          <div class="bento-card">
+            <span style="color:#f7768e;">error</span>
+          </div>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Tokyo Night Bento</div>
+          <div class="theme-inspiration">Japanese minimalism meets neon-lit cityscape</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background:#0f0f18;" data-color="#0f0f18"></div>
+            <div class="palette-swatch" style="background:#16161f;" data-color="#16161f"></div>
+            <div class="palette-swatch" style="background:#1e1e28;" data-color="#1e1e28"></div>
+            <div class="palette-swatch" style="background:#3a3a4a;" data-color="#3a3a4a"></div>
+            <div class="palette-swatch" style="background:#bb9af7;" data-color="#bb9af7"></div>
+            <div class="palette-swatch" style="background:#7aa2f7;" data-color="#7aa2f7"></div>
+            <div class="palette-swatch" style="background:#9ece6a;" data-color="#9ece6a"></div>
+            <div class="palette-swatch" style="background:#f7768e;" data-color="#f7768e"></div>
+          </div>
+          <div class="effect-badges">
+            <span class="badge gold">📦 Float Cards</span>
+            <span class="badge">🔝 Hover Lift</span>
+            <span class="badge">✨ Accent Line</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Neumorphism Section -->
+  <section id="neumorphism">
+    <div class="section-header">
+      <h2 class="section-title">Neumorphism</h2>
+      <p class="section-description">
+        Soft shadows creating tactile depth. Elements that feel pressable.
+      </p>
+    </div>
+    
+    <div class="themes-grid">
+      <!-- Soft Charcoal -->
+      <div class="theme-card">
+        <div class="code-preview soft-charcoal">
+          <div class="neu-element">
+            <div class="line" style="color:#fbbf24;">const</div>
+            <div class="line" style="color:#e8e8f0;">soft = neu();</div>
+          </div>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Soft Charcoal</div>
+          <div class="theme-inspiration">Pressed surfaces in warm charcoal clay</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background:#2a2a32;" data-color="#2a2a32"></div>
+            <div class="palette-swatch" style="background:#32323a;" data-color="#32323a"></div>
+            <div class="palette-swatch" style="background:#3a3a42;" data-color="#3a3a42"></div>
+            <div class="palette-swatch" style="background:#50505a;" data-color="#50505a"></div>
+            <div class="palette-swatch" style="background:#fbbf24;" data-color="#fbbf24"></div>
+            <div class="palette-swatch" style="background:#4ade80;" data-color="#4ade80"></div>
+            <div class="palette-swatch" style="background:#60a5fa;" data-color="#60a5fa"></div>
+            <div class="palette-swatch" style="background:#e8e8f0;" data-color="#e8e8f0"></div>
+          </div>
+          <div class="effect-badges">
+            <span class="badge gold">🫧 Soft Shadows</span>
+            <span class="badge">👆 Pressable</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Responsive Section -->
+  <section id="responsive">
+    <div class="section-header">
+      <h2 class="section-title">Responsive Effects</h2>
+      <p class="section-description">
+        Themes that respond to your presence. Subtle rewards for attention.
+      </p>
+    </div>
+    
+    <div class="themes-grid">
+      <!-- Ember Hearth -->
+      <div class="theme-card">
+        <div class="code-preview ember-hearth">
+          <div class="ember" style="left:30%;bottom:20px;animation-delay:0s;"></div>
+          <div class="ember" style="left:50%;bottom:20px;animation-delay:1.5s;"></div>
+          <div class="ember" style="left:70%;bottom:20px;animation-delay:3s;"></div>
+          <div class="effect-glow" style="background:#ff6b35;bottom:-50px;left:50%;transform:translateX(-50%);opacity:0.3;"></div>
+          <div class="line comment" style="color:#3a302a;">// Ember Hearth</div>
+          <div class="line"><span style="color:#ffa94d;">const</span> <span style="color:#f8f0e0;">warmth</span> = <span style="color:#ff6b6b;">fire</span>.<span style="color:#6bcb77;">glow</span>();</div>
+          <div class="line"><span style="color:#ffa94d;">on</span>(<span style="color:#ffd93d;">'keystroke'</span>, <span style="color:#ff8c42;">spark</span>);</div>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Ember Hearth</div>
+          <div class="theme-inspiration">Warm fireplace with embers responding to activity</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background:#0c0908;" data-color="#0c0908"></div>
+            <div class="palette-swatch" style="background:#141010;" data-color="#141010"></div>
+            <div class="palette-swatch" style="background:#1c1614;" data-color="#1c1614"></div>
+            <div class="palette-swatch" style="background:#3a302a;" data-color="#3a302a"></div>
+            <div class="palette-swatch" style="background:#ff6b35;" data-color="#ff6b35"></div>
+            <div class="palette-swatch" style="background:#ffa94d;" data-color="#ffa94d"></div>
+            <div class="palette-swatch" style="background:#6bcb77;" data-color="#6bcb77"></div>
+            <div class="palette-swatch" style="background:#f8f0e0;" data-color="#f8f0e0"></div>
+          </div>
+          <div class="effect-badges">
+            <span class="badge gold">🔥 Rising Embers</span>
+            <span class="badge">⌨️ Type Spark</span>
+            <span class="badge">💓 Warm Pulse</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Easter Eggs Section -->
+  <section id="easter-eggs">
+    <div class="section-header">
+      <h2 class="section-title">Hidden Delights</h2>
+      <p class="section-description">
+        Easter eggs and idle rewards. Discoveries that make you smile.
+      </p>
+    </div>
+    
+    <div class="themes-grid">
+      <!-- Constellation Map -->
+      <div class="theme-card">
+        <div class="code-preview constellation">
+          <div class="star" style="left:10%;top:20%;animation-delay:0s;"></div>
+          <div class="star" style="left:25%;top:35%;animation-delay:0.5s;"></div>
+          <div class="star" style="left:40%;top:15%;animation-delay:1s;"></div>
+          <div class="star" style="left:55%;top:45%;animation-delay:1.5s;"></div>
+          <div class="star" style="left:70%;top:25%;animation-delay:2s;"></div>
+          <div class="star" style="left:85%;top:55%;animation-delay:0.3s;"></div>
+          <div class="star" style="left:30%;top:70%;animation-delay:0.8s;"></div>
+          <div class="star" style="left:60%;top:80%;animation-delay:1.3s;"></div>
+          <div class="line comment" style="color:#283040;">// Constellation Map</div>
+          <div class="line"><span style="color:#ffd700;">await</span> <span style="color:#e8f0ff;">idle</span>(<span style="color:#60a5fa;">45000</span>);</div>
+          <div class="line"><span style="color:#ffd700;">reveal</span>(<span style="color:#c4b5fd;">constellations</span>);</div>
+        </div>
+        <div class="theme-info">
+          <div class="theme-name">Constellation Map</div>
+          <div class="theme-inspiration">Star charts with connections forming over time</div>
+          <div class="palette-row">
+            <div class="palette-swatch" style="background:#050608;" data-color="#050608"></div>
+            <div class="palette-swatch" style="background:#0a0c10;" data-color="#0a0c10"></div>
+            <div class="palette-swatch" style="background:#10141a;" data-color="#10141a"></div>
+            <div class="palette-swatch" style="background:#283040;" data-color="#283040"></div>
+            <div class="palette-swatch" style="background:#ffd700;" data-color="#ffd700"></div>
+            <div class="palette-swatch" style="background:#60a5fa;" data-color="#60a5fa"></div>
+            <div class="palette-swatch" style="background:#c4b5fd;" data-color="#c4b5fd"></div>
+            <div class="palette-swatch" style="background:#e8f0ff;" data-color="#e8f0ff"></div>
+          </div>
+          <div class="effect-badges">
+            <span class="badge gold">⭐ Twinkle Stars</span>
+            <span class="badge">🌠 Shooting Star</span>
+            <span class="badge">🎮 Konami Code</span>
+            <span class="badge">🕛 Midnight Magic</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Footer -->
+  <footer>
+    <p><strong>Prism Premium Collection</strong></p>
+    <p>Perceptually uniform OKLCH • 60fps micro-interactions • Motion-safe</p>
+    <p style="margin-top:1rem;font-size:0.85rem;">
+      All effects respect <code>prefers-reduced-motion</code> and stay under 4ms frame budget
+    </p>
+  </footer>
+</body>
+</html>

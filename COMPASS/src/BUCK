@@ -1,0 +1,23 @@
+# src/BUCK
+#
+# Aleph source tree - everything Buck2 builds lives here.
+#
+# Structure:
+#   src/compass/    - COMPASS Lean4 proofs and types
+#   src/opencode/   - OpenCode PS/HS/Lean4 implementation
+#   src/armitage/   - Armitage components
+#   src/examples/   - Example code for each language
+
+# Re-export COMPASS types
+alias(
+    name = "compass",
+    actual = "//src/compass:compass",
+    visibility = ["PUBLIC"],
+)
+
+# Re-export OpenCode
+alias(
+    name = "opencode",
+    actual = "//src/opencode:opencode",
+    visibility = ["PUBLIC"],
+)

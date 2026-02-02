@@ -1,0 +1,68 @@
+# src/compass/BUCK
+#
+# COMPASS - Lean4 proofs and type system
+#
+# Provides:
+#   - Core types with Extractable instances
+#   - Roundtrip proofs for all types
+#   - Permission, Auth, Audit, Jobs, Tools modules
+#
+# Build with: buck2 build //src/compass:compass
+
+load("//toolchains:lean.bzl", "lean_library")
+
+lean_library(
+    name = "compass",
+    srcs = glob(["**/*.lean"]),
+    deps = [],
+    visibility = ["PUBLIC"],
+)
+
+# Individual modules for fine-grained dependencies
+lean_library(
+    name = "core",
+    srcs = ["Compass/Core.lean"],
+    visibility = ["PUBLIC"],
+)
+
+lean_library(
+    name = "permissions",
+    srcs = ["Compass/Permissions.lean"],
+    deps = [":core"],
+    visibility = ["PUBLIC"],
+)
+
+lean_library(
+    name = "auth",
+    srcs = ["Compass/Auth.lean"],
+    deps = [":core", ":permissions"],
+    visibility = ["PUBLIC"],
+)
+
+lean_library(
+    name = "tools",
+    srcs = ["Compass/Tools.lean"],
+    deps = [":core", ":permissions"],
+    visibility = ["PUBLIC"],
+)
+
+lean_library(
+    name = "audit",
+    srcs = ["Compass/Audit.lean"],
+    deps = [":core"],
+    visibility = ["PUBLIC"],
+)
+
+lean_library(
+    name = "jobs",
+    srcs = ["Compass/Jobs.lean"],
+    deps = [":core", ":permissions"],
+    visibility = ["PUBLIC"],
+)
+
+lean_library(
+    name = "emit",
+    srcs = ["Compass/Emit.lean"],
+    deps = [":core"],
+    visibility = ["PUBLIC"],
+)

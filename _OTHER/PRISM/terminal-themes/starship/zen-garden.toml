@@ -1,0 +1,30 @@
+# Prism Theme: zen-garden
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on zen-garden
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #78b878)"
+# error_symbol = "[❯](bold #e87878)"
+
+# [directory]
+# style = "bold #c8b878"
+
+# [git_branch]
+# style = "bold #a078a0"
+
+# [git_status]
+# style = "#c8b878"
+
+# Color reference:
+# background: #101210
+# foreground: #e8f0e8
+# accent: #c8b878
+# keyword: #a078a0
+# string: #78b878
+# function: #7090b8
+# comment: #404540
+# number: #d4a870
+# type: #c8b878

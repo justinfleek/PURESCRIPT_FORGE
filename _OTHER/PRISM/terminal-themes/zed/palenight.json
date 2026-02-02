@@ -1,0 +1,70 @@
+{
+  "$schema": "https://zed.dev/schema/themes/v0.1.0.json",
+  "name": "Prism palenight",
+  "author": "Prism Theme System",
+  "themes": [
+    {
+      "name": "Prism palenight",
+      "appearance": "dark",
+      "style": {
+        "background": "#1b1e2b",
+        "editor.background": "#1b1e2b",
+        "editor.foreground": "#a6accd",
+        "editor.gutter.background": "#1b1e2b",
+        "editor.line_highlight.background": "#212431",
+        "editor.active_line_number": "#c792ea",
+        "editor.wrap_guide": "#676e95",
+        "terminal.background": "#1b1e2b",
+        "terminal.foreground": "#a6accd",
+        "terminal.ansi.black": "#1b1e2b",
+        "terminal.ansi.red": "#f07178",
+        "terminal.ansi.green": "#c3e88d",
+        "terminal.ansi.yellow": "#ffcb6b",
+        "terminal.ansi.blue": "#82aaff",
+        "terminal.ansi.magenta": "#c792ea",
+        "terminal.ansi.cyan": "#89ddff",
+        "terminal.ansi.white": "#a6accd",
+        "syntax": {
+          "comment": {
+            "color": "#676e95",
+            "font_style": "italic"
+          },
+          "keyword": {
+            "color": "#c792ea",
+            "font_weight": 600
+          },
+          "string": {
+            "color": "#c3e88d"
+          },
+          "function": {
+            "color": "#82aaff"
+          },
+          "number": {
+            "color": "#f78c6c"
+          },
+          "type": {
+            "color": "#ffcb6b"
+          },
+          "variable": {
+            "color": "#a6accd"
+          },
+          "constant": {
+            "color": "#f78c6c"
+          },
+          "attribute": {
+            "color": "#ffcb6b"
+          },
+          "property": {
+            "color": "#a6accd"
+          },
+          "punctuation": {
+            "color": "#a6accd"
+          },
+          "operator": {
+            "color": "#c792ea"
+          }
+        }
+      }
+    }
+  ]
+}

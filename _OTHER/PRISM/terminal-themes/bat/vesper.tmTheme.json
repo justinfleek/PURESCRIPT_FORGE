@@ -1,0 +1,45 @@
+{
+  "name": "Prism vesper",
+  "variables": {
+    "bg": "#101010",
+    "fg": "#b0b0b0"
+  },
+  "globals": {
+    "background": "#101010",
+    "foreground": "#b0b0b0",
+    "caret": "#ffc799",
+    "selection": "#44475a",
+    "line_highlight": "#171717"
+  },
+  "rules": [
+    {
+      "scope": "comment",
+      "foreground": "#505050",
+      "font_style": "italic"
+    },
+    {
+      "scope": "keyword",
+      "foreground": "#ffc799"
+    },
+    {
+      "scope": "string",
+      "foreground": "#99c794"
+    },
+    {
+      "scope": "entity.name.function",
+      "foreground": "#ffc799"
+    },
+    {
+      "scope": "constant.numeric",
+      "foreground": "#ffc799"
+    },
+    {
+      "scope": "entity.name.type, support.type",
+      "foreground": "#ffc799"
+    },
+    {
+      "scope": "variable",
+      "foreground": "#b0b0b0"
+    }
+  ]
+}

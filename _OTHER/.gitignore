@@ -1,0 +1,34 @@
+# Deprecated code - do not push
+_deprecated/
+
+# Build artifacts
+dist/
+output/
+build/
+*.o
+*.hi
+*.purs-cache
+
+# Dependencies
+node_modules/
+.purs-cache/
+.spago/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+.cursor/debug.log
+
+# Temporary files
+*.tmp
+*.temp

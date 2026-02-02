@@ -1,0 +1,22 @@
+{
+  "name": "Prism Night Owl",
+  "background": "#011627",
+  "foreground": "#f78c6c",
+  "cursorColor": "#c792ea",
+  "black": "#011627",
+  "red": "#82aaff",
+  "green": "#7fdbca",
+  "yellow": "#c792ea",
+  "blue": "#82aaff",
+  "purple": "#c792ea",
+  "cyan": "#7fdbca",
+  "white": "#f78c6c",
+  "brightBlack": "#011627",
+  "brightRed": "#82aaff",
+  "brightGreen": "#7fdbca",
+  "brightYellow": "#c792ea",
+  "brightBlue": "#82aaff",
+  "brightPurple": "#c792ea",
+  "brightCyan": "#7fdbca",
+  "brightWhite": "#f78c6c"
+}

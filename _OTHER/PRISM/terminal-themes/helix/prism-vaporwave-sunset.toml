@@ -1,0 +1,73 @@
+# Prism Theme: vaporwave-sunset
+# Place in ~/.config/helix/themes/prism-vaporwave-sunset.toml
+
+"ui.background" = { bg = "#100818" }
+"ui.text" = "#f0e0ff"
+"ui.text.focus" = "#00ffff"
+"ui.cursor" = { bg = "#00ffff", fg = "#100818" }
+"ui.cursor.match" = { bg = "#44475a" }
+"ui.selection" = { bg = "#44475a" }
+"ui.linenr" = "#8060a0"
+"ui.linenr.selected" = "#00ffff"
+"ui.cursorline.primary" = { bg = "#170f1e" }
+"ui.statusline" = { fg = "#f0e0ff", bg = "#100818" }
+"ui.statusline.inactive" = { fg = "#8060a0", bg = "#100818" }
+"ui.popup" = { bg = "#100818" }
+"ui.menu" = { bg = "#100818" }
+"ui.menu.selected" = { bg = "#44475a" }
+"ui.help" = { fg = "#f0e0ff", bg = "#100818" }
+
+"comment" = { fg = "#705090", modifiers = ["italic"] }
+"keyword" = { fg = "#ff6b9d", modifiers = ["bold"] }
+"keyword.control" = "#ff6b9d"
+"keyword.function" = "#ff6b9d"
+"keyword.return" = "#ff6b9d"
+"keyword.exception" = "#ff6b9d"
+"keyword.operator" = "#ff6b9d"
+
+"string" = "#00ffaa"
+"string.special" = "#00ffaa"
+
+"function" = "#00ffff"
+"function.builtin" = "#00ffff"
+"function.method" = "#00ffff"
+"function.macro" = "#00ffff"
+
+"constant" = "#ffcc00"
+"constant.numeric" = "#ffcc00"
+"constant.character" = "#00ffaa"
+"constant.builtin" = "#ffcc00"
+
+"type" = "#c44dff"
+"type.builtin" = "#c44dff"
+
+"variable" = "#f0e0ff"
+"variable.builtin" = "#c44dff"
+"variable.parameter" = "#f0e0ff"
+
+"attribute" = "#c44dff"
+"namespace" = "#c44dff"
+
+"operator" = "#ff6b9d"
+"punctuation" = "#f0e0ff"
+"punctuation.delimiter" = "#f0e0ff"
+"punctuation.bracket" = "#f0e0ff"
+
+"label" = "#00ffff"
+"tag" = "#ff6b9d"
+
+"markup.heading" = { fg = "#ff6b9d", modifiers = ["bold"] }
+"markup.bold" = { modifiers = ["bold"] }
+"markup.italic" = { modifiers = ["italic"] }
+"markup.link.url" = "#00ffff"
+"markup.link.text" = "#00ffaa"
+"markup.raw" = "#00ffaa"
+
+"diff.plus" = "#00ffaa"
+"diff.minus" = "#ff6b9d"
+"diff.delta" = "#ffcc00"
+
+[palette]
+background = "#100818"
+foreground = "#f0e0ff"
+accent = "#00ffff"

@@ -1,0 +1,30 @@
+# Prism Theme: holographic
+# Add to ~/.config/starship.toml
+
+# Suggested color palette based on holographic
+# You can reference these in your starship config
+
+# Example usage:
+# [character]
+# success_symbol = "[❯](bold #00ff80)"
+# error_symbol = "[❯](bold #ff0080)"
+
+# [directory]
+# style = "bold #00ffff"
+
+# [git_branch]
+# style = "bold #8000ff"
+
+# [git_status]
+# style = "#ffcc00"
+
+# Color reference:
+# background: #0a0810
+# foreground: #e8e0f8
+# accent: #00ffff
+# keyword: #ff0080
+# string: #00ff80
+# function: #0080ff
+# comment: #505080
+# number: #ffcc00
+# type: #00ffff

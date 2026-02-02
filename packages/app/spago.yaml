@@ -1,0 +1,21 @@
+package:
+  name: opencode-app
+  dependencies:
+    - prelude
+    - effect
+    - aff
+    - maybe
+    - either
+    - arrays
+    - strings
+    - halogen
+    - halogen-hooks
+    - web-html
+    - web-dom
+    - datetime
+    - now
+    - refs
+    - foreign
+    - argonaut
+  build:
+    strict: true

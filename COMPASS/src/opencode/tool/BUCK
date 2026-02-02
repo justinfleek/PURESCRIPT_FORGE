@@ -1,0 +1,157 @@
+# src/opencode/tool/BUCK
+#
+# OpenCode Tool Implementations - System F-ω Foundations
+#
+# Each tool is a graded computation with tracked coeffects:
+# - Bash: Container sandbox (gVisor)
+# - Edit: Filesystem ⊗ AST parser
+# - Search: Network ⊗ SearXNG backend
+# - ASTEdit: Filesystem ⊗ AST transformer
+#
+# All tools integrate with the Aleph coeffect/attestation system.
+
+load("//toolchains:purescript.bzl", "purescript_library")
+
+# Complete tool library
+purescript_library(
+    name = "tool",
+    srcs = glob(["*.purs"]),
+    deps = [
+        "//src/opencode/aleph:aleph",
+        "//src/opencode/types:types",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# Individual tool libraries for fine-grained dependencies
+
+# Bash - sandboxed command execution via gVisor
+purescript_library(
+    name = "bash",
+    srcs = ["Bash.purs"],
+    deps = [
+        "//src/opencode/aleph:coeffect",
+        "//src/opencode/aleph:sandbox",
+        "//src/opencode/types:types",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# Edit - file editing with AST-aware transformations
+purescript_library(
+    name = "edit",
+    srcs = ["Edit.purs"],
+    deps = [
+        ":ast_edit",
+        "//src/opencode/aleph:coeffect",
+        "//src/opencode/types:types",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# ASTEdit - structural code editing via syntax trees
+purescript_library(
+    name = "ast_edit",
+    srcs = ["ASTEdit.purs"],
+    deps = [
+        "//src/opencode/aleph:coeffect",
+        "//src/opencode/types:types",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# Search - privacy-respecting web search via SearXNG
+purescript_library(
+    name = "search",
+    srcs = ["Search.purs"],
+    deps = [
+        "//src/opencode/aleph:coeffect",
+        "//src/opencode/types:types",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# Websearch - simplified search interface (delegates to Search)
+purescript_library(
+    name = "websearch",
+    srcs = ["Websearch.purs"],
+    deps = [
+        ":search",
+        "//src/opencode/aleph:coeffect",
+        "//src/opencode/types:types",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# Read - file reading with coeffect tracking
+purescript_library(
+    name = "read",
+    srcs = ["Read.purs"],
+    deps = [
+        "//src/opencode/aleph:coeffect",
+        "//src/opencode/types:types",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# Write - file writing with coeffect tracking
+purescript_library(
+    name = "write",
+    srcs = ["Write.purs"],
+    deps = [
+        "//src/opencode/aleph:coeffect",
+        "//src/opencode/types:types",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# Glob - file pattern matching
+purescript_library(
+    name = "glob",
+    srcs = ["Glob.purs"],
+    deps = [
+        "//src/opencode/aleph:coeffect",
+        "//src/opencode/types:types",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# Grep - content search
+purescript_library(
+    name = "grep",
+    srcs = ["Grep.purs"],
+    deps = [
+        "//src/opencode/aleph:coeffect",
+        "//src/opencode/types:types",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# Task - sub-agent spawning
+purescript_library(
+    name = "task",
+    srcs = ["Task.purs"],
+    deps = [
+        "//src/opencode/aleph:coeffect",
+        "//src/opencode/types:types",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+# Registry - tool registration and dispatch
+purescript_library(
+    name = "registry",
+    srcs = ["Registry.purs"],
+    deps = [
+        ":bash",
+        ":edit",
+        ":read",
+        ":write",
+        ":glob",
+        ":grep",
+        ":search",
+        ":task",
+        "//src/opencode/types:types",
+    ],
+    visibility = ["PUBLIC"],
+)

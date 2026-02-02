@@ -1,0 +1,12 @@
+name = "Lean4ToCpp23"
+version = "0.1.0"
+reservoir = false
+defaultTargets = ["Lean4ToCpp23"]
+
+[leanOptions]
+pp.unicode.fun = true
+
+[[lean_lib]]
+name = "Lean4ToCpp23"
+srcDir = "src"
+roots = ["Cpp23Generator", "LeanIRParser", "ProofPreservation"]
