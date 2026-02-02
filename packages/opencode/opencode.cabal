@@ -1,0 +1,121 @@
+cabal-version:      3.0
+name:               opencode
+version:            0.1.0.0
+synopsis:           OpenCode - AI coding assistant (Haskell server components)
+description:        Server-side components for OpenCode including database operations,
+                    analytics, validation, and heavy computation tasks.
+license:            MIT
+license-file:       LICENSE
+author:             OpenCode Team
+maintainer:         team@opencode.ai
+category:           Development
+build-type:         Simple
+
+common warnings
+    ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates
+                 -Wincomplete-uni-patterns -Wmissing-export-lists
+                 -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+
+library opencode-validator
+    import:           warnings
+    exposed-modules:
+        Opencode.Validator.BannedConstructs
+        Opencode.Validator.FileReading
+        Opencode.Validator.TypeEscapes
+        Opencode.Validator.Main
+    build-depends:
+        base ^>=4.17,
+        text,
+        aeson,
+        containers,
+        bytestring,
+        mtl
+    hs-source-dirs:   src/validator/hs
+    default-language: Haskell2010
+
+library opencode-rules
+    import:           warnings
+    exposed-modules:
+        Rules.Core
+        Rules.FileReading
+        Rules.TypeSafety
+        Rules.Verification
+    build-depends:
+        base ^>=4.17,
+        text,
+        aeson,
+        containers
+    hs-source-dirs:   src/rules/hs
+    default-language: Haskell2010
+
+library opencode-bridge-analytics
+    import:           warnings
+    exposed-modules:
+        Bridge.Analytics
+        Bridge.Analytics.DuckDB
+        Bridge.Analytics.Queries
+    build-depends:
+        base ^>=4.17,
+        text,
+        aeson,
+        time,
+        containers,
+        bytestring,
+        vector
+    hs-source-dirs:   src/bridge/hs/analytics
+    default-language: Haskell2010
+
+library opencode-bridge-database
+    import:           warnings
+    exposed-modules:
+        Bridge.Database
+        Bridge.Database.Operations
+        Bridge.Database.Schema
+        Bridge.Auth.Encryption
+        Bridge.Backup.Scheduler
+        Bridge.Backup.Verification
+        Bridge.Error.CircuitBreaker
+        Bridge.Alerts.System
+    build-depends:
+        base ^>=4.17,
+        text,
+        aeson,
+        time,
+        containers,
+        bytestring,
+        cryptonite,
+        memory,
+        sqlite-simple,
+        mtl
+    hs-source-dirs:   src/bridge/hs/database
+    default-language: Haskell2010
+
+executable opencode-server
+    import:           warnings
+    main-is:          Main.hs
+    build-depends:
+        base ^>=4.17,
+        opencode-validator,
+        opencode-rules,
+        opencode-bridge-analytics,
+        opencode-bridge-database,
+        warp,
+        wai,
+        servant-server,
+        aeson,
+        text
+    hs-source-dirs:   src
+    default-language: Haskell2010
+
+test-suite opencode-test
+    import:           warnings
+    default-language: Haskell2010
+    type:             exitcode-stdio-1.0
+    hs-source-dirs:   test
+    main-is:          Spec.hs
+    build-depends:
+        base ^>=4.17,
+        opencode-validator,
+        opencode-rules,
+        hspec,
+        QuickCheck

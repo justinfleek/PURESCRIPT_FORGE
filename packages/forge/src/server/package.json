@@ -1,0 +1,21 @@
+{
+  "name": "opencode-bridge-server-ps",
+  "version": "0.1.0",
+  "description": "Bridge Server in PureScript",
+  "main": "output/Bridge.Main/index.js",
+  "scripts": {
+    "build": "spago build",
+    "watch": "spago build --watch",
+    "test": "spago test"
+  },
+  "dependencies": {
+    "ws": "^8.x",
+    "express": "^4.x",
+    "better-sqlite3": "^9.x",
+    "pino": "^8.x",
+    "jose": "^5.2.0"
+  },
+  "devDependencies": {
+    "@opencode-ai/sdk": "*"
+  }
+}

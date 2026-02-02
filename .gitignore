@@ -1,6 +1,14 @@
 # Deprecated code - do not push
 _deprecated/
 
+# Large reference directories - local only
+COMPASS/
+_OTHER/
+_REFERENCE/
+
+# PDFs and large binaries
+*.pdf
+
 # Build artifacts
 dist/
 output/

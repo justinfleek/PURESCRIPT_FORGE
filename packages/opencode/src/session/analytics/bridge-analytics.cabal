@@ -1,0 +1,54 @@
+cabal-version: 3.0
+name: bridge-analytics
+version: 0.1.0
+build-type: Simple
+
+library
+  exposed-modules:
+    Bridge.Analytics
+    Bridge.Analytics.DuckDB
+    Bridge.Analytics.Queries
+  build-depends:
+    base >= 4.17 && < 5.0
+    , duckdb-simple >= 0.1
+    , text >= 2.0
+    , time >= 1.12
+    , aeson >= 2.2
+    , bytestring >= 0.11
+    , vector >= 0.13
+    , generic-deriving >= 1.14
+  default-language: Haskell2010
+  ghc-options: -Wall -Werror
+
+executable bridge-analytics
+  main-is: app/Main.hs
+  build-depends:
+    base
+    , bridge-analytics
+    , aeson >= 2.2
+    , bytestring >= 0.11
+    , text >= 2.0
+    , time >= 1.12
+  default-language: Haskell2010
+
+test-suite bridge-analytics-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+    Bridge.AnalyticsSpec
+    Bridge.AnalyticsE2ESpec
+    Bridge.AnalyticsQueriesSpec
+    Bridge.AnalyticsDuckDBSpec
+  build-depends:
+    base
+    , bridge-analytics
+    , hspec >= 2.10
+  default-language: Haskell2010
+
+executable bridge-analytics-test-old
+  main-is: Test.hs
+  build-depends:
+    base
+    , bridge-analytics
+    , hspec >= 2.10
+  default-language: Haskell2010

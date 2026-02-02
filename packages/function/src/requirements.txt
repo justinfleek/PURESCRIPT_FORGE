@@ -1,0 +1,24 @@
+# Voice Engine Dependencies
+# Core dependencies
+fastapi>=0.104.0
+uvicorn>=0.24.0
+httpx>=0.25.0
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+
+# Database
+aiosqlite>=0.19.0
+asyncpg>=0.29.0
+
+# Voice dependencies
+qwen-tts>=0.0.5  # Qwen3-TTS library (PyPI package)
+soundfile>=0.12.0
+pydub>=0.25.0
+huggingface-hub>=0.20.0
+torch>=2.2.0  # Required for qwen-tts (GPU support)
+
+# Optional: OpenAI/Deepgram for cloud TTS/STT
+openai>=1.0.0
+
+# Audio processing
+librosa>=0.10.0
