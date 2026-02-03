@@ -1,0 +1,134 @@
+-- | French UI Translations
+-- |
+-- | Source: _OTHER/opencode-original/packages/ui/src/i18n/fr.ts
+module Forge.UI.I18n.Fr
+  ( dict
+  ) where
+
+import Prelude
+
+import Foreign.Object (Object)
+import Foreign.Object as Object
+
+-- | French translation dictionary
+dict :: Object String
+dict = Object.fromFoldable
+  -- Session Review
+  [ "ui.sessionReview.title" /\ "Modifications de la session"
+  , "ui.sessionReview.diffStyle.unified" /\ "Unifié"
+  , "ui.sessionReview.diffStyle.split" /\ "Divisé"
+  , "ui.sessionReview.expandAll" /\ "Tout développer"
+  , "ui.sessionReview.collapseAll" /\ "Tout réduire"
+  , "ui.sessionReview.change.added" /\ "Ajouté"
+  , "ui.sessionReview.change.removed" /\ "Supprimé"
+  
+  -- Line Comment
+  , "ui.lineComment.label.prefix" /\ "Commenter sur "
+  , "ui.lineComment.label.suffix" /\ ""
+  , "ui.lineComment.editorLabel.prefix" /\ "Commentaire sur "
+  , "ui.lineComment.editorLabel.suffix" /\ ""
+  , "ui.lineComment.placeholder" /\ "Ajouter un commentaire"
+  , "ui.lineComment.submit" /\ "Commenter"
+  
+  -- Session Turn
+  , "ui.sessionTurn.steps.show" /\ "Afficher les étapes"
+  , "ui.sessionTurn.steps.hide" /\ "Masquer les étapes"
+  , "ui.sessionTurn.summary.response" /\ "Réponse"
+  , "ui.sessionTurn.diff.showMore" /\ "Afficher plus de modifications ({{count}})"
+  
+  -- Retry
+  , "ui.sessionTurn.retry.retrying" /\ "nouvelle tentative"
+  , "ui.sessionTurn.retry.inSeconds" /\ "dans {{seconds}}s"
+  
+  -- Status
+  , "ui.sessionTurn.status.delegating" /\ "Délégation du travail"
+  , "ui.sessionTurn.status.planning" /\ "Planification des prochaines étapes"
+  , "ui.sessionTurn.status.gatheringContext" /\ "Collecte du contexte"
+  , "ui.sessionTurn.status.searchingCodebase" /\ "Recherche dans la base de code"
+  , "ui.sessionTurn.status.searchingWeb" /\ "Recherche sur le web"
+  , "ui.sessionTurn.status.makingEdits" /\ "Application des modifications"
+  , "ui.sessionTurn.status.runningCommands" /\ "Exécution des commandes"
+  , "ui.sessionTurn.status.thinking" /\ "Réflexion"
+  , "ui.sessionTurn.status.thinkingWithTopic" /\ "Réflexion - {{topic}}"
+  , "ui.sessionTurn.status.gatheringThoughts" /\ "Rassemblement des idées"
+  , "ui.sessionTurn.status.consideringNextSteps" /\ "Examen des prochaines étapes"
+  
+  -- Message Part
+  , "ui.messagePart.diagnostic.error" /\ "Erreur"
+  , "ui.messagePart.title.edit" /\ "Modifier"
+  , "ui.messagePart.title.write" /\ "Écrire"
+  , "ui.messagePart.option.typeOwnAnswer" /\ "Tapez votre propre réponse"
+  , "ui.messagePart.review.title" /\ "Passez en revue vos réponses"
+  
+  -- List
+  , "ui.list.loading" /\ "Chargement"
+  , "ui.list.empty" /\ "Aucun résultat"
+  , "ui.list.clearFilter" /\ "Effacer le filtre"
+  , "ui.list.emptyWithFilter.prefix" /\ "Aucun résultat pour"
+  , "ui.list.emptyWithFilter.suffix" /\ ""
+  
+  -- Message Nav
+  , "ui.messageNav.newMessage" /\ "Nouveau message"
+  
+  -- Text Field
+  , "ui.textField.copyToClipboard" /\ "Copier dans le presse-papiers"
+  , "ui.textField.copyLink" /\ "Copier le lien"
+  , "ui.textField.copied" /\ "Copié"
+  
+  -- Image Preview
+  , "ui.imagePreview.alt" /\ "Aperçu de l'image"
+  
+  -- Tools
+  , "ui.tool.read" /\ "Lire"
+  , "ui.tool.loaded" /\ "Chargé"
+  , "ui.tool.list" /\ "Lister"
+  , "ui.tool.glob" /\ "Glob"
+  , "ui.tool.grep" /\ "Grep"
+  , "ui.tool.webfetch" /\ "Webfetch"
+  , "ui.tool.shell" /\ "Shell"
+  , "ui.tool.patch" /\ "Patch"
+  , "ui.tool.todos" /\ "Tâches"
+  , "ui.tool.todos.read" /\ "Lire les tâches"
+  , "ui.tool.questions" /\ "Questions"
+  , "ui.tool.agent" /\ "Agent {{type}}"
+  
+  -- Common (singular/plural)
+  , "ui.common.file.one" /\ "fichier"
+  , "ui.common.file.other" /\ "fichiers"
+  , "ui.common.question.one" /\ "question"
+  , "ui.common.question.other" /\ "questions"
+  
+  -- Common Actions
+  , "ui.common.add" /\ "Ajouter"
+  , "ui.common.cancel" /\ "Annuler"
+  , "ui.common.confirm" /\ "Confirmer"
+  , "ui.common.dismiss" /\ "Ignorer"
+  , "ui.common.close" /\ "Fermer"
+  , "ui.common.next" /\ "Suivant"
+  , "ui.common.submit" /\ "Soumettre"
+  
+  -- Permission
+  , "ui.permission.deny" /\ "Refuser"
+  , "ui.permission.allowAlways" /\ "Toujours autoriser"
+  , "ui.permission.allowOnce" /\ "Autoriser une fois"
+  
+  -- Message
+  , "ui.message.expand" /\ "Développer le message"
+  , "ui.message.collapse" /\ "Réduire le message"
+  , "ui.message.copy" /\ "Copier"
+  , "ui.message.copied" /\ "Copié !"
+  , "ui.message.attachment.alt" /\ "pièce jointe"
+  
+  -- Patch
+  , "ui.patch.action.deleted" /\ "Supprimé"
+  , "ui.patch.action.created" /\ "Créé"
+  , "ui.patch.action.moved" /\ "Déplacé"
+  , "ui.patch.action.patched" /\ "Corrigé"
+  
+  -- Question
+  , "ui.question.subtitle.answered" /\ "{{count}} répondu(s)"
+  , "ui.question.answer.none" /\ "(pas de réponse)"
+  , "ui.question.review.notAnswered" /\ "(non répondu)"
+  , "ui.question.multiHint" /\ "(sélectionnez tout ce qui s'applique)"
+  , "ui.question.custom.placeholder" /\ "Tapez votre réponse..."
+  ]

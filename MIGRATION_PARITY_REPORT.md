@@ -1,7 +1,7 @@
 # Migration Parity Report
 
-**Date:** 2026-02-02  
-**Source:** `opencode-dev/` (TypeScript)  
+**Date:** 2026-02-03  
+**Source:** `_OTHER/opencode-original/` (TypeScript)  
 **Target:** `packages/` (PureScript/Haskell/Lean4)
 
 ---
@@ -11,12 +11,12 @@
 | Metric | Count |
 |--------|-------|
 | **Total TypeScript files** | 844 |
-| **Total PureScript files** | 541 |
+| **Total PureScript files** | 626 |
 | **Total Haskell files** | 145 |
 | **Total Lean4 files** | 76 |
-| **Target stack total** | **762** |
-| **Remaining to migrate** | **~182** |
-| **Migration progress** | **90.3%** |
+| **Target stack total** | **847** |
+| **Remaining to migrate** | **~97** |
+| **Migration progress** | **93.8%** |
 
 ---
 
@@ -29,7 +29,7 @@
 | **console** | 156 | 0 | 0 | 0 | **0** | TODO | -156 |
 | **enterprise** | 18 | 2 | 16 | 0 | **18** | DONE | 0 |
 | **sdk** | 40 | 0 | 0 | 0 | **0** | TODO | -40 |
-| **ui** | 87 | 0 | 0 | 0 | **0** | TODO | -87 |
+| **ui** | 87 | 85 | 0 | 0 | **85** | DONE | -2 (css) |
 | **plugin** | 6 | 8 | 0 | 0 | **8** | DONE | +2 |
 | **util** | 12 | 14 | 0 | 0 | **14** | DONE | +2 |
 | **desktop** | 26 | 0 | 0 | 0 | **0** | TODO | -26 |
@@ -157,16 +157,28 @@
 
 **Note:** SDK may need to remain TypeScript for npm distribution. Consider generating from PureScript types.
 
-#### `ui` - 87 TS files (Shared UI Components)
+#### `ui` - 87 TS -> 85 PS (COMPLETE)
 
-| Module | Files | Description |
-|--------|-------|-------------|
-| components | 47 | Reusable UI components |
-| i18n | 15 | Internationalization |
-| context | 9 | Shared contexts |
-| theme | 7 | Theme definitions |
-| hooks | 3 | Custom hooks |
-| pierre | 2 | AI assistant UI |
+**Status:** DONE (2026-02-03)
+
+| Module | TS Files | PS Files | Notes |
+|--------|----------|----------|-------|
+| components | 47 | 45 | All migrated |
+| i18n | 15 | 16 | +1 Esperanto (Eo.purs) |
+| context | 9 | 9 | All migrated |
+| theme | 7 | 8 | All migrated |
+| hooks | 3 | 3 | All migrated |
+| pierre | 2 | 4 | Types.purs, Index.purs, Worker.purs + FFI |
+
+**Migrated modules:**
+- Components (45): Accordion, Avatar, BasicTool, Button, Card, Checkbox, Code, Collapsible, Dialog, Diff, DiffChanges, DiffSsr, DropdownMenu, Favicon, FileIcon, Font, HoverCard, Icon, IconButton, ImagePreview, InlineInput, Keybind, LineComment, List, Logo, Markdown, MessageNav, MessagePart/*, Popover, ProgressCircle, ProviderIcon, RadioGroup, ResizeHandle, Select, SessionReview, SessionTurn/*, Spinner, StickyAccordionHeader, Switch, Tabs, Tag, TextField, Toast, Tooltip, Typewriter
+- I18n (16): En, Ar, Br, Da, De, Eo (new), Es, Fr, Ja, Ko, No, Pl, Ru, Th, Zh, Zht
+- Context (9): Code, Data, Dialog, Diff, Helper, I18n, Index, Marked, WorkerPool
+- Theme (8): Color, Context, Contrast, Index, Loader, Palette, Resolve, Types
+- Hooks (3): CreateAutoScroll, Index, UseFilteredList
+- Pierre (4): Types.purs, Index.purs, Worker.purs, Worker.js (FFI)
+
+**Note:** Remaining gap (-2) is CSS files that remain as-is.
 
 #### `desktop` - 26 TS files (Electron/Tauri wrapper)
 - Platform-specific code
@@ -186,14 +198,14 @@
 
 ## Migration Priority Recommendations
 
-### Priority 1: Core Business Logic (Critical)
-1. **app** - 64 files remaining (Sidepanel is user-facing) - Context DONE
-2. **enterprise** - 2 files remaining (Nearly done)
-3. **util** - COMPLETE
+### Priority 1: Core Business Logic (Critical) - ALL COMPLETE
+1. **app** - COMPLETE (121 PS files)
+2. **enterprise** - COMPLETE (18 HS/PS files)
+3. **util** - COMPLETE (14 PS files)
+4. **ui** - COMPLETE (85 PS files)
 
 ### Priority 2: Web Interfaces (Important)
-4. **console** - 156 files (Large but UI-focused)
-5. **ui** - 87 files (Shared components, blocks console)
+5. **console** - 156 files (Large but UI-focused) - **NEXT**
 
 ### Priority 3: Supporting Packages (Lower)
 6. **sdk** - 40 files (May need to stay TS for npm)
@@ -208,13 +220,11 @@
 
 | Category | Files | % of Total |
 |----------|-------|------------|
-| UI Components (app, ui, console) | 306 | 74% |
-| SDK/API | 40 | 10% |
-| Desktop/Web/Infra | 45 | 11% |
-| Enterprise | 2 | 0.5% |
-| Integrations | 3 | 0.7% |
-| Utilities | 1 | 0.2% |
-| **TOTAL REMAINING** | **~404** | **100%** |
+| Console (web UI) | 156 | 64% |
+| SDK/API | 40 | 16% |
+| Desktop/Web/Infra | 45 | 18% |
+| Integrations | 3 | 1% |
+| **TOTAL REMAINING** | **~244** | **100%** |
 
 **Note:** Some files (SDK, desktop, web, infra) may legitimately remain TypeScript.
 
@@ -255,11 +265,9 @@ Before marking package as migrated:
 
 ## Next Steps
 
-1. Complete `app` migration (64 files remaining) - pages, utils, addons
-2. Complete `enterprise` migration (2 files) - share, storage  
-3. Begin `ui` migration (87 files) - shared components
-4. Begin `console` migration (156 files) - web console
-5. Decide on SDK strategy (generate from PS types?)
+1. Begin `console` migration (156 files) - web console
+2. Decide on SDK strategy (generate from PS types?)
+3. Desktop/Web packages - evaluate if they should remain TS
 
 ## Session 2026-02-02 Progress
 
@@ -282,6 +290,23 @@ Before marking package as migrated:
 
 **App package is now COMPLETE!** Remaining TS files are test files only.
 
+## Session 2026-02-03 Progress
+
+- **UI Package (85 files)**: COMPLETE
+  - Components (45 files): All UI components migrated to PureScript
+  - I18n (16 files): All 15 original languages + Esperanto (Eo.purs) added
+  - Context (9 files): All shared contexts migrated
+  - Theme (8 files): Color, contrast, palette, loader, resolver
+  - Hooks (3 files): CreateAutoScroll, UseFilteredList
+  - Pierre (4 files): Diff viewer with Worker pool FFI
+
+- **Languages now supported:**
+  English, Arabic, Brazilian Portuguese, Danish, German, Esperanto (new),
+  Spanish, French, Japanese, Korean, Norwegian, Polish, Russian, Thai,
+  Simplified Chinese, Traditional Chinese
+
+**UI package is now COMPLETE!** Only CSS files remain as-is.
+
 ---
 
-*Last updated: 2026-02-02 (session 2)*
+*Last updated: 2026-02-03*
