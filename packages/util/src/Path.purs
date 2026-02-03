@@ -1,6 +1,6 @@
 -- | Path utilities
--- | Migrated from opencode-dev/packages/util/src/path.ts
-module Opencode.Util.Path
+-- | Migrated from forge-dev/packages/util/src/path.ts
+module Forge.Util.Path
   ( getFilename
   , getDirectory
   , getFileExtension

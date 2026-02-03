@@ -38,7 +38,7 @@ else
 fi
 
 # Check database path
-DB_PATH="${HOME}/.opencode-sidepanel/bridge.db"
+DB_PATH="${HOME}/.forge-sidepanel/bridge.db"
 echo "Database path: $DB_PATH"
 if [ ! -f "$DB_PATH" ]; then
     echo "⚠️  Database file doesn't exist yet. It will be created on first use."

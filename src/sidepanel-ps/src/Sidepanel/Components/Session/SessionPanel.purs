@@ -157,7 +157,7 @@ renderEmptyState =
         , HH.p_ [ HH.text "No active session" ]
         , HH.p
             [ HP.class_ (H.ClassName "empty-state__hint") ]
-            [ HH.text "Start a conversation in OpenCode to see details here" ]
+            [ HH.text "Start a conversation in Forge to see details here" ]
         ]
     ]
 

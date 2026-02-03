@@ -1,6 +1,6 @@
 -- | Audio level visualizer component
--- | Migrated from opencode-dev/packages/app/src/components/voice/AudioVisualizer.tsx
-module Opencode.App.Voice.AudioVisualizer
+-- | Migrated from forge-dev/packages/app/src/components/voice/AudioVisualizer.tsx
+module Forge.App.Voice.AudioVisualizer
   ( Props
   , component
   ) where

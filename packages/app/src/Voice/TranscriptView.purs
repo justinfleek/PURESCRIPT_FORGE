@@ -1,6 +1,6 @@
 -- | Voice transcript message display
--- | Migrated from opencode-dev/packages/app/src/components/voice/TranscriptView.tsx
-module Opencode.App.Voice.TranscriptView
+-- | Migrated from forge-dev/packages/app/src/components/voice/TranscriptView.tsx
+module Forge.App.Voice.TranscriptView
   ( TranscriptMessage
   , MessageRole(..)
   , Props

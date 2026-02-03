@@ -1,6 +1,6 @@
 -- | Named error types
--- | Migrated from opencode-dev/packages/util/src/error.ts
-module Opencode.Util.Error
+-- | Migrated from forge-dev/packages/util/src/error.ts
+module Forge.Util.Error
   ( NamedError(..)
   , UnknownError
   , mkUnknownError

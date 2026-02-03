@@ -1,6 +1,6 @@
 -- | Retry with exponential backoff
--- | Migrated from opencode-dev/packages/util/src/retry.ts
-module Opencode.Util.Retry
+-- | Migrated from forge-dev/packages/util/src/retry.ts
+module Forge.Util.Retry
   ( RetryOptions
   , defaultOptions
   , retry

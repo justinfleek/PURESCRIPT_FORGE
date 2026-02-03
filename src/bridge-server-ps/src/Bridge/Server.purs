@@ -1,7 +1,7 @@
 -- | Bridge Server Implementation - HTTP and WebSocket Server Setup
 -- |
 -- | **What:** Initializes and starts the Bridge Server, including HTTP server, WebSocket
--- |         manager, database connections, client integrations (Venice, OpenCode, Lean),
+-- |         manager, database connections, client integrations (Venice, Forge, Lean),
 -- |         and state synchronization.
 -- | **Why:** Provides the server-side infrastructure for the Bridge Server application,
 -- |         coordinating all services and exposing them via HTTP and WebSocket endpoints.
@@ -15,7 +15,7 @@
 -- | - `Bridge.State.Store`: Application state store
 -- | - `Bridge.WebSocket.Manager`: WebSocket connection management
 -- | - `Bridge.Venice.Client`: Venice AI API client
--- | - `Bridge.Opencode.Client`: OpenCode SDK integration
+-- | - `Bridge.Forge.Client`: Forge SDK integration
 -- | - `Bridge.Lean.Proxy`: Lean4 LSP proxy
 -- | - `Bridge.FFI.Haskell.Database`: SQLite database operations
 -- | - `Bridge.FFI.Haskell.Analytics`: DuckDB analytics operations
@@ -56,7 +56,7 @@ import Bridge.FFI.Haskell.Database as DB
 import Bridge.WebSocket.Handlers (HandlerContext)
 import Bridge.WebSocket.Manager (createManager, WebSocketManager, setHandlerContext, broadcast)
 import Bridge.Venice.Client (createVeniceClient, VeniceClient)
-import Bridge.Opencode.Client (createOpencodeClient, OpencodeClient)
+import Bridge.Forge.Client (createForgeClient, ForgeClient)
 import Bridge.Lean.Proxy (createLeanProxy, LeanProxy)
 import Bridge.Notifications.Service as NotificationService
 import Bridge.Database.Sync (createSyncState, startPeriodicSync, SyncConfig)
@@ -85,7 +85,7 @@ import Bridge.FFI.Haskell.Analytics as DuckDB
 -- | 4. Initialize DuckDB database (analytics)
 -- | 5. Start periodic sync (SQLite → DuckDB)
 -- | 6. Create Venice client (if API key provided)
--- | 7. Create OpenCode client (if SDK available)
+-- | 7. Create Forge client (if SDK available)
 -- | 8. Create Lean proxy (if enabled)
 -- | 9. Create notification service
 -- | 10. Set WebSocket handler context
@@ -154,11 +154,11 @@ startServer config store logger = do
       liftEffect $ Pino.warn logger "Venice API key not provided, balance tracking disabled"
       pure Nothing
   
-  -- Create OpenCode client
-  opencodeClient <- createOpencodeClient store config.opencode logger
-  case opencodeClient of
-    Just client -> liftEffect $ Pino.info logger "OpenCode client connected"
-    Nothing -> liftEffect $ Pino.warn logger "OpenCode client not available (SDK may not be installed)"
+  -- Create Forge client
+  forgeClient <- createForgeClient store config.forge logger
+  case forgeClient of
+    Just client -> liftEffect $ Pino.info logger "Forge client connected"
+    Nothing -> liftEffect $ Pino.warn logger "Forge client not available (SDK may not be installed)"
   
   -- Create Lean proxy (if enabled)
   leanProxy <- if config.lean.enabled then do

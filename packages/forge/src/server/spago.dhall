@@ -1,4 +1,4 @@
-{ name = "opencode-bridge-server"
+{ name = "forge-bridge-server"
 , dependencies = 
   [ "prelude"
   , "effect"

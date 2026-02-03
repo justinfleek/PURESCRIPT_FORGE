@@ -1,4 +1,4 @@
-{ name = "opencode-sidepanel"
+{ name = "forge-sidepanel"
 , dependencies = 
   [ "prelude"
   , "effect"

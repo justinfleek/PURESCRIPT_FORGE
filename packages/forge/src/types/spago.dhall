@@ -1,4 +1,4 @@
-{ name = "opencode-types-ps"
+{ name = "forge-types-ps"
 , dependencies = 
   [ "prelude"
   , "effect"

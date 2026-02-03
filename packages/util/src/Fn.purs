@@ -1,6 +1,6 @@
 -- | Validated function wrapper
--- | Migrated from opencode-dev/packages/util/src/fn.ts
-module Opencode.Util.Fn
+-- | Migrated from forge-dev/packages/util/src/fn.ts
+module Forge.Util.Fn
   ( ValidatedFn
   , fn
   , force

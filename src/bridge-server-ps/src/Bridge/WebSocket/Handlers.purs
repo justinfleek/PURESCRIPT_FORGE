@@ -20,7 +20,7 @@
 -- | - `Bridge.FFI.Haskell.Database`: SQLite database operations
 -- | - `Bridge.FFI.Haskell.Analytics`: DuckDB analytics operations
 -- | - `Bridge.Notifications.Service`: Notification system
--- | - `Bridge.Opencode.Events`: OpenCode SDK event handling
+-- | - `Bridge.Forge.Events`: Forge SDK event handling
 -- |
 -- | **Mathematical Foundation:**
 -- | - **JSON-RPC 2.0 Protocol:** All requests follow JSON-RPC 2.0 specification:
@@ -75,7 +75,7 @@ import Bridge.Lean.Proxy (LeanProxy, check, goals, applyTactic, searchTheorems)
 import Bridge.FFI.Haskell.Database as DB
 import Bridge.FFI.Haskell.Analytics as DuckDB
 import Bridge.Notifications.Service (NotificationService)
--- Bridge.Opencode.Events imported locally via foreign import
+-- Bridge.Forge.Events imported locally via foreign import
 import Bridge.FFI.Node.Terminal as Terminal
 import Bridge.FFI.Node.FileContext as FileContext
 import Bridge.FFI.Node.Process as Process
@@ -237,7 +237,7 @@ type JsonRpcError =
 -- |
 -- | **Supported Methods:**
 -- | - `state.get`: Get current application state
--- | - `opencode.event`: Handle OpenCode SDK event
+-- | - `forge.event`: Handle Forge SDK event
 -- | - `venice.chat`: Venice AI chat (streaming or non-streaming)
 -- | - `venice.models`: List available Venice models
 -- | - `venice.image`: Generate image via Venice
@@ -267,7 +267,7 @@ handleRequest :: HandlerContext -> JsonRpcRequest -> Aff JsonRpcResponse
 handleRequest ctx request = do
   case request.method of
     "state.get" -> handleStateGet ctx request.params
-    "opencode.event" -> handleOpenCodeEventMessage ctx request.params
+    "forge.event" -> handleForgeEventMessage ctx request.params
     "venice.chat" -> handleVeniceChat ctx request.params
     "venice.models" -> handleVeniceModels ctx request.params
     "venice.image" -> handleVeniceImage ctx request.params
@@ -343,15 +343,15 @@ handleStateGet ctx params = do
   encoded <- liftEffect $ encodeState state
   pure (successResponse Nothing encoded)
 
-foreign import handleOpenCodeEvent :: StateStore -> String -> Effect Unit
+foreign import handleForgeEvent :: StateStore -> String -> Effect Unit
 
--- | Handle OpenCode event - Process OpenCode SDK event
+-- | Handle Forge event - Process Forge SDK event
 -- |
--- | **Purpose:** Handles events from the OpenCode SDK (e.g., file changes, completions).
+-- | **Purpose:** Handles events from the Forge SDK (e.g., file changes, completions).
 -- |             Updates application state based on the event.
 -- | **Parameters:**
 -- | - `ctx`: Handler context
--- | - `params`: Optional JSON string containing OpenCode event data
+-- | - `params`: Optional JSON string containing Forge event data
 -- | **Returns:** JSON-RPC response with success indicator
 -- | **Side Effects:** Updates state store based on event type
 -- |
@@ -361,13 +361,13 @@ foreign import handleOpenCodeEvent :: StateStore -> String -> Effect Unit
 -- | **Example:**
 -- | ```purescript
 -- | eventJson = """{"type":"file.changed","path":"/path/to/file"}"""
--- | response <- handleOpenCodeEventMessage ctx (Just eventJson)
+-- | response <- handleForgeEventMessage ctx (Just eventJson)
 -- | ```
-handleOpenCodeEventMessage :: HandlerContext -> Maybe String -> Aff JsonRpcResponse
-handleOpenCodeEventMessage ctx params = do
+handleForgeEventMessage :: HandlerContext -> Maybe String -> Aff JsonRpcResponse
+handleForgeEventMessage ctx params = do
   case params of
     Just eventJson -> do
-      liftEffect $ handleOpenCodeEvent ctx.store eventJson
+      liftEffect $ handleForgeEvent ctx.store eventJson
       pure (successResponse Nothing """{"success":true}""")
     Nothing -> pure (errorResponse Nothing 4002 "Missing event parameter")
   where

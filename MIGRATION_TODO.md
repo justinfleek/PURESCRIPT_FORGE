@@ -1,11 +1,23 @@
 # Migration TODO - TypeScript to PureScript/Haskell/Lean4
 
-**Last Updated:** 2026-02-02
-**Session:** Migration session - preparing for box migration
+**Last Updated:** 2026-02-03
+**Session:** Consolidation and continued migration
 
 ---
 
-## COMPLETED IN THIS SESSION
+## CANONICAL SOURCE
+
+**TypeScript Reference:** `_OTHER/opencode-original/packages/`
+
+> **IMPORTANT:** Always use `_OTHER/opencode-original/` as the source of truth.
+> The `opencode-dev/` directory has been archived to `_archived/opencode-dev-merged-2026-02-03/`
+> after merging its additions (voice features, tests) into opencode-original.
+
+See `MIGRATION_CHECKLIST.md` for the complete workflow.
+
+---
+
+## COMPLETED IN PREVIOUS SESSIONS
 
 ### 1. enterprise package - VERIFIED COMPLETE
 - `share.ts` -> `packages/enterprise/src/core/src/Render/Core/Share.hs` (227 lines)
@@ -56,7 +68,33 @@ Location: `packages/app/src/I18n/`
 | En.purs | DONE | English base translations (subset) |
 | I18n.purs | DONE | translate, getDictionary |
 
-### 6. Skills - CREATED (3 files)
+### 6. app/context - MIGRATED (20 files)
+Location: `packages/app/src/Context/`
+
+| File | Status | Notes |
+|------|--------|-------|
+| Command.purs | DONE | Keybindings and command palette |
+| Comments.purs | DONE | Line comments on files |
+| File.purs | DONE | File loading and tree navigation |
+| GlobalSDK.purs | DONE | Global OpenCode client |
+| GlobalSync.purs | DONE | Global state synchronization |
+| Highlights.purs | DONE | Release notes highlights |
+| Language.purs | DONE | i18n localization |
+| Layout.purs | DONE | UI layout state |
+| LayoutScroll.purs | DONE | Scroll persistence |
+| Local.purs | DONE | Local session state (agent/model) |
+| Models.purs | DONE | AI model selection/visibility |
+| Notification.purs | DONE | App notifications |
+| Permission.purs | DONE | Auto-accept permissions |
+| Platform.purs | DONE | Platform capabilities |
+| Prompt.purs | DONE | Prompt input state |
+| SDK.purs | DONE | OpenCode SDK client |
+| Server.purs | DONE | Server connections |
+| Settings.purs | DONE | User preferences |
+| Sync.purs | DONE | Session data synchronization |
+| Terminal.purs | DONE | Terminal/PTY sessions |
+
+### 7. Skills - CREATED (3 files)
 Location: `.opencode/skills/`
 
 | Skill | Status | Notes |
@@ -65,7 +103,7 @@ Location: `.opencode/skills/`
 | exploratory-architect | DONE | MANDATORY for architecture design |
 | expert-researcher | DONE | For research and analysis |
 
-### 7. Structure Cleanup
+### 8. Structure Cleanup
 - Removed nested `packages/util/src/src/` (was incorrect)
 - Removed nested `packages/app/src/src/` (was incorrect)
 - Fixed spago.yaml locations
@@ -74,70 +112,55 @@ Location: `.opencode/skills/`
 
 ## REMAINING MIGRATION WORK
 
-### HIGH PRIORITY - app/context (21 files)
-Source: `opencode-dev/packages/app/src/context/`
-Target: `packages/app/src/Context/`
+### ~~HIGH PRIORITY - app/context (21 files)~~ COMPLETED
+See Section 6 above - all 20 context files migrated.
+(layout-scroll.test.ts is a test file, not a context)
 
-| File | Lines | Description | Priority |
-|------|-------|-------------|----------|
-| command.tsx | ~150 | Command context | HIGH |
-| comments.tsx | ~100 | Comments context | MEDIUM |
-| file.tsx | ~200 | File context | HIGH |
-| global-sdk.tsx | ~150 | Global SDK context | HIGH |
-| global-sync.tsx | ~300 | Global sync context | HIGH |
-| highlights.tsx | ~100 | Highlights context | MEDIUM |
-| language.tsx | ~80 | Language context | LOW |
-| layout-scroll.ts | ~50 | Layout scroll utilities | LOW |
-| layout.tsx | ~150 | Layout context | MEDIUM |
-| local.tsx | ~100 | Local storage context | MEDIUM |
-| models.tsx | ~200 | Models context | HIGH |
-| notification.tsx | ~100 | Notification context | MEDIUM |
-| permission.tsx | ~150 | Permission context | HIGH |
-| platform.tsx | ~80 | Platform context | LOW |
-| prompt.tsx | ~250 | Prompt context | HIGH |
-| sdk.tsx | ~200 | SDK context | HIGH |
-| server.tsx | ~150 | Server context | HIGH |
-| settings.tsx | ~200 | Settings context | HIGH |
-| sync.tsx | ~150 | Sync context | MEDIUM |
-| terminal.tsx | ~200 | Terminal context | HIGH |
-| layout-scroll.test.ts | ~50 | Tests | LOW |
-
-### HIGH PRIORITY - app/pages (6 files)
-Source: `opencode-dev/packages/app/src/pages/`
+### ~~HIGH PRIORITY - app/pages (6 files)~~ COMPLETED
+Source: `_OTHER/opencode-original/packages/app/src/pages/`
 Target: `packages/app/src/Pages/`
 
-| File | Lines | Description |
-|------|-------|-------------|
-| directory-layout.tsx | ~100 | Directory layout page |
-| error.tsx | ~150 | Error page |
-| home.tsx | ~200 | Home page |
-| layout.tsx | ~100 | Main layout |
-| session.tsx | ~300 | Session page |
-| voice.tsx | ~150 | Voice page |
+| File | Target | Lines | Status |
+|------|--------|-------|--------|
+| directory-layout.tsx | DirectoryLayout.purs | 72 | DONE |
+| error.tsx | Error.purs | 291 | DONE |
+| home.tsx | Home.purs | 127 | DONE |
+| layout.tsx | Layout.purs | 2902 | DONE |
+| session.tsx | Session.purs | 1651 | DONE |
+| voice.tsx | Voice.purs | 298 | DONE |
 
-### MEDIUM PRIORITY - app/utils (14 files)
-Source: `opencode-dev/packages/app/src/utils/`
+### ~~MEDIUM PRIORITY - app/utils (14 files)~~ COMPLETED
+Source: `_OTHER/opencode-original/packages/app/src/utils/`
 Target: `packages/app/src/Utils/`
 
-| File | Lines | Description |
-|------|-------|-------------|
-| agent.ts | ~50 | Agent utilities |
-| base64.ts | ~30 | Base64 encoding |
-| dom.ts | ~100 | DOM utilities |
-| id.ts | ~30 | ID generation |
-| index.ts | ~20 | Barrel export |
-| maybe.ts | ~50 | Maybe/Option utilities |
-| perf.ts | ~50 | Performance utilities |
-| persist.ts | ~80 | Persistence utilities |
-| prompt.ts | ~100 | Prompt utilities |
-| same.ts | ~30 | Equality utilities |
-| solid-dnd.tsx | ~150 | Solid.js DnD utilities |
-| sound.ts | ~80 | Sound utilities |
-| speech.ts | ~100 | Speech utilities |
-| worktree.ts | ~100 | Git worktree utilities |
+| File | Target | Lines | Status |
+|------|--------|-------|--------|
+| agent.ts | Agent.purs | 12 | DONE |
+| base64.ts | Base64.purs | 11 | DONE |
+| dom.ts | Dom.purs | 52 | DONE |
+| id.ts | Id.purs | 100 | DONE |
+| index.ts | (re-exports) | 2 | DONE |
+| maybe.ts | Maybe.purs | 67 | DONE |
+| perf.ts | Perf.purs | 136 | DONE |
+| persist.ts | Persist.purs | 452 | DONE |
+| prompt.ts | Prompt.purs | 204 | DONE |
+| same.ts | Same.purs | 7 | DONE |
+| solid-dnd.tsx | SolidDnd.purs | 56 | DONE |
+| sound.ts | Sound.purs | 118 | DONE |
+| speech.ts | Speech.purs | 329 | DONE |
+| worktree.ts | Worktree.purs | 74 | DONE |
 
-### MEDIUM PRIORITY - ui package (87 files)
-Source: `opencode-dev/packages/ui/`
+### ~~MEDIUM PRIORITY - app/addons (2 files)~~ COMPLETED
+Source: `_OTHER/opencode-original/packages/app/src/addons/`
+Target: `packages/app/src/addons/`
+
+| File | Target | Lines | Status |
+|------|--------|-------|--------|
+| serialize.ts | Serialize.purs | 200 | DONE |
+| serialize.test.ts | Serialize.Spec.purs | 242 | DONE |
+
+### HIGH PRIORITY - ui package (87 files)
+Source: `_OTHER/opencode-original/packages/ui/`
 Target: `packages/ui/`
 
 **Components (47 files):**
@@ -160,7 +183,7 @@ Target: `packages/ui/`
 - useDebounce, useMediaQuery, useWindowSize
 
 ### LOW PRIORITY - console package (156 files)
-Source: `opencode-dev/packages/console/`
+Source: `_OTHER/opencode-original/packages/console/`
 Target: `packages/console/`
 
 **Routes (60+ files):**
@@ -178,7 +201,7 @@ Target: `packages/console/`
 
 ### LOW PRIORITY - SDK strategy
 Decision needed: Generate JS SDK from PureScript types?
-- Current: 40 TypeScript files in `opencode-dev/packages/sdk/`
+- Current: 40 TypeScript files in `_OTHER/opencode-original/packages/sdk/`
 - Options:
   1. Keep as TypeScript (for npm distribution)
   2. Generate from PureScript types
@@ -200,7 +223,7 @@ These should remain TypeScript:
 | opencode | 313 | 450+ | DONE | +137 |
 | enterprise | 18 | 18 | DONE | 0 |
 | util | 12 | 14 | DONE | +2 |
-| app | 163 | ~30 | IN PROGRESS | -133 |
+| app | 163 | ~121 | DONE | -42 (tests only) |
 | plugin | 6 | 8 | DONE | +2 |
 | ui | 87 | 0 | TODO | -87 |
 | console | 156 | 0 | TODO | -156 |
@@ -256,12 +279,15 @@ When migrating TS that uses browser APIs:
 
 1. [ ] Pull latest from origin
 2. [ ] Load `deterministic-coder` skill
-3. [ ] Continue with app/context migration (21 files)
-4. [ ] Read each TypeScript file completely before migrating
-5. [ ] Create PureScript equivalent in `packages/app/src/Context/`
-6. [ ] Add FFI files where browser APIs are used
-7. [ ] Update MIGRATION_PARITY_REPORT.md after each category
-8. [ ] Commit and push regularly
+3. [x] Complete app/context migration (20 files) - DONE 2026-02-02
+4. [x] Complete app/pages migration (6 files) - DONE 2026-02-02
+5. [x] Complete app/utils migration (14 files) - DONE 2026-02-02
+6. [x] Complete app/addons migration (2 files) - DONE 2026-02-02
+7. [ ] Begin ui package migration (87 files)
+8. [ ] Read each TypeScript file completely before migrating
+9. [ ] Add FFI files where browser APIs are used
+10. [ ] Update MIGRATION_PARITY_REPORT.md after each category
+11. [ ] Commit and push regularly
 
 ---
 

@@ -1,5 +1,5 @@
 import "@/index.css"
-import { ErrorBoundary, Show, lazy, type ParentProps } from "solid-js"
+import { ErrorBoundary, Show, type ParentProps } from "solid-js"
 import { Router, Route, Navigate } from "@solidjs/router"
 import { MetaProvider } from "@solidjs/meta"
 import { Font } from "@opencode-ai/ui/font"
@@ -30,11 +30,9 @@ import { HighlightsProvider } from "@/context/highlights"
 import Layout from "@/pages/layout"
 import DirectoryLayout from "@/pages/directory-layout"
 import { ErrorPage } from "./pages/error"
-import { Suspense } from "solid-js"
-
-const Home = lazy(() => import("@/pages/home"))
-const Session = lazy(() => import("@/pages/session"))
-const Loading = () => <div class="size-full" />
+import Home from "@/pages/home"
+import Session from "@/pages/session"
+import VoiceChat from "@/pages/voice"
 
 function UiI18nBridge(props: ParentProps) {
   const language = useLanguage()
@@ -129,14 +127,7 @@ export function AppInterface(props: { defaultUrl?: string }) {
                 </SettingsProvider>
               )}
             >
-              <Route
-                path="/"
-                component={() => (
-                  <Suspense fallback={<Loading />}>
-                    <Home />
-                  </Suspense>
-                )}
-              />
+              <Route path="/" component={Home} />
               <Route path="/:dir" component={DirectoryLayout}>
                 <Route path="/" component={() => <Navigate href="session" />} />
                 <Route
@@ -147,9 +138,7 @@ export function AppInterface(props: { defaultUrl?: string }) {
                         <FileProvider>
                           <PromptProvider>
                             <CommentsProvider>
-                              <Suspense fallback={<Loading />}>
-                                <Session />
-                              </Suspense>
+                              <Session />
                             </CommentsProvider>
                           </PromptProvider>
                         </FileProvider>
@@ -157,6 +146,7 @@ export function AppInterface(props: { defaultUrl?: string }) {
                     </Show>
                   )}
                 />
+                <Route path="/voice" component={VoiceChat} />
               </Route>
             </Router>
           </GlobalSyncProvider>

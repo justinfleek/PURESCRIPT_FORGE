@@ -1,5 +1,5 @@
 package:
-  name: opencode-app
+  name: forge-app
   dependencies:
     - prelude
     - effect
@@ -17,5 +17,11 @@ package:
     - refs
     - foreign
     - argonaut
+    - ordered-collections  # For Map and Set
+    - foldable-traversable
+    - tuples
+    - foreign-object
+    - random
+    - aff-promise
   build:
     strict: true

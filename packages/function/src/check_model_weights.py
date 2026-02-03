@@ -37,7 +37,7 @@ except ImportError:
 
 # Check 2: Database
 print("\n[2] Checking database...")
-db_path = os.path.join(os.path.expanduser("~"), ".opencode-sidepanel", "bridge.db")
+db_path = os.path.join(os.path.expanduser("~"), ".forge-sidepanel", "bridge.db")
 db_exists = os.path.exists(db_path)
 print(f"Database: {db_path}")
 print(f"Exists: {db_exists}")

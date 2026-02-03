@@ -653,12 +653,12 @@ routeNameToRoute name = case name of
 -- |
 -- | **Mapping:**
 -- | - Theme -> MonitorType (Dark -> OLED, Light -> LCD, System -> OLED)
--- | - Other fields (veniceApiKey, opencodeApiUrl, leanLspUrl) use defaults or Nothing
+-- | - Other fields (veniceApiKey, forgeApiUrl, leanLspUrl) use defaults or Nothing
 -- |   (would need to be stored separately or added to FullSettings)
 convertSettingsToAppState :: FullSettings -> AppSettings
 convertSettingsToAppState fullSettings =
   { veniceApiKey: Nothing  -- Not in FullSettings, would need to be stored separately
-  , opencodeApiUrl: "http://localhost:4096"  -- Not in FullSettings, use default
+  , forgeApiUrl: "http://localhost:4096"  -- Not in FullSettings, use default
   , leanLspUrl: Nothing  -- Not in FullSettings, would need to be stored separately
   , monitorType: case fullSettings.appearance.theme of
       Sidepanel.State.Settings.Dark -> OLED

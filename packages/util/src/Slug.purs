@@ -1,6 +1,6 @@
 -- | Random slug generator
--- | Migrated from opencode-dev/packages/util/src/slug.ts
-module Opencode.Util.Slug
+-- | Migrated from forge-dev/packages/util/src/slug.ts
+module Forge.Util.Slug
   ( create
   ) where
 

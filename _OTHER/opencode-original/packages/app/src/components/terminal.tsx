@@ -1,4 +1,4 @@
-import type { Ghostty, Terminal as Term, FitAddon } from "ghostty-web"
+import { Ghostty, Terminal as Term, FitAddon } from "ghostty-web"
 import { ComponentProps, createEffect, createSignal, onCleanup, onMount, splitProps } from "solid-js"
 import { useSDK } from "@/context/sdk"
 import { monoFontFamily, useSettings } from "@/context/settings"
@@ -16,17 +16,12 @@ export interface TerminalProps extends ComponentProps<"div"> {
   onConnectError?: (error: unknown) => void
 }
 
-let shared: Promise<{ mod: typeof import("ghostty-web"); ghostty: Ghostty }> | undefined
+let sharedGhostty: Ghostty | undefined
 
-const loadGhostty = () => {
-  if (shared) return shared
-  shared = import("ghostty-web")
-    .then(async (mod) => ({ mod, ghostty: await mod.Ghostty.load() }))
-    .catch((err) => {
-      shared = undefined
-      throw err
-    })
-  return shared
+const loadGhostty = async (): Promise<Ghostty> => {
+  if (sharedGhostty) return sharedGhostty
+  sharedGhostty = await Ghostty.load()
+  return sharedGhostty
 }
 
 type TerminalColors = {
@@ -137,11 +132,8 @@ export const Terminal = (props: TerminalProps) => {
 
   onMount(() => {
     const run = async () => {
-      const loaded = await loadGhostty()
+      const g = await loadGhostty()
       if (disposed) return
-
-      const mod = loaded.mod
-      const g = loaded.ghostty
 
       const once = { value: false }
 
@@ -160,7 +152,7 @@ export const Terminal = (props: TerminalProps) => {
       }
       ws = socket
 
-      const t = new mod.Terminal({
+      const t = new Term({
         cursorBlink: true,
         cursorStyle: "bar",
         fontSize: 14,
@@ -205,7 +197,7 @@ export const Terminal = (props: TerminalProps) => {
         return false
       }
 
-      t.attachCustomKeyEventHandler((event) => {
+      t.attachCustomKeyEventHandler((event: KeyboardEvent) => {
         const key = event.key.toLowerCase()
 
         if (event.ctrlKey && event.shiftKey && !event.metaKey && key === "c") {
@@ -227,7 +219,7 @@ export const Terminal = (props: TerminalProps) => {
         return false
       })
 
-      const fit = new mod.FitAddon()
+      const fit = new FitAddon()
       const serializer = new SerializeAddon()
       cleanups.push(() => (fit as unknown as { dispose?: VoidFunction }).dispose?.())
       t.loadAddon(serializer)
@@ -269,7 +261,7 @@ export const Terminal = (props: TerminalProps) => {
       handleResize = () => fit.fit()
       window.addEventListener("resize", handleResize)
       cleanups.push(() => window.removeEventListener("resize", handleResize))
-      const onResize = t.onResize(async (size) => {
+      const onResize = t.onResize(async (size: { cols: number; rows: number }) => {
         if (socket.readyState === WebSocket.OPEN) {
           await sdk.client.pty
             .update({
@@ -283,13 +275,13 @@ export const Terminal = (props: TerminalProps) => {
         }
       })
       cleanups.push(() => (onResize as unknown as { dispose?: VoidFunction }).dispose?.())
-      const onData = t.onData((data) => {
+      const onData = t.onData((data: string) => {
         if (socket.readyState === WebSocket.OPEN) {
           socket.send(data)
         }
       })
       cleanups.push(() => (onData as unknown as { dispose?: VoidFunction }).dispose?.())
-      const onKey = t.onKey((key) => {
+      const onKey = t.onKey((key: { key: string }) => {
         if (key.key == "Enter") {
           props.onSubmit?.()
         }

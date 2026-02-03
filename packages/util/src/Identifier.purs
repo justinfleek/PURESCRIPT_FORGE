@@ -1,6 +1,6 @@
 -- | Monotonic ID generation
--- | Migrated from opencode-dev/packages/util/src/identifier.ts
-module Opencode.Util.Identifier
+-- | Migrated from forge-dev/packages/util/src/identifier.ts
+module Forge.Util.Identifier
   ( ascending
   , descending
   , create

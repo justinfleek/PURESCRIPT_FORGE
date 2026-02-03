@@ -1,5 +1,5 @@
 {
-  "name": "opencode-bridge-server-ps",
+  "name": "forge-bridge-server-ps",
   "version": "0.1.0",
   "description": "Bridge Server in PureScript",
   "main": "output/Bridge.Main/index.js",
@@ -16,6 +16,6 @@
     "jose": "^5.2.0"
   },
   "devDependencies": {
-    "@opencode-ai/sdk": "*"
+    "@forge-ai/sdk": "*"
   }
 }

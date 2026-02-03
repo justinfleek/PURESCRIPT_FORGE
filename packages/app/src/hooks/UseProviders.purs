@@ -1,6 +1,6 @@
 -- | Provider management hook
--- | Migrated from opencode-dev/packages/app/src/hooks/use-providers.ts
-module Opencode.App.Hooks.UseProviders
+-- | Migrated from forge-dev/packages/app/src/hooks/use-providers.ts
+module Forge.App.Hooks.UseProviders
   ( ProviderInfo
   , ProvidersState
   , popularProviders
@@ -15,7 +15,7 @@ import Effect (Effect)
 -- | Popular provider IDs
 popularProviders :: Array String
 popularProviders = 
-  [ "opencode"
+  [ "forge"
   , "anthropic"
   , "github-copilot"
   , "openai"
@@ -66,7 +66,7 @@ useProviders store =
 -- Check if provider has paid models
 isPaid :: ProviderInfo -> Boolean
 isPaid provider
-  | provider.id /= "opencode" = true
+  | provider.id /= "forge" = true
   | otherwise = hasAnyPaidModel provider.models
 
 hasAnyPaidModel :: Array ModelInfo -> Boolean

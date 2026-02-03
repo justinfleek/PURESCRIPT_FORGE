@@ -1,0 +1,85 @@
+package:
+  name: forge
+  dependencies:
+    - aff
+    - affjax
+    - argonaut
+    - argonaut-codecs
+    - argonaut-core
+    - arrays
+    - bifunctors
+    - console
+    - control
+    - datetime
+    - effect
+    - either
+    - exceptions
+    - foldable-traversable
+    - foreign
+    - foreign-object
+    - halogen
+    - halogen-hooks
+    - http-methods
+    - integers
+    - js-uri
+    - lists
+    - maybe
+    - media-types
+    - newtype
+    - node-buffer
+    - node-child-process
+    - node-fs
+    - node-path
+    - node-process
+    - node-readline
+    - node-streams
+    - numbers
+    - ordered-collections
+    - partial
+    - prelude
+    - profunctor
+    - refs
+    - routing-duplex
+    - strings
+    - tailrec
+    - transformers
+    - tuples
+    - typelevel-prelude
+    - unfoldable
+    - uuid
+    - web-dom
+    - web-events
+    - web-html
+    - web-socket
+    - web-storage
+
+workspace:
+  packageSet:
+    registry: 56.2.0
+  
+  extraPackages: {}
+
+  # Build configuration
+  backend:
+    cmd: "esbuild"
+    args:
+      - "--bundle"
+      - "--platform=node"
+      - "--outfile=dist/forge.js"
+
+  # Source paths for all PureScript modules
+  sources:
+    - "src/**/*.purs"
+    - "src/types/ps/**/*.purs"
+    - "src/bridge/ps/**/*.purs"
+    - "src/sidepanel/ps/**/*.purs"
+    - "src/plugin/ps/**/*.purs"
+    - "src/rules/ps/**/*.purs"
+
+# Test configuration
+test:
+  main: Test.Main
+  dependencies:
+    - spec
+    - spec-discovery
+    - quickcheck

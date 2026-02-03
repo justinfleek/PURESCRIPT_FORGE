@@ -41,7 +41,7 @@ if (-not $env:VENICE_API_KEY) {
 }
 
 # Check database path
-$dbPath = Join-Path $env:USERPROFILE ".opencode-sidepanel\bridge.db"
+$dbPath = Join-Path $env:USERPROFILE ".forge-sidepanel\bridge.db"
 Write-Host "Database path: $dbPath"
 if (-not (Test-Path $dbPath)) {
     Write-Host "⚠️  Database file doesn't exist yet. It will be created on first use."

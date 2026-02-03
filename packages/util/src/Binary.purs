@@ -1,6 +1,6 @@
 -- | Binary search utilities
--- | Migrated from opencode-dev/packages/util/src/binary.ts
-module Opencode.Util.Binary
+-- | Migrated from forge-dev/packages/util/src/binary.ts
+module Forge.Util.Binary
   ( SearchResult
   , search
   , insert

@@ -51,7 +51,7 @@ exports.sendEvent = function(client) {
         try {
           var message = {
             jsonrpc: "2.0",
-            method: "opencode.event",
+            method: "forge.event",
             params: { event: JSON.parse(eventJson) }
           };
           client.ws.send(JSON.stringify(message));
@@ -76,7 +76,7 @@ exports.sendMessage = function(client) {
         try {
           var message = {
             jsonrpc: "2.0",
-            method: "opencode.message",
+            method: "forge.message",
             params: JSON.parse(messageJson)
           };
           client.ws.send(JSON.stringify(message));
@@ -101,7 +101,7 @@ exports.sendToolExecution = function(client) {
         try {
           var message = {
             jsonrpc: "2.0",
-            method: "opencode.tool.execution",
+            method: "forge.tool.execution",
             params: JSON.parse(executionJson)
           };
           client.ws.send(JSON.stringify(message));
@@ -126,7 +126,7 @@ exports.sendConfig = function(client) {
         try {
           var message = {
             jsonrpc: "2.0",
-            method: "opencode.config",
+            method: "forge.config",
             params: { config: JSON.parse(configJson) }
           };
           client.ws.send(JSON.stringify(message));

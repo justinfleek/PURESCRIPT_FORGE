@@ -28,11 +28,11 @@ npm install
 ```bash
 # Windows PowerShell
 $env:VENICE_API_KEY = "your_venice_api_key"
-$env:VOICE_DB_PATH = "$env:USERPROFILE\.opencode-sidepanel\bridge.db"
+$env:VOICE_DB_PATH = "$env:USERPROFILE\.forge-sidepanel\bridge.db"
 
 # Linux/Mac
 export VENICE_API_KEY="your_venice_api_key"
-export VOICE_DB_PATH="$HOME/.opencode-sidepanel/bridge.db"
+export VOICE_DB_PATH="$HOME/.forge-sidepanel/bridge.db"
 ```
 
 ### 3. Start Voice Engine Server
@@ -156,7 +156,7 @@ SUCCESS: ALL TESTS PASSED
 - Try: `cd src/voice-engine && python -m uvicorn apps.api.src.main:app --port 8001`
 
 **Error: Database connection failed**
-- Check database path exists: `~/.opencode-sidepanel/bridge.db`
+- Check database path exists: `~/.forge-sidepanel/bridge.db`
 - Ensure parent directory exists
 - Check file permissions
 
@@ -175,7 +175,7 @@ SUCCESS: ALL TESTS PASSED
 **List models returns empty**
 - Models table may be empty (normal for first run)
 - Models will be downloaded on first TTS request
-- Check database: `sqlite3 ~/.opencode-sidepanel/bridge.db "SELECT * FROM tts_models;"`
+- Check database: `sqlite3 ~/.forge-sidepanel/bridge.db "SELECT * FROM tts_models;"`
 
 ### Database Issues
 

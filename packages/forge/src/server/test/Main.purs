@@ -12,7 +12,7 @@ import Test.Bridge.State.StoreSpec as StoreSpec
 import Test.Bridge.Protocol.JsonRpcSpec as JsonRpcSpec
 import Test.Bridge.E2E.WebSocketSpec as WebSocketE2E
 import Test.Bridge.E2E.VeniceSpec as VeniceE2E
-import Test.Bridge.E2E.OpencodeSpec as OpencodeE2E
+import Test.Bridge.E2E.ForgeSpec as ForgeE2E
 import Test.Bridge.E2E.DatabaseSpec as DatabaseE2E
 import Test.Bridge.Integration.FFISpec as FFIIntegration
 import Test.Bridge.Integration.StateSyncSpec as StateSyncIntegration
@@ -45,9 +45,9 @@ main = do
           VeniceE2E.testRateLimiting
           VeniceE2E.testModelListing
         
-        describe "OpenCode Integration" do
-          OpencodeE2E.testEventProcessing
-          OpencodeE2E.testEventStream
+        describe "Forge Integration" do
+          ForgeE2E.testEventProcessing
+          ForgeE2E.testEventStream
         
         describe "Database" do
           DatabaseE2E.testDatabaseOperations

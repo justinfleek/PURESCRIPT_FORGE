@@ -5,7 +5,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 -- | Session Sharing Service
--- | Migrated from opencode-dev/packages/enterprise/src/core/share.ts
+-- | Migrated from forge-dev/packages/enterprise/src/core/share.ts
 module Render.Core.Share
   ( Info(..)
   , Data(..)

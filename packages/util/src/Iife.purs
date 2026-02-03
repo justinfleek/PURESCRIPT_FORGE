@@ -1,6 +1,6 @@
 -- | Immediately invoked function expression
--- | Migrated from opencode-dev/packages/util/src/iife.ts
-module Opencode.Util.Iife
+-- | Migrated from forge-dev/packages/util/src/iife.ts
+module Forge.Util.Iife
   ( iife
   ) where
 

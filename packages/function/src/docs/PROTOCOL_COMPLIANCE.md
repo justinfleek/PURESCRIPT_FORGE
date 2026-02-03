@@ -32,7 +32,7 @@ This document provides a comprehensive audit of the Voice System's compliance wi
 
 **Severity:** CRITICAL  
 **Status:** REMEDIATED  
-**Location:** `opencode-dev/packages/app/src/pages/voice.tsx:43`
+**Location:** `forge-dev/packages/app/src/pages/voice.tsx:43`
 
 **Original Implementation:**
 ```typescript
@@ -69,7 +69,7 @@ const audioContext = getAudioContext();
 
 **Severity:** CRITICAL  
 **Status:** REMEDIATED  
-**Location:** Multiple files in `opencode-dev/packages/app/src/pages/voice.tsx`
+**Location:** Multiple files in `forge-dev/packages/app/src/pages/voice.tsx`
 
 **Original Implementation:**
 ```typescript
@@ -81,7 +81,7 @@ let animationFrameId: number | null = null;
 **Violation:** Use of `null` without explicit Maybe/Option pattern violates type safety protocols.
 
 **Remediation:**
-Created `Maybe` type implementation in `opencode-dev/packages/app/src/utils/maybe.ts`:
+Created `Maybe` type implementation in `forge-dev/packages/app/src/utils/maybe.ts`:
 
 ```typescript
 export type Maybe<T> = { type: 'just'; value: T } | { type: 'none' };
@@ -139,7 +139,7 @@ if (isJust(recorderMaybe) && recorderMaybe.value.state !== 'inactive') {
 
 **Severity:** CRITICAL  
 **Status:** REMEDIATED  
-**Location:** `opencode-dev/packages/opencode/src/api/voice.ts` (multiple instances)
+**Location:** `forge-dev/packages/forge/src/api/voice.ts` (multiple instances)
 
 **Original Implementation:**
 ```typescript
@@ -184,7 +184,7 @@ throw new Error(getErrorMessage(error, response.status));
 
 **Severity:** MODERATE  
 **Status:** REMEDIATED  
-**Location:** `opencode-dev/packages/app/src/pages/voice.tsx`
+**Location:** `forge-dev/packages/app/src/pages/voice.tsx`
 
 **Original Implementation:**
 ```typescript
@@ -336,7 +336,7 @@ const assistantMessage: TranscriptMessage = {
 
 ### Maybe Type Implementation
 
-**File:** `opencode-dev/packages/app/src/utils/maybe.ts`
+**File:** `forge-dev/packages/app/src/utils/maybe.ts`
 
 **Purpose:** Provides protocol-compliant `Maybe`/`Option` type for TypeScript, replacing `null` usage.
 

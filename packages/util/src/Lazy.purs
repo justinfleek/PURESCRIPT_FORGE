@@ -1,6 +1,6 @@
 -- | Lazy evaluation with memoization
--- | Migrated from opencode-dev/packages/util/src/lazy.ts
-module Opencode.Util.Lazy
+-- | Migrated from forge-dev/packages/util/src/lazy.ts
+module Forge.Util.Lazy
   ( Lazy
   , lazy
   , force

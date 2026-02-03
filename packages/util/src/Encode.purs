@@ -1,6 +1,6 @@
 -- | Encoding utilities (base64, hash, checksum)
--- | Migrated from opencode-dev/packages/util/src/encode.ts
-module Opencode.Util.Encode
+-- | Migrated from forge-dev/packages/util/src/encode.ts
+module Forge.Util.Encode
   ( base64Encode
   , base64Decode
   , checksum

@@ -52,7 +52,7 @@ async def create_voice_services(
     if db_path is None:
         db_path = os.getenv(
             "VOICE_DB_PATH",
-            os.path.join(os.path.expanduser("~"), ".opencode-sidepanel", "bridge.db"),
+            os.path.join(os.path.expanduser("~"), ".forge-sidepanel", "bridge.db"),
         )
 
     # Create database adapter

@@ -1,6 +1,6 @@
 -- | Microphone toggle button with audio level indicator
--- | Migrated from opencode-dev/packages/app/src/components/voice/MicrophoneButton.tsx
-module Opencode.App.Voice.MicrophoneButton
+-- | Migrated from forge-dev/packages/app/src/components/voice/MicrophoneButton.tsx
+module Forge.App.Voice.MicrophoneButton
   ( Props
   , Output(..)
   , component

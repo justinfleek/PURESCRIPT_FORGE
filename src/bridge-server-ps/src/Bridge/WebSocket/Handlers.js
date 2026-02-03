@@ -88,12 +88,12 @@ export const encodeState = function(state) {
   };
 };
 
-export const handleOpenCodeEvent = function(store) {
+export const handleForgeEvent = function(store) {
   return function(eventJson) {
     return function() {
-      // Call the actual OpenCode event handler from Events.js
-      // Removed: require("./Bridge/Opencode/Events.js")
-      eventsModule.handleOpenCodeEvent(store)(eventJson)();
+      // Call the actual Forge event handler from Events.js
+      // Removed: require("./Bridge/Forge/Events.js")
+      eventsModule.handleForgeEvent(store)(eventJson)();
     };
   };
 };

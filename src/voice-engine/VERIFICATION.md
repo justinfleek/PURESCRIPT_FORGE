@@ -121,7 +121,7 @@ curl http://localhost:8765/api/voice/voices
 ### 6. Check Database
 
 ```bash
-sqlite3 ~/.opencode-sidepanel/bridge.db
+sqlite3 ~/.forge-sidepanel/bridge.db
 .tables
 .schema voice_chat_sessions
 ```

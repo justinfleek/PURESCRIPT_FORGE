@@ -1,6 +1,6 @@
 -- | Voice selection dropdown
--- | Migrated from opencode-dev/packages/app/src/components/voice/VoiceSelector.tsx
-module Opencode.App.Voice.VoiceSelector
+-- | Migrated from forge-dev/packages/app/src/components/voice/VoiceSelector.tsx
+module Forge.App.Voice.VoiceSelector
   ( Props
   , Output(..)
   , component

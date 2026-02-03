@@ -1,6 +1,6 @@
 -- | Array utilities
--- | Migrated from opencode-dev/packages/util/src/array.ts
-module Opencode.Util.Array
+-- | Migrated from forge-dev/packages/util/src/array.ts
+module Forge.Util.Array
   ( findLast
   ) where
 

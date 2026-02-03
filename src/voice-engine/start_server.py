@@ -19,7 +19,7 @@ if not os.getenv("VENICE_API_KEY"):
     print("   Set it with: export VENICE_API_KEY=your_key")
 
 if not os.getenv("VOICE_DB_PATH"):
-    db_path = Path.home() / ".opencode-sidepanel" / "bridge.db"
+    db_path = Path.home() / ".forge-sidepanel" / "bridge.db"
     os.environ["VOICE_DB_PATH"] = str(db_path)
     print(f"Using database: {db_path}")
 

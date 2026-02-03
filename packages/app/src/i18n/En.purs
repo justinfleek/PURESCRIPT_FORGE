@@ -1,6 +1,6 @@
 -- | English translations (base language)
--- | Migrated from opencode-dev/packages/app/src/i18n/en.ts
-module Opencode.App.I18n.En (dict) where
+-- | Migrated from forge-dev/packages/app/src/i18n/en.ts
+module Forge.App.I18n.En (dict) where
 
 import Foreign.Object (Object, fromFoldable)
 import Data.Tuple (Tuple(..))

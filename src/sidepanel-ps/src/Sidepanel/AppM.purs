@@ -1,4 +1,4 @@
--- | Application monad for OpenCode Sidepanel
+-- | Application monad for Forge Sidepanel
 -- | Based on spec 40-PURESCRIPT-ARCHITECTURE.md
 module Sidepanel.AppM where
 
@@ -17,7 +17,7 @@ type Env =
 -- | Configuration type
 type Config =
   { veniceApiUrl :: String
-  , opencodeApiUrl :: String
+  , forgeApiUrl :: String
   , leanLspUrl :: Maybe String
   }
 

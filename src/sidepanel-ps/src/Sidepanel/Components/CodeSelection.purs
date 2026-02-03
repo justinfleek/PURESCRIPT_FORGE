@@ -1,10 +1,10 @@
 -- | Code Selection Component - Line Selection with Copy and Add-to-Chat
 -- |
--- | **What:** Provides code line selection functionality matching OpenCode's behavior,
+-- | **What:** Provides code line selection functionality matching Forge's behavior,
 -- |         with copy-to-clipboard and add-to-chat actions. Can be integrated into
 -- |         any component that displays code (DiffViewer, FileContextView, etc.).
 -- | **Why:** Enables users to select code lines and either copy them or add them
--- |         to chat, matching OpenCode's functionality for 100% parity.
+-- |         to chat, matching Forge's functionality for 100% parity.
 -- | **How:** Tracks mouse drag selection, highlights selected lines, provides
 -- |         action buttons (Copy, Add to Chat), and handles keyboard shortcuts.
 -- |
@@ -302,7 +302,7 @@ handleAction = case _ of
         in
           do
             -- Copy formatted code to clipboard
-            -- User can paste it into OpenCode chat
+            -- User can paste it into Forge chat
             H.liftEffect $ Clipboard.copyToClipboard formattedCode
             H.raise $ AddedToChat formattedCode
       Nothing ->

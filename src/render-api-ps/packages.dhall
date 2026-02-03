@@ -1,4 +1,4 @@
--- PureScript package set for opencode-types-ps
+-- PureScript package set for forge-types-ps
 -- Using psc-0.15.x compatible package set
 let upstream =
       https://github.com/purescript/package-sets/releases/download/psc-0.15.15-20241109/packages.dhall

@@ -1,6 +1,6 @@
 -- | I18n type definitions
--- | Migrated from opencode-dev/packages/app/src/i18n/*.ts
-module Opencode.App.I18n.Types
+-- | Migrated from forge-dev/packages/app/src/i18n/*.ts
+module Forge.App.I18n.Types
   ( Language(..)
   , Dict
   , allLanguages

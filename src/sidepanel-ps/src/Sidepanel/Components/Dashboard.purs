@@ -106,7 +106,7 @@ render :: forall m. State -> H.ComponentHTML () () m
 render state =
   HH.div
     [ HP.classes [ H.ClassName "dashboard" ] ]
-    [ HH.h1_ [ HH.text "OpenCode Sidepanel Dashboard" ]
+    [ HH.h1_ [ HH.text "Forge Sidepanel Dashboard" ]
     , HH.div
         [ HP.classes [ H.ClassName "dashboard-content" ] ]
         [ renderBalance state.balance

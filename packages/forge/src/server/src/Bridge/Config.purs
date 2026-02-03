@@ -21,8 +21,8 @@
 -- | - `SIDEPANEL_HOST`: Server host (default: "127.0.0.1")
 -- | - `STATIC_DIR`: Static file directory (default: "./dist")
 -- | - `VENICE_API_KEY`: Venice API key (optional)
--- | - `OPENCODE_API_URL`: OpenCode API URL (default: "http://opencode.internal")
--- | - `OPENCODE_DIRECTORY`: OpenCode directory (default: "./")
+-- | - `OPENCODE_API_URL`: Forge API URL (default: "http://forge.internal")
+-- | - `OPENCODE_DIRECTORY`: Forge directory (default: "./")
 -- | - `STORAGE_PATH`: SQLite database path (default: "./bridge.db")
 -- | - `ANALYTICS_PATH`: DuckDB analytics path (default: "./analytics.duckdb")
 -- | - `SYNC_INTERVAL_MINUTES`: Database sync interval (default: 60)
@@ -55,7 +55,7 @@ type Config =
   , venice ::
       { apiKey :: Maybe String
       }
-  , opencode ::
+  , forge ::
       { apiUrl :: String
       , directory :: String
       }
@@ -104,13 +104,13 @@ loadConfig = do
   
   veniceApiKey <- getEnv "VENICE_API_KEY"
   
-  opencodeApiUrlEnv <- getEnv "OPENCODE_API_URL"
-  let opencodeApiUrlRaw = fromMaybe "http://opencode.internal" opencodeApiUrlEnv
-  let opencodeApiUrl = if validateNonEmpty opencodeApiUrlRaw then opencodeApiUrlRaw else "http://opencode.internal"
+  forgeApiUrlEnv <- getEnv "OPENCODE_API_URL"
+  let forgeApiUrlRaw = fromMaybe "http://forge.internal" forgeApiUrlEnv
+  let forgeApiUrl = if validateNonEmpty forgeApiUrlRaw then forgeApiUrlRaw else "http://forge.internal"
   
-  opencodeDirEnv <- getEnv "OPENCODE_DIRECTORY"
-  let opencodeDirRaw = fromMaybe "./" opencodeDirEnv
-  let opencodeDir = if validateNonEmpty opencodeDirRaw then opencodeDirRaw else "./"
+  forgeDirEnv <- getEnv "OPENCODE_DIRECTORY"
+  let forgeDirRaw = fromMaybe "./" forgeDirEnv
+  let forgeDir = if validateNonEmpty forgeDirRaw then forgeDirRaw else "./"
   
   storagePathEnv <- getEnv "STORAGE_PATH"
   let storagePathRaw = fromMaybe "./bridge.db" storagePathEnv
@@ -129,9 +129,9 @@ loadConfig = do
     , host
     , staticDir
     , venice: { apiKey: veniceApiKey }
-    , opencode:
-        { apiUrl: opencodeApiUrl
-        , directory: opencodeDir
+    , forge:
+        { apiUrl: forgeApiUrl
+        , directory: forgeDir
         }
     , lean:
         { enabled: false

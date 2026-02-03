@@ -29,7 +29,7 @@ async def setup_voice_services():
     # Get database path (use Bridge Server database)
     db_path = os.getenv(
         "VOICE_DB_PATH",
-        os.path.join(os.path.expanduser("~"), ".opencode-sidepanel", "bridge.db"),
+        os.path.join(os.path.expanduser("~"), ".forge-sidepanel", "bridge.db"),
     )
     
     # Get Venice API key

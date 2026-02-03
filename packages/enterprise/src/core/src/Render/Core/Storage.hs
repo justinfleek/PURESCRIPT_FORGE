@@ -4,7 +4,7 @@
 
 -- | Cloud Storage Adapter
 -- | Supports S3 and R2 (Cloudflare) backends with lazy initialization
--- | Migrated from opencode-dev/packages/enterprise/src/core/storage.ts
+-- | Migrated from forge-dev/packages/enterprise/src/core/storage.ts
 module Render.Core.Storage
   ( Adapter(..)
   , read

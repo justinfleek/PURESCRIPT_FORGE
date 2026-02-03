@@ -1,5 +1,5 @@
 package:
-  name: opencode-util
+  name: forge-util
   dependencies:
     - prelude
     - effect

@@ -1,6 +1,6 @@
 -- | Voice recording and transcription hook
--- | Migrated from opencode-dev/packages/app/src/hooks/use-voice.ts
-module Opencode.App.Hooks.UseVoice
+-- | Migrated from forge-dev/packages/app/src/hooks/use-voice.ts
+module Forge.App.Hooks.UseVoice
   ( VoiceConfig
   , VoiceState
   , useVoice
