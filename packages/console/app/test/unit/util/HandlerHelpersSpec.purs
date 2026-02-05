@@ -173,7 +173,7 @@ spec = describe "Handler Helpers Deep Tests" do
       normalizeResponseStatus 0 `shouldEqual` 0
 
     it "handles negative status code (edge case)" do
-      -- Negative status codes shouldn't happen, but test robustness
+      -- Test handling of negative status codes
       normalizeResponseStatus (-1) `shouldEqual` (-1)
 
     it "handles very large status code" do

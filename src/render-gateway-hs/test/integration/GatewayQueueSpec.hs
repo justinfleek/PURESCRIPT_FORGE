@@ -488,7 +488,7 @@ spec = describe "Gateway ↔ Queue Integration Deep Tests" $ do
       -- BUG: getQueuePosition drains queues into lists, finds position, then re-enqueues.
       -- This is atomic within STM, but if a concurrent tryDequeueJob happens in a
       -- different STM transaction, the position may be incorrect or job may not be found.
-      -- However, since STM transactions are serializable, this shouldn't happen in practice.
+      -- However, since STM transactions are serializable, this is prevented in practice.
       -- The real issue is that getQueuePosition modifies queue state (drains/re-enqueues),
       -- which could interfere with concurrent operations.
       queue <- atomically createQueue

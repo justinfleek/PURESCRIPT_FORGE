@@ -377,9 +377,23 @@ packages/console/app/test/unit/
 │   ├── AnthropicSpec.purs
 │   ├── GoogleSpec.purs
 │   └── OpenAICompatibleSpec.purs
+├── util/
+│   ├── MessageEncryptionSpec.purs ✅ CREATED - DEEP TESTS
+│   ├── MessageEncryptionHelpersSpec.purs ✅ CREATED - DEEP TESTS
+│   └── OpenAIUsageSpec.purs ✅ CREATED - DEEP TESTS
 └── component/
     ├── ComponentSpec.purs
     └── ...
+```
+
+**Test Files Created**:
+```
+packages/console/app/test/
+├── unit/util/
+│   ├── MessageEncryptionSpec.purs ✅ CREATED - DEEP TESTS
+│   └── MessageEncryptionHelpersSpec.purs ✅ CREATED - DEEP TESTS
+└── property/
+    └── MessageEncryptionProps.purs ✅ CREATED - DEEP TESTS
 ```
 
 ### Haskell Unit Tests
@@ -1185,13 +1199,38 @@ src/render-gateway-hs/test/unit/
      - [x] Multiple undo operations may skip states ✅
      - [x] Redo after branching may access invalid state ✅
 
+5. **Message Encryption**: ✅ **COMPLETE - DEEP TESTS**
+   - [x] Encryption/Decryption roundtrip ✅
+     - [x] encrypt then decrypt returns original ✅
+     - [x] Empty string roundtrip ✅
+     - [x] Unicode characters roundtrip ✅
+     - [x] Large messages roundtrip ✅
+   - [x] Nonce uniqueness ✅
+     - [x] Same plaintext produces different ciphertexts ✅
+     - [x] Different nonces for each encryption ✅
+   - [x] Key derivation properties ✅
+     - [x] Same inputs produce same key (deterministic) ✅
+     - [x] Different sessions produce different keys ✅
+     - [x] Different secrets produce different keys ✅
+   - [x] Security properties ✅
+     - [x] Wrong key fails decryption ✅
+     - [x] Modified ciphertext fails decryption ✅
+     - [x] Modified nonce fails decryption ✅
+     - [x] Modified salt fails decryption ✅
+   - [x] Bug detection ✅
+     - [x] Base64 validation gaps ✅
+     - [x] Nonce/salt length validation gaps ✅
+     - [x] Timing attack vulnerabilities ✅
+     - [x] Empty key handling ✅
+
 **Test Files Needed**:
 ```
 packages/console/app/test/property/
 ├── ReducerProps.purs ✅ CREATED
 ├── FormatterProps.purs ✅ CREATED
 ├── ProviderProps.purs ✅ CREATED
-└── UndoRedoProps.purs ✅ CREATED - DEEP TESTS
+├── UndoRedoProps.purs ✅ CREATED - DEEP TESTS
+└── MessageEncryptionProps.purs ✅ CREATED - DEEP TESTS
 ```
 
 #### Haskell Property Tests

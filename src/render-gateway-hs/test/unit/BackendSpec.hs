@@ -280,7 +280,7 @@ spec = describe "Backend Unit Tests" $ do
       -- BUG: recordBackendSuccess (line 83-84) first records success, then releases.
       -- If releaseBackend somehow fails (though it's pure STM), the success is
       -- already recorded, leading to inconsistent state. However, STM transactions
-      -- are atomic, so this shouldn't happen in practice.
+      -- are atomic, so this is prevented in practice.
       backend <- createTestBackend "b1" Nunchaku "wan" ["model1"] "localhost:8000" 10
       clock <- atomically createClock
       _ <- startClockThread clock

@@ -242,7 +242,7 @@ spec = describe "Billing NVXT Unit Tests" $ do
     it "BUG: may not preserve FIFO order if queue is modified concurrently" $ do
       -- BUG: drainTQueue (line 186-193) drains queue recursively, but if items
       -- are added concurrently while draining, the order may not be FIFO.
-      -- However, STM transactions are atomic, so this shouldn't happen in practice.
+      -- However, STM transactions are atomic, so this is prevented in practice.
       collector <- atomically createNVXTCollector
       requestId1 <- nextRandom
       requestId2 <- nextRandom
@@ -260,7 +260,7 @@ spec = describe "Billing NVXT Unit Tests" $ do
     it "BUG: may not drain all items if queue is modified during drain" $ do
       -- BUG: drainTQueue uses recursive tryReadTQueue, but if items are added
       -- concurrently while draining, they may not be included in the drained list.
-      -- However, STM transactions ensure atomicity, so this shouldn't happen.
+      -- However, STM transactions ensure atomicity, so this is prevented.
       collector <- atomically createNVXTCollector
       requestId <- nextRandom
       

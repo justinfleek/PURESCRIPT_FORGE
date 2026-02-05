@@ -708,7 +708,7 @@ spec = describe "Gateway ↔ Rate Limiter Integration Deep Tests" $ do
       -- BUG: While STM transactions are atomic, the order of operations in acquireToken
       -- (line 54-62) could theoretically allow race conditions if multiple threads
       -- acquire tokens concurrently. However, STM serializes transactions, so this
-      -- shouldn't happen in practice. The real issue is if refillTokens and token
+      -- is prevented in practice. The real issue is if refillTokens and token
       -- acquisition happen in separate transactions.
       now <- getCurrentTime
       rl <- atomically $ createRateLimiter 10.0 1.0 now  -- Capacity: 10, Refill: 1/sec
@@ -755,4 +755,4 @@ spec = describe "Gateway ↔ Rate Limiter Integration Deep Tests" $ do
       
       -- BUG: The real issue is if refillTokens and acquireToken are called separately
       -- in different transactions, allowing tokens to exceed capacity temporarily.
-      -- However, since acquireToken always calls refillTokens first, this shouldn't happen.
+      -- However, since acquireToken always calls refillTokens first, this is prevented.

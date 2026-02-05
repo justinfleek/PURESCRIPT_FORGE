@@ -237,7 +237,7 @@ spec = describe "CircuitBreaker Unit Tests" $ do
       let config = CircuitBreakerConfig 0.5 3 60 100
       cb <- atomically $ createCircuitBreaker now config
       
-      -- Record failure with zero total requests (shouldn't happen, but could)
+      -- Record failure with zero total requests (edge case test)
       -- Actually, recordFailure increments totalRequests first (line 110),
       -- so totalRequests will be 1, not 0. But if there's a bug where
       -- totalRequests is 0, the calculation would be wrong.
@@ -387,7 +387,7 @@ spec = describe "CircuitBreaker Unit Tests" $ do
       
       -- Open circuit
       atomically $ writeTVar (cbState cb) (CircuitOpen now)
-      -- Set some successes (shouldn't happen, but could due to bugs)
+      -- Set some successes (edge case test)
       atomically $ writeTVar (cbSuccesses cb) 5
       
       -- Advance time past timeout

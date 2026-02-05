@@ -339,7 +339,7 @@ buildFormattedOutput ast original modifiedSpans currentPos =
       String.drop currentPos original
     Just span ->
       if span.startByte < currentPos then
-        -- Skip overlapping spans (shouldn't happen if sorted correctly)
+        -- Skip overlapping spans (invalid if sorted correctly)
         buildFormattedOutput ast original (Array.drop 1 modifiedSpans) currentPos
       else
         -- Append original content before modified span

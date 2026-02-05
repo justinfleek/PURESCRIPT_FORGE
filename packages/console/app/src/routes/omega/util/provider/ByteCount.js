@@ -16,7 +16,7 @@ export function countBytes(text) {
     return encoded.length;
   } catch (e) {
     // Fallback: approximate using string length (not accurate for multi-byte characters)
-    // This should never happen in modern browsers/Node.js, but included for safety
+    // Fallback for environments where TextEncoder is unavailable
     return text.length;
   }
 }

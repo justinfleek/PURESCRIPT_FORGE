@@ -120,7 +120,7 @@ spec = describe "Compliance AuditTrail Unit Tests" $ do
     it "BUG: doesn't validate that entry's previous hash matches chain's current hash" $ do
       -- BUG: appendToChain (line 80-86) appends entry without validating that
       -- entry's previousHash matches the chain's currentHash. If they don't match,
-      -- the chain will be broken, but appendToChain doesn't detect this.
+      -- the chain will be invalid, but appendToChain doesn't detect this.
       let content1 = Text.encodeUtf8 "content1"
       let content2 = Text.encodeUtf8 "content2"
       
@@ -134,7 +134,7 @@ spec = describe "Compliance AuditTrail Unit Tests" $ do
       -- appendToChain doesn't validate, so broken chain is created
       let chain2 = appendToChain chain1 entry2
       length (hcEntries chain2) `shouldBe` 2
-      -- Chain is broken but appendToChain doesn't detect it
+      -- Chain is invalid but appendToChain doesn't detect it
 
     it "BUG: updates current hash incorrectly if previous hash doesn't match" $ do
       -- BUG: appendToChain (line 83-85) updates currentHash based on entry's

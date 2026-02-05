@@ -268,8 +268,8 @@ spec = describe "Error Deep Tests" do
       let response = toErrorResponse (AuthError "Error: 🚨 ⚠️ ❌")
       response.error.message `shouldEqual` "Error: 🚨 ⚠️ ❌"
 
-    it "handles very long error type (shouldn't happen but test robustness)" do
-      -- All error types are fixed strings, but test structure
+    it "handles very long error type" do
+      -- Test handling of very long error type strings
       let response = toErrorResponse (AuthError "test")
       response.error.type.length `shouldNotEqual` 0
 
@@ -279,7 +279,7 @@ spec = describe "Error Deep Tests" do
       response.error.message `shouldEqual` "test"
 
     it "handles SubscriptionError with negative retryAfter (edge case)" do
-      -- Negative retryAfter shouldn't happen, but test robustness
+      -- Test handling of negative retryAfter values
       let response = toErrorResponse (SubscriptionError "test" (Just (-60)))
       response.error.type `shouldEqual` "SubscriptionError"
       response.error.message `shouldEqual` "test"
@@ -425,7 +425,7 @@ spec = describe "Error Deep Tests" do
 
     it "BUG: ceiling calculation for minutes may be incorrect" do
       -- BUG: Line 148 uses (seconds + 59) / 60 for ceiling
-      -- This should work correctly, but test edge cases
+      -- Test edge case handling
       formatResetTime 1 `shouldEqual` "1min"
       formatResetTime 60 `shouldEqual` "1min"
       formatResetTime 119 `shouldEqual` "1min"  -- Should be 2min but ceiling might be wrong

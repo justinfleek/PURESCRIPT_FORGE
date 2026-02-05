@@ -274,7 +274,7 @@ spec = describe "Auth Deep Tests" do
       authInfo.billing.balance `shouldEqual` 0
 
     it "handles negative balance (edge case)" do
-      -- Negative balance shouldn't happen, but test robustness
+      -- Test handling of negative balance values
       let authData = mkMockAuthData { billing = mkMockAuthData.billing { balance = (-1000) } }
       let authInfo = buildAuthInfo authData
       authInfo.billing.balance `shouldEqual` (-1000)

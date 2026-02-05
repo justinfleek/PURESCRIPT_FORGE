@@ -248,7 +248,7 @@ spec = describe "Gateway ↔ Job Store Integration Deep Tests" $ do
     it "BUG: getJob may return stale data during concurrent update" $ do
       -- BUG: While STM transactions are atomic, if getJob and updateJob are called
       -- in separate transactions, getJob may read state before updateJob completes.
-      -- However, STM serializes transactions, so this shouldn't happen in practice.
+      -- However, STM serializes transactions, so this is prevented in practice.
       -- The real issue is if getJob reads, then updateJob modifies, then getJob's
       -- result is used - the result may be stale.
       store <- atomically createJobStore
@@ -824,7 +824,7 @@ spec = describe "Gateway ↔ Job Store Integration Deep Tests" $ do
     it "BUG: getJob may return job that was just deleted" $ do
       -- BUG: While STM transactions are atomic, if getJob and deleteJob are called
       -- in separate transactions, getJob may return a job that is deleted immediately
-      -- after. However, STM serializes transactions, so this shouldn't happen in practice.
+      -- after. However, STM serializes transactions, so this is prevented in practice.
       -- The real issue is if getJob's result is used after deleteJob commits.
       store <- atomically createJobStore
       now <- getCurrentTime

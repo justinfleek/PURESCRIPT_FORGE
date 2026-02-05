@@ -157,7 +157,7 @@ spec = describe "Reload Deep Tests" do
       shouldReload authInfo costInfo `shouldEqual` true
 
     it "handles negative balance (edge case)" do
-      -- Negative balance shouldn't happen, but test robustness
+      -- Test handling of negative balance values
       let authInfo = mkMockAuthInfo
         { billing = mkMockAuthInfo.billing { balance = (-100000) } }  -- -$1
       let costInfo = mkMockCostInfo { costInMicroCents = 100000 }  -- $0.10 cost
@@ -241,7 +241,7 @@ spec = describe "Reload Deep Tests" do
       shouldReload authInfo costInfo `shouldEqual` true
 
     it "handles negative reloadTrigger (edge case)" do
-      -- Negative threshold shouldn't happen, but test robustness
+      -- Test handling of negative threshold values
       let authInfo = mkMockAuthInfo
         { billing = mkMockAuthInfo.billing
             { balance = 100000  -- $1

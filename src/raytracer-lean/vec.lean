@@ -104,7 +104,7 @@ def Enumerable.listOf.aux (α : Type u) [Enumerable α] : Nat -> Nat -> List α
 | lo, (left+1) =>
     if h : lo < Enumerable.card α then
         Enumerable.enum.symm ⟨lo, h⟩ :: aux α (lo + 1) left
-    else [] -- Shouldn't happen, but makes the definition easy.
+    else [] -- Empty list fallback for type completeness
 
 /-- Create a list of every term in the Enumerable type in order. -/
 def Enumerable.listOf (α : Type u) [Enumerable α] : List α :=

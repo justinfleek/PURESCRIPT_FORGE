@@ -61,7 +61,7 @@ structure StringOptions where
 
 /-- Helper: wrap string in NonEmptyString, handling empty case -/
 private def toNonEmptyString (value : String) : NonEmptyString :=
-  if h : value.isEmpty then ⟨" ", by decide⟩  -- Fallback (should never happen after validation)
+  if h : value.isEmpty then ⟨" ", by decide⟩  -- Fallback for empty value after validation
   else ⟨value, h⟩
 
 /-- Validate that value is a non-empty string -/

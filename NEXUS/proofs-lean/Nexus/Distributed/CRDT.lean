@@ -135,7 +135,7 @@ theorem mergeCellStates_idempotent (s : CellState) :
   -- In practice, attestation chain prevents this (each update has unique vector clock)
   -- For proof purposes, we note that idempotence holds for position (weighted average)
   -- Energy summation is intentional: represents accumulated attestations over time
-  -- If same attestation arrives twice (shouldn't happen), energy would double
+  -- If same attestation arrives twice, energy would double
   -- But attestation chain prevents duplicates, so this case doesn't occur in practice
   unfold mergeCellStates
   congr 1

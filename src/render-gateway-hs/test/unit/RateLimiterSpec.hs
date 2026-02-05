@@ -333,12 +333,12 @@ spec = describe "RateLimiter Unit Tests" $ do
     it "BUG: getTokenCount may return negative tokens" $ do
       -- BUG: getTokenCount (line 72-75) calls refillTokens, which should
       -- ensure tokens >= 0. However, if tokens were manually set to negative
-      -- (which shouldn't happen, but could due to bugs), getTokenCount will
+      -- (edge case test), getTokenCount will
       -- return negative tokens.
       now <- getCurrentTime
       rl <- atomically $ createRateLimiter 100.0 10.0 now
       
-      -- Manually set tokens to negative (shouldn't happen, but could due to bugs)
+      -- Manually set tokens to negative (edge case test)
       atomically $ writeTVar (rlTokens rl) (-10.0)
       
       tokenCount <- atomically $ getTokenCount rl now

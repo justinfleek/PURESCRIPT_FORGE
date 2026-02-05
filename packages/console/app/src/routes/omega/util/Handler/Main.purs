@@ -17,7 +17,7 @@ import Effect.Aff (Aff)
 import Effect (Effect)
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
-import Data.Array (filter, find)
+import Data.Array (filter, find, traverse)
 import Data.String as String
 import Foreign.Object as Object
 import Console.App.FFI.SolidStart (APIEvent, Response)
@@ -29,6 +29,9 @@ import Console.App.Routes.Omega.Util.Handler.Auth (authenticate)
 import Console.App.Routes.Omega.Util.Handler.Cost (calculateCost)
 import Console.App.Routes.Omega.Util.Handler.Reload (checkReload)
 import Console.App.Routes.Omega.Util.Provider.Provider (UsageInfo, CommonRequest, CommonMessage, createBodyConverter, createStreamPartConverter, createResponseConverter, normalizeUsage, parseProviderFormat, ProviderFormat(..), enrichUsageWithBytes)
+import Console.App.Routes.Omega.Util.MessageEncryptionHelpers (encryptMessageForStorage, decryptMessageFromStorage, encryptMessageForTransmission, decryptMessageFromTransmission)
+import Data.Array (mapMaybe)
+import Console.App.Routes.Omega.Util.MessageEncryption (deriveSessionKey)
 
 -- | Handler options - all pure PureScript types
 type HandlerOptions =
@@ -124,8 +127,8 @@ handleOmegaRequest event opts = do
   
   -- Handle response
   if isStream
-    then handleStreamingResponse providerInfo opts.format res startTimestamp authInfo modelInfo billingSource dataDumper trialLimiter rateLimiter commonRequest
-    else handleNonStreamingResponse providerInfo opts.format res authInfo modelInfo billingSource dataDumper trialLimiter rateLimiter commonRequest
+    then handleStreamingResponse providerInfo opts.format res startTimestamp authInfo modelInfo billingSource dataDumper trialLimiter rateLimiter commonRequest sessionId
+    else handleNonStreamingResponse providerInfo opts.format res authInfo modelInfo billingSource dataDumper trialLimiter rateLimiter commonRequest sessionId
 
   where
   -- Retriable request function (pure PureScript)
@@ -166,7 +169,14 @@ handleOmegaRequest event opts = do
     -- Convert body format if needed
     let inputFormat = fromMaybe OpenAI $ parseProviderFormat opts.format
     let outputFormat = fromMaybe OpenAI $ parseProviderFormat providerInfo.format
-    let commonRequest = createBodyConverter inputFormat outputFormat (parseJson body)
+    let commonRequestRaw = createBodyConverter inputFormat outputFormat (parseJson body)
+    -- Decrypt incoming messages if they're encrypted (client may send encrypted)
+    -- This ensures total privacy - server decrypts only for processing
+    sessionKey <- getSessionEncryptionKey sessionId
+    let messagesRaw = commonRequestRaw.messages
+    decryptedMessages <- traverse (\msg -> decryptMessageFromTransmission msg sessionKey) messagesRaw
+    let messagesDecrypted = mapMaybe identity decryptedMessages
+    let commonRequest = commonRequestRaw { messages = messagesDecrypted }
     let providerRequestJson = convertToProviderRequest providerInfo.format (stringifyJson commonRequest) providerInfo.model
     let reqBody = providerInfo.modifyBody providerRequestJson
     
@@ -194,7 +204,7 @@ handleOmegaRequest event opts = do
         body
         headers
         opts
-      else pure { providerInfo, reqBody, res, startTimestamp }
+      else pure { providerInfo, reqBody, res, startTimestamp, commonRequest }
   
   -- Handle non-streaming response (pure PureScript)
   handleNonStreamingResponse ::
@@ -207,8 +217,10 @@ handleOmegaRequest event opts = do
     DataDumper ->
     TrialLimiter ->
     RateLimiter ->
+    CommonRequest ->
+    String ->
     Aff Response
-  handleNonStreamingResponse providerInfo format res authInfo modelInfo billingSource dataDumper trialLimiter rateLimiter = do
+  handleNonStreamingResponse providerInfo format res authInfo modelInfo billingSource dataDumper trialLimiter rateLimiter commonRequest sessionId = do
     let responseConverter = createResponseConverter providerInfo.format format
     let json = parseJson res.body
     let convertedJson = responseConverter json
@@ -228,6 +240,22 @@ handleOmegaRequest event opts = do
     let usage = enrichUsageWithBytes usageBase inputMessages outputMessages
     trialLimiter.track usage
     rateLimiter.track
+    
+    -- Encrypt messages before storage (if session key available)
+    -- Note: Messages are encrypted at rest for total privacy
+    -- Server decrypts only for processing, then re-encrypts for storage
+    sessionKey <- getSessionEncryptionKey sessionId
+    encryptedInputMessages <- traverse (\msg -> encryptMessageForStorage msg sessionKey) inputMessages
+    encryptedOutputMessages <- traverse (\msg -> encryptMessageForStorage msg sessionKey) outputMessages
+    -- Store encrypted messages (FFI boundary)
+    storeEncryptedMessages sessionId encryptedInputMessages encryptedOutputMessages
+    
+    -- Load and decrypt any stored message history for context
+    -- (if needed for conversation continuity)
+    storedMessages <- loadEncryptedMessages sessionId
+    decryptedStoredMessages <- traverse (\msg -> decryptMessageFromStorage msg sessionKey) storedMessages
+    let historicalMessages = mapMaybe identity decryptedStoredMessages
+    -- Historical messages can be used for context if needed
     
     costInfo <- trackUsage authInfo modelInfo providerInfo billingSource usage
     checkReload authInfo costInfo
@@ -253,6 +281,13 @@ handleOmegaRequest event opts = do
     Aff Response
   handleStreamingResponse providerInfo format res startTimestamp authInfo modelInfo billingSource dataDumper trialLimiter rateLimiter commonRequest = do
     let streamConverter = createStreamPartConverter providerInfo.format format
+    
+    -- Encrypt messages before storage (streaming responses)
+    sessionKey <- getSessionEncryptionKey sessionId
+    let inputMessages = extractMessagesFromRequest commonRequest
+    encryptedInputMessages <- traverse (\msg -> encryptMessageForStorage msg sessionKey) inputMessages
+    -- Store encrypted input messages (output messages handled in stream)
+    storeEncryptedMessages sessionId encryptedInputMessages []
     
     -- Create stream (FFI boundary - ReadableStream)
     stream <- createStream
@@ -330,6 +365,9 @@ handleOmegaRequest event opts = do
   foreign import extractUsageFromResponse :: String -> JsonValue -> String
   foreign import extractMessagesFromRequest :: CommonRequest -> Array CommonMessage
   foreign import extractMessagesFromResponse :: JsonValue -> Array CommonMessage
+  foreign import getSessionEncryptionKey :: String -> Aff String
+  foreign import storeEncryptedMessages :: String -> Array CommonMessage -> Array CommonMessage -> Aff Unit
+  foreign import loadEncryptedMessages :: String -> Aff (Array CommonMessage)
   foreign import convertToProviderRequest :: String -> JsonValue -> String -> JsonValue
   foreign import modifyHeadersFFI :: RequestHeaders -> String -> String -> (String -> String -> String -> Unit) -> Aff RequestHeaders
   foreign import trackUsage :: Maybe AuthInfo -> ModelInfo -> ProviderData -> BillingSource -> UsageInfo -> Aff CostInfo

@@ -286,7 +286,7 @@ spec = describe "Provider Deep Tests" do
       normalized.cacheReadTokens `shouldEqual` Just 0
 
     it "handles negative values (edge case)" do
-      -- Negative tokens shouldn't happen, but test robustness
+      -- Test handling of negative token values
       let usage = mkMockCommonUsage
         { inputTokens = Just (-100)
         , outputTokens = Just (-50)

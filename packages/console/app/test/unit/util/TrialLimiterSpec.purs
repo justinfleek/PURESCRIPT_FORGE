@@ -116,11 +116,11 @@ spec = describe "TrialLimiter Deep Tests" do
       isTrial 1 0 `shouldEqual` false
 
     it "handles negative usage (edge case)" do
-      -- Negative usage shouldn't happen, but test robustness
+      -- Test handling of negative usage values
       isTrial (-10) 100 `shouldEqual` true
 
     it "handles negative limit (edge case)" do
-      -- Negative limit shouldn't happen, but test robustness
+      -- Test handling of negative limit values
       isTrial 50 (-100) `shouldEqual` false
 
     it "handles very large usage" do
@@ -175,7 +175,7 @@ spec = describe "TrialLimiter Deep Tests" do
       calculateUsage info `shouldEqual` 0
 
     it "handles negative token values (edge case)" do
-      -- Negative tokens shouldn't happen, but test robustness
+      -- Test handling of negative token values
       let info = 
             { inputTokens: (-10)
             , outputTokens: 20

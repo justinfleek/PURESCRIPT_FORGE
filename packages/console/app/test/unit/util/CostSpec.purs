@@ -179,7 +179,7 @@ spec = describe "Cost Deep Tests" do
       -- BUG: Line 43 uses `fromMaybe modelInfo.cost modelInfo.cost200K`
       -- This means if cost200K is Nothing, it uses standard cost
       -- But shouldUse200KCost checks `isJust modelInfo.cost200K` first
-      -- So this case should never happen, but if it does, it's wrong
+      -- This case indicates invalid input data
       let modelInfo = mkMockModelInfo  -- No cost200K
       let usageInfo = mkMockUsageInfo { inputTokens = 300000 }  -- Above threshold
       let costInfo = calculateCost modelInfo usageInfo
@@ -197,7 +197,7 @@ spec = describe "Cost Deep Tests" do
       costInfo.costInMicroCents `shouldEqual` (centsToMicroCents 0)
 
     it "handles negative tokens (edge case)" do
-      -- Negative tokens shouldn't happen, but test robustness
+      -- Test handling of negative token values
       let modelInfo = mkMockModelInfo
       let usageInfo = mkMockUsageInfo { inputTokens = (-100) }
       let costInfo = calculateCost modelInfo usageInfo
@@ -352,7 +352,7 @@ spec = describe "Cost Deep Tests" do
 
     it "detects bug: fromMaybe logic when cost200K is Nothing" do
       -- If shouldUse200KCost returns true but cost200K is Nothing,
-      -- fromMaybe uses standard cost (should never happen due to isJust check)
+      -- fromMaybe uses standard cost when provider cost is unavailable
       let modelInfo = mkMockModelInfo  -- No cost200K
       let usageInfo = mkMockUsageInfo { inputTokens = 300000 }
       let costInfo = calculateCost modelInfo usageInfo

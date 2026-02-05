@@ -3550,7 +3550,7 @@ propertyTests = describe "Property Tests" $ do
         result <- processRequest gatewayState
         case result of
           Just (_, _) -> pure () -- Backend acquired
-          Nothing -> pure () -- No backend (shouldn't happen with high capacity)
+          Nothing -> pure () -- No backend available
     
     -- Release all backends (simulate completion)
     atomically $ do

@@ -373,7 +373,7 @@ spec = describe "Core Unit Tests" $ do
       -- BUG: processRequest (line 168-175) checks if job was cancelled before
       -- requeueing, but if the job is cancelled between the check and enqueueJob,
       -- it may still be requeued. However, STM transactions ensure atomicity,
-      -- so this shouldn't happen in practice.
+      -- so this is prevented in practice.
       gatewayState <- createTestGatewayState
       job <- createTestJob "j1" Normal Queued
       

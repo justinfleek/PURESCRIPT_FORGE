@@ -215,7 +215,7 @@ handleMessage :: WSClient -> String -> Effect Unit
 handleMessage client message = do
   -- Try to parse as ServerMessage first (for notifications/updates)
   case jsonParser message of
-    Left _ -> pure unit  -- Not JSON, skip
+    Left _ -> pure unit  -- Invalid JSON, ignore
     Right json -> case decodeJson json :: Either JsonDecodeError ServerMessage of
       Right serverMsg -> do
         -- This is a ServerMessage (BalanceUpdate, Notification, etc.)

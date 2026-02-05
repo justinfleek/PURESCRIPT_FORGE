@@ -237,7 +237,7 @@ spec = describe "Validation Deep Tests" do
       pure unit
 
     it "handles negative limit (edge case)" do
-      -- Negative limit shouldn't happen, but test robustness
+      -- Test handling of negative limit values
       pure unit
 
     it "handles very large limit" do
@@ -266,7 +266,7 @@ spec = describe "Validation Deep Tests" do
       pure unit
 
     it "handles negative balance (edge case)" do
-      -- Negative balance shouldn't happen, but test robustness
+      -- Test handling of negative balance values
       let authInfo = mkMockAuthInfo
         { billing = mkMockAuthInfo.billing { balance = (-1000) } }
       -- Should fail balance check

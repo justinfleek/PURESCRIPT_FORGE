@@ -73,7 +73,7 @@ spec = describe "Queue Unit Tests" $ do
       -- inconsistent with actual queue contents.
       queue <- atomically createQueue
       
-      -- Manually set size counter to wrong value (shouldn't happen, but could)
+      -- Manually set size counter to wrong value (edge case test)
       atomically $ writeTVar (rqSize queue) 10
       
       size <- atomically $ queueSize queue
@@ -256,7 +256,7 @@ spec = describe "Queue Unit Tests" $ do
       -- checking high and normal, tryDequeueJob may return Nothing even
       -- though high queue has a job.
       --
-      -- Actually, STM ensures atomicity, so this shouldn't happen within
+      -- Actually, STM ensures atomicity, so this is prevented within
       -- a single transaction. But if tryDequeueJob is called multiple times
       -- concurrently, race conditions can occur.
       now <- getCurrentTime

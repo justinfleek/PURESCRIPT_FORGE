@@ -415,7 +415,7 @@ spec = describe "Gateway ↔ Circuit Breaker Integration Deep Tests" $ do
       -- BUG: When transitioning from half-open to closed (line 82-86 in CircuitBreaker.hs),
       -- statistics are reset. But if window reset happens at the same time (line 66-70),
       -- there could be a race condition where statistics are reset twice or inconsistently.
-      -- However, since both operations are in the same STM transaction, this shouldn't happen.
+      -- However, since both operations are in the same STM transaction, this is prevented.
       -- The real bug is that window reset happens BEFORE state transition check, so if window
       -- resets during the transition, statistics might be inconsistent.
       now <- getCurrentTime
@@ -518,7 +518,7 @@ spec = describe "Gateway ↔ Circuit Breaker Integration Deep Tests" $ do
       -- 1. Thread A: recordSuccess (window reset, then increment successes)
       -- 2. Thread B: recordFailure (window reset, then increment failures)
       -- If both happen concurrently, window reset might happen twice, or statistics
-      -- might be inconsistent. However, STM serializes transactions, so this shouldn't happen.
+      -- might be inconsistent. However, STM serializes transactions, so this is prevented.
       -- The real issue is if operations are not properly atomic within the transaction.
       now <- getCurrentTime
       cb <- atomically $ createCircuitBreaker now (CircuitBreakerConfig 0.5 3 60 100)
@@ -630,7 +630,7 @@ spec = describe "Gateway ↔ Circuit Breaker Integration Deep Tests" $ do
       -- If totalRequests is 0, it uses 1.0 as divisor, making failureRate = failures / 1.0 = failures.
       -- This is correct behavior (avoids division by zero), but if totalRequests is 0 and
       -- failures is also 0, failureRate = 0/1 = 0, so circuit never opens (correct).
-      -- However, if failures > 0 but totalRequests is 0 (shouldn't happen), failureRate = failures,
+      -- However, if failures > 0 but totalRequests is 0, failureRate = failures,
       -- which might incorrectly open circuit.
       now <- getCurrentTime
       cb <- atomically $ createCircuitBreaker now (CircuitBreakerConfig 0.5 3 60 100)
@@ -647,7 +647,7 @@ spec = describe "Gateway ↔ Circuit Breaker Integration Deep Tests" $ do
       -- Reset circuit for next test
       atomically $ resetCircuitBreaker cb now
       
-      -- BUG: If totalRequests is 0 (shouldn't happen, but test edge case)
+      -- BUG: If totalRequests is 0 (edge case test)
       -- and failures is also 0, failureRate = 0/1 = 0, circuit doesn't open (correct)
       -- But if failures > 0 and totalRequests is 0, failureRate = failures/1 = failures,
       -- which might incorrectly open circuit if failures >= threshold
@@ -668,4 +668,4 @@ spec = describe "Gateway ↔ Circuit Breaker Integration Deep Tests" $ do
       
       -- BUG: The max 1.0 divisor prevents division by zero, but if totalRequests is 0
       -- and failures > 0, failureRate calculation might be incorrect.
-      -- However, in practice, totalRequests is always >= failures, so this shouldn't happen.
+      -- However, in practice, totalRequests is always >= failures, so this is prevented.

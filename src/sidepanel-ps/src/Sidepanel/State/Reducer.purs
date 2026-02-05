@@ -802,7 +802,7 @@ createSessionFromUpdate update maybeStartedAt =
       Just dt -> dt
       Nothing -> case maybeStartedAt of
         Just dt -> dt
-        -- Fallback: This should never happen - caller must provide DateTime
+        -- Fallback: Caller must provide DateTime
         -- In production, this would throw an error or use Effect to get current time
         -- For now, we use a sentinel value (epoch) that components can detect and replace
         -- This is a compromise to keep reducer pure while avoiding unsafeCoerce

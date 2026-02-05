@@ -1,26 +1,34 @@
-// Omega V1 Messages Route FFI
-// Wraps omega handler with Anthropic format
+// Messages Route FFI
+// Only contains FFI implementations for PureScript foreign imports
+// Route handler is implemented in Messages.purs
 
-import { handler } from "../util/Handler.js";
-
-export const handleMessagesPOST = async (event) => {
-  return handler(event, {
-    format: "anthropic",
-    parseApiKey: (headers) => headers.get("x-api-key") ?? undefined,
-    parseModel: (url, body) => body.model,
-    parseIsStream: (url, body) => !!body.stream,
-  });
-};
-
-export const getBodyModel = (body) => {
-  return body.model || "";
-};
-
-export const getBodyStream = (body) => {
-  return !!body.stream;
-};
-
-export const getHeaderFromForeign = (headers, name) => {
-  const value = headers.get(name);
-  return value === null ? null : value;
-};
+// Parse JSON field from request body (FFI boundary - JSON parsing)
+export function parseJsonField(body, fieldName) {
+  if (typeof body !== "string" || typeof fieldName !== "string") {
+    return "";
+  }
+  
+  try {
+    const json = JSON.parse(body);
+    if (json === null || typeof json !== "object") {
+      return "";
+    }
+    
+    const value = json[fieldName];
+    if (value === null || value === undefined) {
+      return "";
+    }
+    
+    if (typeof value === "string") {
+      return value;
+    }
+    
+    if (typeof value === "boolean") {
+      return value ? "true" : "false";
+    }
+    
+    return String(value);
+  } catch (e) {
+    return "";
+  }
+}

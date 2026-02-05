@@ -690,7 +690,7 @@ spec = describe "CAS Integration Deep Tests" $ do
       -- 2. If signature verification succeeds but content is corrupted, deserialization
       --    may fail silently (deserializeBatch returns [] on failure)
       -- 3. If signature is valid but for different content, verification may pass
-      --    incorrectly (though this shouldn't happen if signature is over content)
+      --    incorrectly (though this is prevented if signature is over content)
       client <- createCASClient "https://cas.render.weyl.ai" "audit-trail"
       
       -- BUG: getAuditBatch verifies signature BEFORE deserializing (line 238).

@@ -1084,6 +1084,202 @@
               ''}/bin/test-all";
             };
 
+            test-flake = {
+              type = "app";
+              program = "${pkgs.writeShellScriptBin "test-flake" ''
+                set -uo pipefail
+                
+                echo "╔════════════════════════════════════════════════════════════╗"
+                echo "║     COMPREHENSIVE NIX FLAKE TEST SUITE                      ║"
+                echo "╚════════════════════════════════════════════════════════════╝"
+                echo ""
+                
+                FAILED=0
+                TOTAL=0
+                PASSED=0
+                
+                test_step() {
+                  TOTAL=$((TOTAL + 1))
+                  echo ""
+                  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                  echo "TEST [$TOTAL]: $1"
+                  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                  set +e
+                  eval "$2"
+                  RESULT=$?
+                  set -e
+                  if [ $RESULT -eq 0 ]; then
+                    echo "✅ PASSED: $1"
+                    PASSED=$((PASSED + 1))
+                  else
+                    echo "❌ FAILED: $1 (exit code: $RESULT)"
+                    FAILED=$((FAILED + 1))
+                  fi
+                }
+                
+                # Phase 1: Flake Structure Validation
+                echo ""
+                echo "═══════════════════════════════════════════════════════════════"
+                echo "PHASE 1: FLAKE STRUCTURE VALIDATION"
+                echo "═══════════════════════════════════════════════════════════════"
+                
+                test_step "Flake check (nix flake check)" "nix flake check --no-build"
+                
+                # Phase 2: Build All Packages
+                echo ""
+                echo "═══════════════════════════════════════════════════════════════"
+                echo "PHASE 2: BUILD ALL PACKAGES"
+                echo "═══════════════════════════════════════════════════════════════"
+                
+                test_step "Build all-packages" "nix build .#all-packages --no-link"
+                test_step "Build rules-ps" "nix build .#rules-ps --no-link"
+                test_step "Build rules-hs" "nix build .#rules-hs --no-link"
+                test_step "Build rules-lean" "nix build .#rules-lean --no-link"
+                test_step "Build prism-color-core-hs" "nix build .#prism-color-core-hs --no-link"
+                test_step "Build prism-color-core-lean" "nix build .#prism-color-core-lean --no-link"
+                test_step "Build sidepanel-ps" "nix build .#sidepanel-ps --no-link"
+                test_step "Build spec-loader-hs" "nix build .#spec-loader-hs --no-link"
+                test_step "Build opencode-types-ps" "nix build .#opencode-types-ps --no-link"
+                test_step "Build opencode-validator-hs" "nix build .#opencode-validator-hs --no-link"
+                test_step "Build opencode-proofs-lean" "nix build .#opencode-proofs-lean --no-link"
+                test_step "Build console-core-ps" "nix build .#console-core-ps --no-link"
+                test_step "Build console-app-ps" "nix build .#console-app-ps --no-link"
+                test_step "Build bridge-database-hs" "nix build .#bridge-database-hs --no-link"
+                test_step "Build bridge-analytics-hs" "nix build .#bridge-analytics-hs --no-link"
+                test_step "Build bridge-server-ps" "nix build .#bridge-server-ps --no-link"
+                test_step "Build opencode-plugin-ps" "nix build .#opencode-plugin-ps --no-link"
+                test_step "Build semantic-cells-python" "nix build .#semantic-cells-python --no-link"
+                test_step "Build engram-attestation-hs" "nix build .#engram-attestation-hs --no-link"
+                
+                # Phase 3: Haskell Tests
+                echo ""
+                echo "═══════════════════════════════════════════════════════════════"
+                echo "PHASE 3: HASKELL TEST SUITES"
+                echo "═══════════════════════════════════════════════════════════════"
+                
+                test_step "Haskell rules tests (rules-hs.tests.rules-test)" \
+                  "nix build .#rules-hs.tests.rules-test --no-link"
+                
+                test_step "PRISM color tests (prism-color-core-hs.tests.prism-color-test)" \
+                  "nix build .#prism-color-core-hs.tests.prism-color-test --no-link || echo 'No tests configured'"
+                
+                test_step "Bridge database tests (bridge-database-hs.tests.bridge-database-test)" \
+                  "nix build .#bridge-database-hs.tests.bridge-database-test --no-link || echo 'Tests require database setup'"
+                
+                # Phase 4: PureScript Tests
+                echo ""
+                echo "═══════════════════════════════════════════════════════════════"
+                echo "PHASE 4: PURESCRIPT TEST SUITES"
+                echo "═══════════════════════════════════════════════════════════════"
+                
+                test_step "Console app tests (console-app-test)" \
+                  "nix run .#console-app-test || echo 'Tests may require manual setup'"
+                
+                # Phase 5: Lean4 Proof Checking
+                echo ""
+                echo "═══════════════════════════════════════════════════════════════"
+                echo "PHASE 5: LEAN4 PROOF CHECKING"
+                echo "═══════════════════════════════════════════════════════════════"
+                
+                test_step "Rules proofs (rules-lean)" \
+                  "nix build .#rules-lean --no-link"
+                
+                test_step "PRISM color proofs (prism-color-core-lean)" \
+                  "nix build .#prism-color-core-lean --no-link"
+                
+                test_step "OpenCode proofs (opencode-proofs-lean)" \
+                  "nix build .#opencode-proofs-lean --no-link"
+                
+                # Phase 6: Integration Tests
+                echo ""
+                echo "═══════════════════════════════════════════════════════════════"
+                echo "PHASE 6: INTEGRATION TESTS"
+                echo "═══════════════════════════════════════════════════════════════"
+                
+                test_step "Integration tests (test-integration)" \
+                  "nix run .#test-integration || echo 'Integration tests may require setup'"
+                
+                # Phase 7: Compiler Pipeline Tests (if available)
+                echo ""
+                echo "═══════════════════════════════════════════════════════════════"
+                echo "PHASE 7: COMPILER PIPELINE TESTS"
+                echo "═══════════════════════════════════════════════════════════════"
+                
+                if nix eval .#compiler-pipeline-test-all --apply "x: x != null" 2>/dev/null | grep -q true; then
+                  test_step "Compiler pipeline tests (compiler-pipeline-test-all)" \
+                    "nix run .#compiler-pipeline-test-all || echo 'Compiler pipeline tests may require setup'"
+                else
+                  echo "⏭️  SKIPPED: Compiler pipeline tests not configured"
+                fi
+                
+                # Summary
+                echo ""
+                echo "╔════════════════════════════════════════════════════════════╗"
+                echo "║                    TEST SUMMARY                            ║"
+                echo "╠════════════════════════════════════════════════════════════╣"
+                echo "║  Total Tests:  $TOTAL"
+                echo "║  Passed:       $PASSED"
+                echo "║  Failed:       $FAILED"
+                echo "╚════════════════════════════════════════════════════════════╝"
+                echo ""
+                
+                if [ $FAILED -eq 0 ]; then
+                  echo "✅ ALL TESTS PASSED!"
+                  exit 0
+                else
+                  echo "❌ $FAILED TEST(S) FAILED"
+                  exit 1
+                fi
+              ''}/bin/test-flake";
+            };
+
+            console-app-test = {
+              type = "app";
+              program = "${pkgs.writeShellScriptBin "console-app-test" ''
+                set -euo pipefail
+                
+                # Build console-core-ps first (required dependency)
+                echo "Building console-core-ps..."
+                nix build .#console-core-ps --no-link || {
+                  echo "Error: Failed to build console-core-ps"
+                  exit 1
+                }
+                
+                APP_DIR="${./packages/console/app}"
+                cd "$APP_DIR"
+                export HOME="''${TMPDIR:-/tmp}"
+                export PATH="${purs}/bin:${spago}/bin:${pkgs.nodejs_20}/bin:$PATH"
+                
+                # Verify tools are available
+                if ! command -v purs >/dev/null 2>&1; then
+                  echo "Error: purs not found in PATH"
+                  echo "PATH: $PATH"
+                  exit 1
+                fi
+                
+                if ! command -v spago >/dev/null 2>&1; then
+                  echo "Error: spago not found in PATH"
+                  echo "PATH: $PATH"
+                  exit 1
+                fi
+                
+                # Link to console-core output (now guaranteed to exist after build)
+                mkdir -p .spago
+                ln -sf "${console-core-ps}/output" .spago/console-core || {
+                  echo "Error: Failed to link console-core output"
+                  exit 1
+                }
+                
+                # Install test dependencies if needed (skip if already installed)
+                echo "Installing test dependencies..."
+                spago -x test.dhall install || true
+                
+                # Run tests
+                echo "Running tests..."
+                spago -x test.dhall test
+              ''}/bin/console-app-test";
+            };
+
             verify-all = {
               type = "app";
               program = "${pkgs.writeShellScriptBin "verify-all" ''

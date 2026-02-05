@@ -515,7 +515,7 @@ complianceDeepTests = describe "Compliance Deep Tests" $ do
           -- Delta should be very large: (1000 - 0.001) / 0.001 * 100 = 9999900%
           abs delta `shouldSatisfy` (> 9990000.0)
 
-    it "handles negative GPU seconds (edge case - shouldn't happen but test robustness)" $ do
+    it "handles negative GPU seconds (edge case)" $ do
       -- Note: Double can be negative, test edge case
       let chAggs = [ReconciliationAggregates "cust1" "model1" 10 100.0]
       let casAggs = [ReconciliationAggregates "cust1" "model1" 10 (-50.0)] -- Negative value

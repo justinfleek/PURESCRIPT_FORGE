@@ -124,9 +124,13 @@ type CommonTool =
   }
 
 -- | Common message
+-- | Supports both plaintext and encrypted content for end-to-end encryption
 type CommonMessage =
   { role :: MessageRole
-  , content :: Maybe String
+  , content :: Maybe String  -- Plaintext content (decrypted for processing)
+  , encryptedContent :: Maybe String  -- Encrypted content (for storage/transmission)
+  , encryptionNonce :: Maybe String  -- Nonce for encrypted content
+  , encryptionSalt :: Maybe String  -- Salt for encrypted content
   , contentParts :: Maybe (Array CommonContentPart)
   , toolCallId :: Maybe String
   , toolCalls :: Maybe (Array CommonToolCall)
