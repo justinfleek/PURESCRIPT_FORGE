@@ -28,7 +28,7 @@ import Console.App.Routes.Omega.Util.Handler.Provider (selectProvider)
 import Console.App.Routes.Omega.Util.Handler.Auth (authenticate)
 import Console.App.Routes.Omega.Util.Handler.Cost (calculateCost)
 import Console.App.Routes.Omega.Util.Handler.Reload (checkReload)
-import Console.App.Routes.Omega.Util.Provider.Provider (UsageInfo, createBodyConverter, createStreamPartConverter, createResponseConverter, normalizeUsage, parseProviderFormat, ProviderFormat(..))
+import Console.App.Routes.Omega.Util.Provider.Provider (UsageInfo, CommonRequest, CommonMessage, createBodyConverter, createStreamPartConverter, createResponseConverter, normalizeUsage, parseProviderFormat, ProviderFormat(..), enrichUsageWithBytes)
 
 -- | Handler options - all pure PureScript types
 type HandlerOptions =
@@ -113,7 +113,7 @@ handleOmegaRequest event opts = do
     headers
     opts
   
-  let { providerInfo, reqBody, res, startTimestamp } = requestResult
+  let { providerInfo, reqBody, res, startTimestamp, commonRequest } = requestResult
   
   -- Store model request
   dataDumper.provideModel providerInfo.storeModel
@@ -124,8 +124,8 @@ handleOmegaRequest event opts = do
   
   -- Handle response
   if isStream
-    then handleStreamingResponse providerInfo opts.format res startTimestamp authInfo modelInfo billingSource dataDumper trialLimiter rateLimiter
-    else handleNonStreamingResponse providerInfo opts.format res authInfo modelInfo billingSource dataDumper trialLimiter rateLimiter
+    then handleStreamingResponse providerInfo opts.format res startTimestamp authInfo modelInfo billingSource dataDumper trialLimiter rateLimiter commonRequest
+    else handleNonStreamingResponse providerInfo opts.format res authInfo modelInfo billingSource dataDumper trialLimiter rateLimiter commonRequest
 
   where
   -- Retriable request function (pure PureScript)
@@ -142,7 +142,7 @@ handleOmegaRequest event opts = do
     RequestBody ->
     RequestHeaders ->
     HandlerOptions ->
-    Aff { providerInfo :: ProviderData, reqBody :: String, res :: HttpResponse, startTimestamp :: Int }
+    Aff { providerInfo :: ProviderData, reqBody :: String, res :: HttpResponse, startTimestamp :: Int, commonRequest :: CommonRequest }
   retriableRequest reqModel omegaData authInfo modelInfo sessionId isTrial retry stickyProvider isStream body headers opts = do
     -- Select provider (pure PureScript)
     providerSelection <- case selectProvider reqModel omegaData authInfo modelInfo sessionId isTrial retry stickyProvider of
@@ -221,7 +221,11 @@ handleOmegaRequest event opts = do
     dataDumper.flush
     
     let usageJson = extractUsageFromResponse providerInfo.format json
-    let usage = providerInfo.normalizeUsage usageJson
+    let usageBase = providerInfo.normalizeUsage usageJson
+    -- Extract messages for byte counting
+    let inputMessages = extractMessagesFromRequest commonRequest
+    let outputMessages = extractMessagesFromResponse json
+    let usage = enrichUsageWithBytes usageBase inputMessages outputMessages
     trialLimiter.track usage
     rateLimiter.track
     
@@ -245,8 +249,9 @@ handleOmegaRequest event opts = do
     DataDumper ->
     TrialLimiter ->
     RateLimiter ->
+    CommonRequest ->
     Aff Response
-  handleStreamingResponse providerInfo format res startTimestamp authInfo modelInfo billingSource dataDumper trialLimiter rateLimiter = do
+  handleStreamingResponse providerInfo format res startTimestamp authInfo modelInfo billingSource dataDumper trialLimiter rateLimiter commonRequest = do
     let streamConverter = createStreamPartConverter providerInfo.format format
     
     -- Create stream (FFI boundary - ReadableStream)
@@ -323,6 +328,8 @@ handleOmegaRequest event opts = do
   foreign import getCurrentTime :: Aff Int
   foreign import fetchProviderRequest :: String -> String -> RequestHeaders -> ProviderData -> Aff HttpResponse
   foreign import extractUsageFromResponse :: String -> JsonValue -> String
+  foreign import extractMessagesFromRequest :: CommonRequest -> Array CommonMessage
+  foreign import extractMessagesFromResponse :: JsonValue -> Array CommonMessage
   foreign import convertToProviderRequest :: String -> JsonValue -> String -> JsonValue
   foreign import modifyHeadersFFI :: RequestHeaders -> String -> String -> (String -> String -> String -> Unit) -> Aff RequestHeaders
   foreign import trackUsage :: Maybe AuthInfo -> ModelInfo -> ProviderData -> BillingSource -> UsageInfo -> Aff CostInfo

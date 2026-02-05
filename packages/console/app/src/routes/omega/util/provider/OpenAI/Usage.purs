@@ -34,6 +34,7 @@ foreign import parseUsageImpl :: String -> Unit
 foreign import retrieveUsageImpl :: Unit -> Maybe String
 
 -- | Normalize usage from OpenAI format to common format
+-- | Byte counts default to 0 (will be calculated from message content when available)
 normalizeUsage :: String -> UsageInfo
 normalizeUsage usageJson = do
   let usage = parseUsageJson usageJson
@@ -43,6 +44,10 @@ normalizeUsage usageJson = do
   , cacheReadTokens: usage.cacheReadTokens
   , cacheWrite5mTokens: Nothing
   , cacheWrite1hTokens: Nothing
+  , inputBytes: 0
+  , outputBytes: 0
+  , reasoningBytes: Nothing
+  , cacheReadBytes: Nothing
   }
 
 -- | Parse usage JSON (FFI boundary)

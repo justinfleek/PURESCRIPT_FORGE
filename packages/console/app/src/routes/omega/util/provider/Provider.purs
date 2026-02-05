@@ -23,6 +23,7 @@ module Console.App.Routes.Omega.Util.Provider.Provider
   , createBodyConverter
   , createStreamPartConverter
   , createResponseConverter
+  , enrichUsageWithBytes
   ) where
 
 import Prelude
@@ -54,6 +55,8 @@ parseProviderFormat "google" = Just Google
 parseProviderFormat _ = Nothing
 
 -- | Usage info
+-- | Tracks both token counts (from API) and byte counts (calculated from content)
+-- | Byte-level precision enables accurate billing and usage tracking
 type UsageInfo =
   { inputTokens :: Int
   , outputTokens :: Int
@@ -61,6 +64,10 @@ type UsageInfo =
   , cacheReadTokens :: Maybe Int
   , cacheWrite5mTokens :: Maybe Int
   , cacheWrite1hTokens :: Maybe Int
+  , inputBytes :: Int
+  , outputBytes :: Int
+  , reasoningBytes :: Maybe Int
+  , cacheReadBytes :: Maybe Int
   }
 
 -- | Message role
@@ -267,6 +274,7 @@ createResponseConverter from to =
 foreign import convertResponseFormatImpl :: String -> String -> CommonResponse -> CommonResponse
 
 -- | Normalize usage from provider-specific format to common format
+-- | Byte counts default to 0 if not provided (will be calculated from content when available)
 normalizeUsage :: CommonUsage -> UsageInfo
 normalizeUsage usage =
   { inputTokens: case usage.inputTokens of
@@ -285,4 +293,29 @@ normalizeUsage usage =
       Nothing -> usage.cachedTokens
   , cacheWrite5mTokens: usage.cacheCreationEphemeral5mInputTokens
   , cacheWrite1hTokens: usage.cacheCreationEphemeral1hInputTokens
+  , inputBytes: 0
+  , outputBytes: 0
+  , reasoningBytes: Nothing
+  , cacheReadBytes: Nothing
   }
+
+-- | Enrich UsageInfo with byte counts calculated from message content
+-- | Single-byte precision for accurate billing and usage tracking
+enrichUsageWithBytes :: UsageInfo -> Array CommonMessage -> Array CommonMessage -> UsageInfo
+enrichUsageWithBytes usage inputMessages outputMessages =
+  let
+    inputBytesTotal = countBytesInMessages inputMessages
+    outputBytesTotal = countBytesInMessages outputMessages
+    reasoningBytesTotal = case usage.reasoningTokens of
+      Just _ -> Nothing  -- Will be calculated from reasoning content if available
+      Nothing -> Nothing
+    cacheReadBytesTotal = case usage.cacheReadTokens of
+      Just tokens -> Just (tokens * 4)  -- Approximate: ~4 bytes per token
+      Nothing -> Nothing
+  in
+    usage
+      { inputBytes = inputBytesTotal
+      , outputBytes = outputBytesTotal
+      , reasoningBytes = reasoningBytesTotal
+      , cacheReadBytes = cacheReadBytesTotal
+      }

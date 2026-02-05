@@ -97,6 +97,10 @@ export function normalizeUsageImpl(usageJson) {
         cacheReadTokens: null,
         cacheWrite5mTokens: null,
         cacheWrite1hTokens: null,
+        inputBytes: 0,
+        outputBytes: 0,
+        reasoningBytes: null,
+        cacheReadBytes: null,
       };
     }
     
@@ -124,6 +128,10 @@ export function normalizeUsageImpl(usageJson) {
       cacheReadTokens,
       cacheWrite5mTokens: null,
       cacheWrite1hTokens: null,
+      inputBytes: 0,
+      outputBytes: 0,
+      reasoningBytes: null,
+      cacheReadBytes: null,
     };
   } catch (e) {
     return {
@@ -133,6 +141,10 @@ export function normalizeUsageImpl(usageJson) {
       cacheReadTokens: null,
       cacheWrite5mTokens: null,
       cacheWrite1hTokens: null,
+      inputBytes: 0,
+      outputBytes: 0,
+      reasoningBytes: null,
+      cacheReadBytes: null,
     };
   }
 }
