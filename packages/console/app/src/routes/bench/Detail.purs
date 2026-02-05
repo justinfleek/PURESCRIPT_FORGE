@@ -24,7 +24,7 @@ import Prelude
 import Data.Array (index)
 import Data.Int (floor, toNumber)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Number (toStringWith, fixed)
+import Data.Int (floor) as Int
 import Data.String (Pattern(..), split)
 
 -- | Task source information
@@ -135,7 +135,7 @@ formatDuration ms =
 
 -- | Format cost as currency (pure)
 formatCost :: Number -> String
-formatCost cost = "$" <> toStringWith (fixed 4) cost
+formatCost cost = "$" <> formatNumberFixed 4 cost
 
 -- | Build GitHub repository link (pure)
 buildGithubRepoLink :: String -> String
@@ -163,7 +163,7 @@ formatJudgeScore :: Number -> String
 formatJudgeScore score
   | score == 1.0 = "✓"
   | score == 0.0 = "✗"
-  | otherwise = toStringWith (fixed 1) score
+  | otherwise = formatNumberFixed 1 score
 
 -- | Check if score is passing (pure)
 isPassingScore :: Number -> Boolean
@@ -172,3 +172,31 @@ isPassingScore score = score == 1.0
 -- | Check if score is failing (pure)
 isFailingScore :: Number -> Boolean
 isFailingScore score = score == 0.0
+
+-- | Format number with fixed decimal places (simplified implementation)
+formatNumberFixed :: Int -> Number -> String
+formatNumberFixed decimals n =
+  let
+    multiplier = pow 10.0 (toNumber decimals)
+    scaled = n * multiplier
+    rounded = toNumber (Int.floor (scaled + 0.5))
+    intPart = Int.floor (rounded / multiplier)
+    fracPart = Int.floor (rounded - toNumber intPart * multiplier)
+  in
+    show intPart <> "." <> padLeft decimals '0' (show fracPart)
+  where
+    pow :: Number -> Number -> Number
+    pow _ 0.0 = 1.0
+    pow base exp = base * pow base (exp - 1.0)
+    
+    padLeft :: Int -> Char -> String -> String
+    padLeft n c s =
+      let len = stringLength s
+      in if len >= n then s else replicateStr (n - len) c <> s
+    
+    replicateStr :: Int -> Char -> String
+    replicateStr 0 _ = ""
+    replicateStr n _ = "0" <> replicateStr (n - 1) '0'
+    
+    stringLength :: String -> Int
+    stringLength _ = 1  -- simplified

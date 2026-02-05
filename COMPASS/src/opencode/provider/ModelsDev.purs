@@ -1,9 +1,6 @@
 {-|
 Module      : Opencode.Provider.ModelsDev
 Description : models.dev API integration
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = models.dev Integration
 
 Fetches model metadata from models.dev API. This provides the canonical
@@ -51,6 +48,7 @@ import Data.Either (Either(..))
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Array as Array
+import Data.Tuple (Tuple(..))
 import Data.Argonaut (Json, decodeJson, jsonParser, (.:), (.:?))
 import Data.Argonaut.Decode.Error (JsonDecodeError)
 import Data.Traversable (traverse)
@@ -237,8 +235,12 @@ parseModelsData :: Json -> Either JsonDecodeError ModelsData
 parseModelsData json = do
   obj <- decodeJson json
   -- The API returns { providerId: Provider, ... }
-  -- We need to parse each provider
-  pure Map.empty  -- TODO: Implement full parsing
+  -- Parse each provider entry
+  let providerEntries = Map.toUnfoldable obj :: Array (Tuple String Json)
+  providers <- traverse (\(Tuple id providerJson) -> 
+    parseProvider id providerJson
+  ) providerEntries
+  pure $ Map.fromFoldable providers
 
 -- | Parse a single provider
 parseProvider :: String -> Json -> Either JsonDecodeError Provider
@@ -248,14 +250,20 @@ parseProvider id json = do
   api <- obj .:? "api"
   env <- obj .: "env"
   npm <- obj .:? "npm"
-  -- models <- parseModels =<< obj .: "models"
+  modelsJson <- obj .: "models"
+  modelsObj <- decodeJson modelsJson
+  -- Parse each model entry
+  let modelEntries = Map.toUnfoldable modelsObj :: Array (Tuple String Json)
+  models <- traverse (\(Tuple modelId modelJson) -> 
+    parseModel modelId modelJson
+  ) modelEntries
   pure
     { id
     , name
     , api
     , env
     , npm
-    , models: Map.empty  -- TODO: Parse models
+    , models: Map.fromFoldable models
     }
 
 -- | Parse a single model
@@ -269,7 +277,16 @@ parseModel id json = do
   reasoning <- obj .: "reasoning"
   temperature <- obj .: "temperature"
   tool_call <- obj .: "tool_call"
-  -- TODO: Parse remaining fields
+  interleaved <- obj .:? "interleaved" >>= traverse parseInterleaved
+  cost <- obj .:? "cost" >>= traverse parseCost
+  limit <- parseLimit =<< obj .: "limit"
+  modalities <- obj .:? "modalities" >>= traverse parseModalities
+  experimental <- obj .:? "experimental"
+  status <- obj .:? "status"
+  options <- obj .:? "options" # fromMaybe Map.empty
+  headers <- obj .:? "headers" >>= traverse parseHeaders
+  provider <- obj .:? "provider" >>= traverse parseProviderRef
+  variants <- obj .:? "variants"
   pure
     { id
     , name
@@ -279,17 +296,72 @@ parseModel id json = do
     , reasoning
     , temperature
     , tool_call
-    , interleaved: Nothing
-    , cost: Nothing
-    , limit: { context: 128000, input: Nothing, output: 16384 }
-    , modalities: Nothing
-    , experimental: Nothing
-    , status: Nothing
-    , options: Map.empty
-    , headers: Nothing
-    , provider: Nothing
-    , variants: Nothing
+    , interleaved
+    , cost
+    , limit
+    , modalities
+    , experimental
+    , status
+    , options
+    , headers
+    , provider
+    , variants
     }
+  where
+    parseInterleaved :: Json -> Either JsonDecodeError Interleaved
+    parseInterleaved json = do
+      -- Try to decode as boolean first
+      case decodeJson json of
+        Right true -> Right InterleavedTrue
+        Right false -> Right InterleavedTrue  -- false also maps to InterleavedTrue
+        Left _ -> do
+          -- Try to decode as object with field
+          obj <- decodeJson json
+          field <- obj .: "field"
+          Right $ InterleavedField { field }
+    
+    parseCost :: Json -> Either JsonDecodeError ModelCost
+    parseCost json = do
+      obj <- decodeJson json
+      input <- obj .: "input"
+      output <- obj .: "output"
+      cache_read <- obj .:? "cache_read"
+      cache_write <- obj .:? "cache_write"
+      context_over_200k <- obj .:? "context_over_200k" >>= traverse parseContextOver200K
+      pure { input, output, cache_read, cache_write, context_over_200k }
+    
+    parseContextOver200K :: Json -> Either JsonDecodeError ContextOver200K
+    parseContextOver200K json = do
+      obj <- decodeJson json
+      input <- obj .: "input"
+      output <- obj .: "output"
+      cache_read <- obj .:? "cache_read"
+      cache_write <- obj .:? "cache_write"
+      pure { input, output, cache_read, cache_write }
+    
+    parseLimit :: Json -> Either JsonDecodeError ModelLimit
+    parseLimit json = do
+      obj <- decodeJson json
+      context <- obj .: "context"
+      input <- obj .:? "input"
+      output <- obj .: "output"
+      pure { context, input, output }
+    
+    parseModalities :: Json -> Either JsonDecodeError Modalities
+    parseModalities json = do
+      obj <- decodeJson json
+      input <- obj .: "input"
+      output <- obj .: "output"
+      pure { input, output }
+    
+    parseHeaders :: Json -> Either JsonDecodeError (Map String String)
+    parseHeaders json = decodeJson json
+    
+    parseProviderRef :: Json -> Either JsonDecodeError { npm :: String }
+    parseProviderRef json = do
+      obj <- decodeJson json
+      npm <- obj .: "npm"
+      pure { npm }
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- BUNDLED SNAPSHOT (Fallback)

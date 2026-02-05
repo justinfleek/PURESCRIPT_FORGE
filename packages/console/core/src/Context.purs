@@ -9,13 +9,14 @@ module Forge.Console.Core.Context
   , ContextT
   , NotFoundError(..)
   , runContext
-  , ask
-  , local
+  , askContext
+  , localContext
   ) where
 
 import Prelude
 
-import Control.Monad.Reader (ReaderT, ask, local, runReaderT) as Reader
+import Control.Monad.Reader.Trans (ReaderT, runReaderT)
+import Control.Monad.Reader.Class (class MonadReader, ask, local)
 import Data.Either (Either(..))
 
 -- | Error when context is accessed but not provided
@@ -31,16 +32,16 @@ type Context a = a
 
 -- | Context monad transformer
 -- | Threads context through computations using Reader
-type ContextT ctx m = Reader.ReaderT ctx m
+type ContextT ctx m = ReaderT ctx m
 
 -- | Run a computation with provided context
 runContext :: forall ctx m a. ctx -> ContextT ctx m a -> m a
-runContext ctx computation = Reader.runReaderT computation ctx
+runContext ctx computation = runReaderT computation ctx
 
 -- | Access the current context value
-ask :: forall ctx m. Monad m => ContextT ctx m ctx
-ask = Reader.ask
+askContext :: forall ctx m. MonadReader ctx m => m ctx
+askContext = ask
 
 -- | Modify the context for a sub-computation
-local :: forall ctx m a. (ctx -> ctx) -> ContextT ctx m a -> ContextT ctx m a
-local = Reader.local
+localContext :: forall ctx m a. MonadReader ctx m => (ctx -> ctx) -> m a -> m a
+localContext = local

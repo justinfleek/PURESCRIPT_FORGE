@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Bash
 Description : Sandboxed command execution via gVisor
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Bash Tool
 
 Executes shell commands with gVisor sandboxing.

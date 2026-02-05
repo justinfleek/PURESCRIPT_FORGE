@@ -57,12 +57,12 @@ defaultMetadata =
 -- | Maps to SolidJS FileRoutes structure
 data Route
   = Home                          -- /
-  | Zen                           -- /zen
-  | ZenV1ChatCompletions          -- /zen/v1/chat/completions
-  | ZenV1Messages                 -- /zen/v1/messages
-  | ZenV1Models                   -- /zen/v1/models
-  | ZenV1ModelDetail String       -- /zen/v1/models/[model]
-  | ZenV1Responses                -- /zen/v1/responses
+  | Omega                           -- /omega
+  | OmegaV1ChatCompletions          -- /omega/v1/chat/completions
+  | OmegaV1Messages                 -- /omega/v1/messages
+  | OmegaV1Models                   -- /omega/v1/models
+  | OmegaV1ModelDetail String       -- /omega/v1/models/[model]
+  | OmegaV1Responses                -- /omega/v1/responses
   | Black                         -- /black
   | BlackSubscribe String         -- /black/subscribe/[plan]
   | BlackWorkspace                -- /black/workspace
@@ -95,12 +95,12 @@ derive instance eqRoute :: Eq Route
 instance showRoute :: Show Route where
   show = case _ of
     Home -> "Home"
-    Zen -> "Zen"
-    ZenV1ChatCompletions -> "ZenV1ChatCompletions"
-    ZenV1Messages -> "ZenV1Messages"
-    ZenV1Models -> "ZenV1Models"
-    ZenV1ModelDetail m -> "ZenV1ModelDetail(" <> m <> ")"
-    ZenV1Responses -> "ZenV1Responses"
+    Omega -> "Omega"
+    OmegaV1ChatCompletions -> "OmegaV1ChatCompletions"
+    OmegaV1Messages -> "OmegaV1Messages"
+    OmegaV1Models -> "OmegaV1Models"
+    OmegaV1ModelDetail m -> "OmegaV1ModelDetail(" <> m <> ")"
+    OmegaV1Responses -> "OmegaV1Responses"
     Black -> "Black"
     BlackSubscribe p -> "BlackSubscribe(" <> p <> ")"
     BlackWorkspace -> "BlackWorkspace"
@@ -177,11 +177,11 @@ reduce action state = case action of
 metadataForRoute :: Route -> PageMetadata
 metadataForRoute = case _ of
   Home -> defaultMetadata
-  Zen -> 
-    { title: "OpenCode Zen | A curated set of reliable optimized models for coding agents"
-    , description: "Zen gives you access to a curated set of AI models that OpenCode has tested and benchmarked specifically for coding agents."
-    , ogImage: Just "/social-share-zen.png"
-    , canonicalPath: Just "/zen"
+  Omega -> 
+    { title: "OpenCode Omega | A curated set of reliable optimized models for coding agents"
+    , description: "Omega gives you access to a curated set of AI models that OpenCode has tested and benchmarked specifically for coding agents."
+    , ogImage: Just "/social-share-omega.png"
+    , canonicalPath: Just "/omega"
     }
   Black ->
     { title: "OpenCode Black | Premium subscription"

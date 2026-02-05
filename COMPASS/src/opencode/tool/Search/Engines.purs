@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Search.Engines
 Description : Search engine definitions
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Search Engines
 
 Defines all supported search engines and their mappings to SearXNG

@@ -1,9 +1,6 @@
 {-|
 Module      : Opencode.Session.LLMTypes
 Description : Type definitions for LLM API interaction
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = LLM Types
 
 Extracted from LLM.purs to comply with 500-line file limit.

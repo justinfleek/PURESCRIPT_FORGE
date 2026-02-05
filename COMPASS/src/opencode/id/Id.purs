@@ -1,19 +1,35 @@
 -- | ID Generation
--- | TODO: Implement based on _OTHER/opencode-original/packages/opencode/src/id/id.ts
 module Opencode.Id.Id where
 
 import Prelude
 import Effect (Effect)
-import Opencode.Util.NotImplemented (notImplemented)
+import Data.String as String
 
--- | Generate a unique ID
+-- | Generate a unique ID (UUID v4 format)
 generate :: Effect String
-generate = notImplemented "Id.Id.generate"
+generate = generateUUID
+  where
+    foreign import generateUUID :: Effect String
 
--- | Generate a short ID
+-- | Generate a short ID (base62, 8 characters)
 generateShort :: Effect String
-generateShort = notImplemented "Id.Id.generateShort"
+generateShort = generateShortId
+  where
+    foreign import generateShortId :: Effect String
 
 -- | Validate an ID
+-- | Checks that ID is non-empty and contains only valid characters
 isValid :: String -> Boolean
-isValid id = true -- TODO: Implement validation
+isValid id =
+  not (String.null id) &&
+  String.length id >= 1 &&
+  String.length id <= 128 &&
+  String.all isValidChar id
+  where
+    isValidChar :: Char -> Boolean
+    isValidChar c =
+      (c >= 'a' && c <= 'z') ||
+      (c >= 'A' && c <= 'Z') ||
+      (c >= '0' && c <= '9') ||
+      c == '-' ||
+      c == '_'

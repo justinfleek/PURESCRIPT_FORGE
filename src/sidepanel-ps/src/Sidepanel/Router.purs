@@ -55,6 +55,7 @@ data Route
   | Terminal
   | FileContext
   | DiffViewer
+  | Search
   | NotFound
 
 derive instance genericRoute :: Generic Route _
@@ -101,4 +102,5 @@ routeToPanel = case _ of
   Terminal -> TerminalPanel
   FileContext -> FileContextPanel
   DiffViewer -> DiffViewerPanel
+  Search -> DashboardPanel  -- Search is a modal overlay, not a panel
   NotFound -> DashboardPanel

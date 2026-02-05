@@ -22,6 +22,7 @@ data DownloadPlatform
   | LinuxX64AppImage
 
 derive instance eqDownloadPlatform :: Eq DownloadPlatform
+derive instance ordDownloadPlatform :: Ord DownloadPlatform
 
 instance showDownloadPlatform :: Show DownloadPlatform where
   show DarwinAarch64Dmg = "darwin-aarch64-dmg"

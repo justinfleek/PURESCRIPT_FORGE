@@ -166,7 +166,7 @@ renderSession session state =
   HH.div
     [ HP.class_ (H.ClassName "session-panel") ]
     [ renderHeader state.isExporting
-    , renderSessionInfo session
+    , renderSessionInfo session state
     , HH.div
         [ HP.class_ (H.ClassName "session-panel__messages") ]
         [ HH.div [ HP.class_ (H.ClassName "section-title") ] [ HH.text "Message History" ]
@@ -197,8 +197,8 @@ renderHeader isExporting =
         ]
     ]
 
-renderSessionInfo :: forall m. Session -> H.ComponentHTML Action () m
-renderSessionInfo session =
+renderSessionInfo :: forall m. Session -> State -> H.ComponentHTML Action () m
+renderSessionInfo session state =
   HH.div
     [ HP.class_ (H.ClassName "session-info") ]
     [ HH.div

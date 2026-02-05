@@ -21,8 +21,25 @@ type MessageID = String
 -- | Agent identifier
 type AgentID = String
 
--- | Tool metadata (simplified - would be extensible)
-type ToolMetadata = Record String Json
+-- | Tool metadata - sum type for all possible tool metadata
+-- | Each tool defines its own metadata type
+data ToolMetadata
+  = SearchMetadata { query :: String, categories :: Array String, limit :: Int, resultsCount :: Int, searchTimeMs :: Int }
+  | TodoMetadata { todos :: Array { id :: String, content :: String, status :: String, priority :: String } }
+  | BatchMetadata { totalCalls :: Int, successful :: Int, failed :: Int, tools :: Array String }
+  | MultieditMetadata { filePath :: String, relativePath :: String, editsApplied :: Int }
+  | QuestionMetadata { questions :: Array { question :: String, header :: String, options :: Array { label :: String, description :: String } }, answered :: Boolean }
+  | LsMetadata { count :: Int, totalFiles :: Int, totalDirs :: Int, truncated :: Boolean }
+  | SkillMetadata { name :: String, dir :: String }
+  | LspMetadata { operation :: String, filePath :: String, position :: { line :: Int, character :: Int }, results :: Array { type :: String, text :: String } }
+  | CodesearchMetadata { query :: String, tokensNum :: Int, resultsCount :: Int }
+  | TaskMetadata { sessionId :: String, agentType :: String, status :: String }
+  | PlanMetadata { agent :: String, plan :: String }
+  | ErrorMetadata { error :: String }
+  | EmptyMetadata
+
+derive instance eqToolMetadata :: Eq ToolMetadata
+derive instance genericToolMetadata :: Generic ToolMetadata _
 
 -- | Tool initialization context
 type ToolInitContext =
@@ -52,8 +69,22 @@ derive instance eqAbortSignal :: Eq AbortSignal
 instance showAbortSignal :: Show AbortSignal where
   show = genericShow
 
+-- | Message part type
+data MessagePartType = TextPart | CodePart | DiffPart | BashPart | ErrorPart | MarkdownPart
+
+derive instance eqMessagePartType :: Eq MessagePartType
+derive instance genericMessagePartType :: Generic MessagePartType _
+
+-- | Message part (typed instead of Json)
+type MessagePart =
+  { type :: MessagePartType
+  , content :: String
+  , language :: Maybe String
+  , path :: Maybe String
+  }
+
 -- | Message with parts (placeholder - would import from Message module)
-type MessageWithParts = { id :: String, parts :: Array Json }
+type MessageWithParts = { id :: String, parts :: Array MessagePart }
 
 -- | Tool execution result
 type ToolResult =

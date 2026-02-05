@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.ASTEdit
 Description : Unified editing system
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = ASTEdit - Unified Editing Tool
 
 Single interface for all code editing operations.
@@ -83,7 +80,7 @@ module Tool.ASTEdit
 
 import Prelude
 
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Either (Either(..))
 import Data.Array as Array
 import Data.String as String
@@ -97,6 +94,7 @@ import Tool.ASTEdit.Types
 import Tool.ASTEdit.Structural (EditOp, applyStructural) as ReExports
 import Tool.ASTEdit.Text (TextParams, applyText, TextError) as Text
 import Tool.ASTEdit.Patch (PatchParams, parsePatch, applyPatch, PatchError) as Patch
+import Tool.ASTEdit.FFI.FileIO (readFile, writeFile)
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- UNIFIED PARAMETERS
@@ -189,33 +187,69 @@ executeStructural :: EditParams -> ASTLanguage -> ToolContext -> Aff ToolResult
 executeStructural params lang ctx = do
   case params.filePath, params.operation of
     Just path, Just op -> do
-      -- TODO: Read file, apply structural edit
-      pure
-        { title: "Structural edit: " <> path
-        , metadata: encodeJson
-            { mode: "structural"
-            , language: show lang
-            }
-        , output: "TODO: Implement structural editing"
-        , attachments: Nothing
-        }
+      -- Read file content
+      readResult <- readFile path
+      case readResult of
+        Left err -> pure $ mkErrorResult ("Failed to read file: " <> err)
+        Right content -> do
+          -- Apply structural edit
+          editResult <- ReExports.applyStructural lang content op
+          case editResult of
+            Left err -> pure $ mkErrorResult ("Structural edit failed: " <> err)
+            Right editResult' -> do
+              if params.dryRun then
+                -- Dry run: don't write, just return result
+                pure
+                  { title: "Structural edit (dry run): " <> path
+                  , metadata: encodeJson
+                      { mode: "structural"
+                      , language: show lang
+                      , dryRun: true
+                      , filesChanged: editResult'.filesChanged
+                      }
+                  , output: "Dry run - would apply " <> show (Array.length editResult'.changes) <> " changes"
+                  , attachments: Nothing
+                  }
+              else do
+                -- Write result back to file
+                case Array.head editResult'.changes of
+                  Nothing -> pure $ mkErrorResult "No changes to apply"
+                  Just change -> do
+                    writeResult <- writeFile path change.newContent
+                    case writeResult of
+                      Left err -> pure $ mkErrorResult ("Failed to write file: " <> err)
+                      Right _ -> pure
+                        { title: "Structural edit applied: " <> path
+                        , metadata: encodeJson
+                            { mode: "structural"
+                            , language: show lang
+                            , filesChanged: editResult'.filesChanged
+                            , success: editResult'.success
+                            }
+                        , output: "Applied structural edit successfully. " <> 
+                                 show (Array.length editResult'.changes) <> " file(s) changed."
+                        , attachments: Nothing
+                        }
     _, _ -> pure $ mkErrorResult "filePath and operation required for structural mode"
 
 executeText :: EditParams -> ToolContext -> Aff ToolResult
 executeText params ctx = do
   case params.filePath, params.oldString, params.newString of
     Just path, Just old, Just new -> do
-      -- TODO: Read file content
-      let content = ""
-      let textParams = 
-            { filePath: path
-            , oldString: old
-            , newString: new
-            , replaceAll: params.replaceAll == Just true
-            }
-      case Text.applyText textParams content of
-        Left err -> pure $ mkErrorResult (show err)
-        Right newContent -> pure
+      -- Read file content
+      readResult <- readFile path
+      case readResult of
+        Left err -> pure $ mkErrorResult ("Failed to read file: " <> err)
+        Right content -> do
+          let textParams = 
+                { filePath: path
+                , oldString: old
+                , newString: new
+                , replaceAll: params.replaceAll == Just true
+                }
+          case Text.applyText textParams content of
+            Left err -> pure $ mkErrorResult (show err)
+            Right newContent -> pure
           { title: "Edit " <> path
           , metadata: encodeJson
               { mode: "text"

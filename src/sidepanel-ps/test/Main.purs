@@ -17,6 +17,10 @@ import Test.Sidepanel.Theme.PrismSpec as PrismSpec
 import Test.Sidepanel.WebSocket.ClientSpec as WebSocketClientSpec
 import Test.Sidepanel.State.AppStateSpec as AppStateSpec
 import Test.Sidepanel.FFI.WebSocketSpec as WebSocketFFISpec
+import Test.Sidepanel.Property.UndoRedoProps as UndoRedoProps
+import Test.Sidepanel.Property.ReducerProps as ReducerProps
+import Test.Sidepanel.Property.TokenUsageProps as TokenUsageProps
+import Test.Sidepanel.Utils.TokenUsageSpec as TokenUsageSpec
 
 main :: Effect Unit
 main = runSpec [consoleReporter] do
@@ -62,3 +66,15 @@ main = runSpec [consoleReporter] do
       WebSocketFFISpec.testConnectionOperations
       WebSocketFFISpec.testEventHandlers
       WebSocketFFISpec.testProperties
+    
+    describe "Property Tests" do
+      UndoRedoProps.spec
+      ReducerProps.spec
+      TokenUsageProps.spec
+    
+    describe "Token Usage Utilities" do
+      TokenUsageSpec.spec
+      TokenUsageProps.spec
+    
+    describe "Token Usage Utilities" do
+      TokenUsageSpec.spec

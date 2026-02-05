@@ -22,9 +22,10 @@ module Opencode.Session.Processor where
 import Prelude
 import Effect.Aff (Aff, attempt, delay, forkAff, killFiber, Fiber, Milliseconds(..))
 import Effect.Class (liftEffect)
-import Effect.Ref (Ref, new, read, write)
+import Effect.Ref (Ref, new, read, write, modify_)
 import Effect.Exception (error)
 import Effect (Effect)
+import Effect.Unsafe (unsafePerformEffect)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.Map as Map
@@ -37,7 +38,7 @@ import Data.String as String
 
 -- Import canonical types
 import Opencode.Types.Session (SessionInfo, SessionID, SessionTime)
-import Opencode.Types.Message (MessageInfo, MessageRole(..))
+import Opencode.Types.Message (MessageInfo, MessageRole(..), MessagePart(..), MessagePartType(..))
 import Opencode.Types.Tool (ToolContext, ToolResult, ToolInfo, AbortSignal(..))
 import Opencode.Types.Permission (PermissionRequest, PermissionReply)
 
@@ -94,8 +95,9 @@ type ProcessorRuntime =
   }
 
 -- | Global processor registry (one processor per session)
--- | In real implementation, this would be an Effect-based mutable map
-type ProcessorRegistry = Map.Map SessionID ProcessorRuntime
+-- | Uses Ref for mutable state
+processorRegistryRef :: Ref (Map.Map SessionID ProcessorRuntime)
+processorRegistryRef = unsafePerformEffect $ new Map.empty
 
 -- | Create a new processor
 createProcessor :: ProcessorConfig -> ProcessorRuntime
@@ -122,28 +124,69 @@ startProcessing config = do
   case validateConfig config of
     Left err -> pure (Left err)
     Right validConfig -> do
-      -- TODO: 
       -- 1. Look up or create processor in registry
-      -- 2. Check state is Idle
-      -- 3. Fork processing loop
-      -- 4. Update state to Processing
-      pure (Right unit)
+      registry <- liftEffect $ read processorRegistryRef
+      let existingProcessor = Map.lookup validConfig.sessionID registry
+      
+      case existingProcessor of
+        Just proc -> do
+          -- Check state is Idle
+          case proc.state of
+            Idle -> do
+              -- Fork processing loop
+              let newRuntime = proc { state = Processing { iteration: 0 } }
+              runtimeRef <- liftEffect $ new newRuntime
+              fiber <- forkAff $ do
+                result <- runProcessingLoop runtimeRef
+                case result of
+                  Left err -> liftEffect $ modify_ (\reg -> Map.insert validConfig.sessionID (newRuntime { state = Error { message: err, recoverable: true } }) reg) processorRegistryRef
+                  Right finalState -> liftEffect $ modify_ (\reg -> Map.insert validConfig.sessionID (newRuntime { state = finalState }) reg) processorRegistryRef
+              
+              -- Update registry with new fiber
+              liftEffect $ modify_ (\reg -> Map.insert validConfig.sessionID (newRuntime { fiber = Just fiber }) reg) processorRegistryRef
+              pure $ Right unit
+            _ -> pure $ Left "Processor is already running for this session"
+        Nothing -> do
+          -- Create new processor
+          let newProcessor = createProcessor validConfig
+          runtimeRef <- liftEffect $ new newProcessor
+          fiber <- forkAff $ do
+            result <- runProcessingLoop runtimeRef
+            case result of
+              Left err -> liftEffect $ modify_ (\reg -> Map.insert validConfig.sessionID (newProcessor { state = Error { message: err, recoverable: true } }) reg) processorRegistryRef
+              Right finalState -> liftEffect $ modify_ (\reg -> Map.insert validConfig.sessionID (newProcessor { state = finalState }) reg) processorRegistryRef
+          
+          -- Update registry
+          liftEffect $ modify_ (\reg -> Map.insert validConfig.sessionID (newProcessor { fiber = Just fiber }) reg) processorRegistryRef
+          pure $ Right unit
 
 -- | Stop processing
 stopProcessing :: SessionID -> Aff (Either String Unit)
 stopProcessing sessionID = do
-  -- TODO:
   -- 1. Look up processor in registry
-  -- 2. Kill fiber if running
-  -- 3. Set state to Idle
-  -- 4. Clean up pending tools
-  pure (Right unit)
+  registry <- liftEffect $ read processorRegistryRef
+  case Map.lookup sessionID registry of
+    Nothing -> pure $ Left "Processor not found for session"
+    Just proc -> do
+      -- 2. Kill fiber if running
+      case proc.fiber of
+        Just fiber -> do
+          _ <- attempt $ killFiber (error "Stopped by user") fiber
+          pure unit
+        Nothing -> pure unit
+      
+      -- 3. Set state to Idle and clean up pending tools
+      let updatedProc = proc { state = Idle, fiber = Nothing, pendingTools = [] }
+      liftEffect $ modify_ (\reg -> Map.insert sessionID updatedProc reg) processorRegistryRef
+      pure $ Right unit
 
 -- | Get current processing state
 getState :: SessionID -> Aff (Either String ProcessorState)
 getState sessionID = do
-  -- TODO: Look up in registry
-  pure (Right Idle)
+  registry <- liftEffect $ read processorRegistryRef
+  case Map.lookup sessionID registry of
+    Nothing -> pure $ Left "Processor not found for session"
+    Just proc -> pure $ Right proc.state
 
 -- | Process a single iteration of the LLM loop
 -- | This is the core logic that:
@@ -190,9 +233,31 @@ buildMessages runtime =
   let systemMsg = case runtime.config.systemPrompt of
         Just prompt -> [LLM.systemMessage prompt]
         Nothing -> [LLM.systemMessage defaultSystemPrompt]
-      -- TODO: Convert stored messages to LLM format
-      historyMsgs = []
+      -- Convert stored messages to LLM format
+      historyMsgs = Array.mapMaybe convertMessageToLLM runtime.messages
   in systemMsg <> historyMsgs
+
+-- | Convert MessageInfo to LLMMessage
+convertMessageToLLM :: MessageInfo -> Maybe LLM.LLMMessage
+convertMessageToLLM msgInfo =
+  case msgInfo.role of
+    User -> Just $ LLM.userMessage (extractTextContent msgInfo.parts)
+    Assistant -> Just $ LLM.assistantMessage (extractTextContent msgInfo.parts)
+    -- System messages are handled separately in buildMessages
+
+-- | Extract text content from message parts
+extractTextContent :: Array MessagePart -> String
+extractTextContent parts =
+  String.joinWith "\n" $ Array.mapMaybe extractPartText parts
+  where
+    extractPartText :: MessagePart -> Maybe String
+    extractPartText part = case part.type of
+      Text -> Just part.content
+      Markdown -> Just part.content
+      Code -> Just $ "```" <> (fromMaybe "" part.language) <> "\n" <> part.content <> "\n```"
+      Diff -> Just part.content
+      Bash -> Just part.content
+      Error -> Just $ "Error: " <> part.content
 
 -- | Default system prompt
 defaultSystemPrompt :: String

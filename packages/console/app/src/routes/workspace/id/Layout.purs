@@ -11,6 +11,7 @@ module Console.App.Routes.Workspace.Id.Layout
 
 import Prelude
 
+import Data.Array (filter) as Array
 import Data.Maybe (Maybe)
 
 -- | Layout props
@@ -37,7 +38,7 @@ type NavConfig =
 buildNavItems :: String -> Array NavItem
 buildNavItems workspaceId =
   [ { href: "/workspace/" <> workspaceId
-    , label: "Zen"
+    , label: "Omega"
     , end: true
     , adminOnly: false
     }
@@ -72,15 +73,7 @@ buildNavConfig props =
   where
     filterByRole :: Boolean -> Array NavItem -> Array NavItem
     filterByRole isAdmin items =
-      filter (\item -> not item.adminOnly || isAdmin) items
-    
-    filter :: forall a. (a -> Boolean) -> Array a -> Array a
-    filter f arr = case arr of
-      [] -> []
-      (x : xs) -> 
-        if f x 
-          then [x] <> filter f xs 
-          else filter f xs
+      Array.filter (\item -> not item.adminOnly || isAdmin) items
 
 -- | Check if nav item is active
 isNavItemActive :: String -> NavItem -> Boolean
@@ -100,7 +93,7 @@ isNavItemActive currentPath item =
 
 -- | Page slots
 data PageSlot
-  = ZenSlot
+  = OmegaSlot
   | KeysSlot
   | MembersSlot
   | BillingSlot
@@ -115,13 +108,13 @@ getPageSlot workspaceId path =
     basePath = "/workspace/" <> workspaceId
   in
     case stripPrefix basePath path of
-      "" -> ZenSlot
-      "/" -> ZenSlot
+      "" -> OmegaSlot
+      "/" -> OmegaSlot
       "/keys" -> KeysSlot
       "/members" -> MembersSlot
       "/billing" -> BillingSlot
       "/settings" -> SettingsSlot
-      _ -> ZenSlot
+      _ -> OmegaSlot
   where
     stripPrefix :: String -> String -> String
     stripPrefix _ s = s  -- simplified

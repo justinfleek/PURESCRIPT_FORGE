@@ -1,126 +1,97 @@
--- | Auth Callback Route (catch-all)
--- | Migrated from: _OTHER/opencode-original/packages/console/app/src/routes/auth/[...callback].ts
--- | Pure PureScript implementation - NO FFI
+-- | Auth Callback Route Handler
+-- |
+-- | Handles OAuth callback, exchanges code for tokens, updates session.
+-- | PureScript wrapper around SolidJS Start route handler.
+-- |
+-- | Source: _OTHER/opencode-original/packages/console/app/src/routes/auth/[...callback].ts
+-- | Migrated: 2026-02-04
 module Console.App.Routes.Auth.Callback
-  ( CallbackRequest(..)
-  , CallbackResult(..)
+  ( handleCallback
   , CallbackError(..)
-  , DecodedToken(..)
-  , SessionUpdate(..)
-  , handleCallback
-  , parseCallbackUrl
-  , buildSessionUpdate
-  , determineRedirectPath
   ) where
 
 import Prelude
 
-import Data.Either (Either(..))
+import Effect.Aff (Aff)
+import Effect.Class (liftEffect)
 import Data.Maybe (Maybe(..))
-import Console.App.Context.Auth (AuthSession, AccountInfo)
+import Data.Either (Either(..))
+import Data.Map as Map
+import Console.App.FFI.SolidStart (APIEvent, getRequestUrl, getSearchParams, getSearchParam, redirect, textResponse)
+import Console.App.Context.Auth (AuthClient, AccountInfo)
+import Console.App.Context.AuthSession (useAuthSession)
 
--- | Callback request parameters
-type CallbackRequest =
-  { url :: String
-  , pathname :: String
-  , code :: Maybe String
-  , origin :: String
-  }
-
--- | Parse callback URL parameters (pure)
-parseCallbackUrl :: String -> Maybe String -> CallbackRequest
-parseCallbackUrl url codeParam =
-  { url
-  , pathname: "/auth/callback"  -- simplified
-  , code: codeParam
-  , origin: ""  -- would be extracted from URL
-  }
-
--- | Callback error types
+-- | Callback error
 data CallbackError
-  = NoCodeProvided
-  | ExchangeFailed String
-  | DecodeFailed String
+  = NoCode
+  | ExchangeError String
+  | DecodeError String
+  | OtherError String
 
 derive instance eqCallbackError :: Eq CallbackError
 
 instance showCallbackError :: Show CallbackError where
-  show NoCodeProvided = "No code found"
-  show (ExchangeFailed msg) = "(ExchangeFailed " <> show msg <> ")"
-  show (DecodeFailed msg) = "(DecodeFailed " <> show msg <> ")"
+  show NoCode = "NoCode"
+  show (ExchangeError msg) = "ExchangeError(" <> msg <> ")"
+  show (DecodeError msg) = "DecodeError(" <> msg <> ")"
+  show (OtherError msg) = "OtherError(" <> msg <> ")"
 
--- | Decoded token subject
-type DecodedToken =
-  { accountId :: String
-  , email :: String
-  }
+-- | FFI: Exchange authorization code for tokens
+foreign import authClientExchange :: String -> String -> String -> Aff { err :: Maybe String, tokens :: { access :: String } }
 
--- | Session update data
-type SessionUpdate =
-  { accountId :: String
-  , email :: String
-  }
+-- | FFI: Decode access token
+foreign import authClientDecode :: String -> String -> Aff { err :: Maybe String, subject :: { properties :: { accountID :: String, email :: String } } }
 
--- | Build session update from decoded token (pure)
-buildSessionUpdate :: DecodedToken -> SessionUpdate
-buildSessionUpdate token =
-  { accountId: token.accountId
-  , email: token.email
-  }
-
--- | Apply session update (pure)
-applySessionUpdate :: AuthSession -> SessionUpdate -> AuthSession
-applySessionUpdate session update =
-  let
-    newAccountInfo :: AccountInfo
-    newAccountInfo = { id: update.accountId, email: update.email }
+-- | Handle auth callback route
+handleCallback :: APIEvent -> AuthClient -> Aff Response
+handleCallback event client = do
+  request <- liftEffect (getRequest event)
+  url <- liftEffect (getRequestUrl request)
+  searchParams <- liftEffect (getSearchParams url)
+  codeParam <- liftEffect (getSearchParam searchParams "code")
+  
+  case codeParam of
+    Nothing -> do
+      -- Return error response
+      let errorJson = "{\"error\":\"No code found\",\"cause\":{}}"
+      textResponse errorJson 500
     
-    newAccounts = session.account  -- would use Map.insert
-  in
-    session { current = Just update.accountId }
-
--- | Callback result
-data CallbackResult
-  = CallbackSuccess { redirectTo :: String, sessionUpdate :: SessionUpdate }
-  | CallbackFailure { error :: CallbackError, details :: String }
-
-derive instance eqCallbackResult :: Eq CallbackResult
-
-instance showCallbackResult :: Show CallbackResult where
-  show (CallbackSuccess r) = "(CallbackSuccess " <> show r.redirectTo <> ")"
-  show (CallbackFailure r) = "(CallbackFailure " <> show r.error <> ")"
-
--- | Determine redirect path after successful callback (pure)
-determineRedirectPath :: String -> String
-determineRedirectPath pathname
-  | pathname == "/auth/callback" = "/auth"
-  | otherwise = 
-      -- Replace /auth/callback with empty string
-      -- In real impl would use String.replace
-      pathname
-
--- | Handle callback (pure logic - actual token exchange would be effectful)
-handleCallback :: CallbackRequest -> Maybe DecodedToken -> CallbackResult
-handleCallback req tokenM = case req.code of
-  Nothing -> CallbackFailure 
-    { error: NoCodeProvided
-    , details: "No authorization code in callback URL"
-    }
-  Just _ -> case tokenM of
-    Nothing -> CallbackFailure
-      { error: ExchangeFailed "Token exchange failed"
-      , details: "Could not exchange code for tokens"
-      }
-    Just token ->
-      let
-        sessionUpdate = buildSessionUpdate token
-        redirectTo = determineRedirectPath req.pathname
-      in
-        CallbackSuccess { redirectTo, sessionUpdate }
-
--- | Error response builder
-buildErrorResponse :: CallbackError -> String -> { error :: String, status :: Int }
-buildErrorResponse err details =
-  { error: show err <> ": " <> details
-  , status: 500
-  }
+    Just code -> do
+      -- Exchange code for tokens
+      exchangeResult <- authClientExchange client.clientID client.issuer code
+      
+      case exchangeResult.err of
+        Just err -> do
+          let errorJson = "{\"error\":\"" <> err <> "\",\"cause\":{}}"
+          textResponse errorJson 500
+        
+        Nothing -> do
+          -- Decode access token
+          decodeResult <- authClientDecode client.clientID exchangeResult.tokens.access
+          
+          case decodeResult.err of
+            Just err -> do
+              let errorJson = "{\"error\":\"" <> err <> "\",\"cause\":{}}"
+              textResponse errorJson 500
+            
+            Nothing -> do
+              -- Update session
+              session <- useAuthSession
+              let accountId = decodeResult.subject.properties.accountID
+              let email = decodeResult.subject.properties.email
+              
+              -- Update session with new account
+              let accountInfo :: AccountInfo = { id: accountId, email: email }
+              session.update \value ->
+                value
+                  { account = Map.insert accountId accountInfo value.account
+                  , current = Just accountId
+                  }
+              
+              -- Determine redirect URL
+              let callbackPath = url.pathname
+              let redirectPath = if callbackPath == "/auth/callback"
+                    then "/auth"
+                    else callbackPath.replace("/auth/callback", "")
+              
+              redirect redirectPath

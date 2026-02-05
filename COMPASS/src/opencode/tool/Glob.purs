@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Glob
 Description : File pattern matching via ripgrep
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Glob Tool
 
 Fast file pattern matching using ripgrep's --files mode.

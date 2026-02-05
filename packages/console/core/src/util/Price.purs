@@ -18,7 +18,6 @@ module Forge.Console.Core.Util.Price
 import Prelude
 
 import Data.Int (round, toNumber)
-import Math (ceil)
 
 -- | Type aliases for currency units
 type Dollars = Number

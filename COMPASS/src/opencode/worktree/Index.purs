@@ -1,11 +1,9 @@
 -- | Git Worktree management
--- | TODO: Implement based on _OTHER/opencode-original/packages/opencode/src/worktree/index.ts
 module Opencode.Worktree.Index where
 
 import Prelude
 import Effect.Aff (Aff)
 import Data.Either (Either(..))
-import Opencode.Util.NotImplemented (notImplemented)
 
 -- | Worktree info
 type Worktree =
@@ -16,12 +14,16 @@ type Worktree =
 
 -- | List worktrees
 list :: Aff (Either String (Array Worktree))
-list = notImplemented "Worktree.Index.list"
+list = listWorktrees
 
 -- | Create a worktree
 create :: String -> String -> Aff (Either String Worktree)
-create path branch = notImplemented "Worktree.Index.create"
+create path branch = createWorktree path branch
 
 -- | Remove a worktree
 remove :: String -> Aff (Either String Unit)
-remove path = notImplemented "Worktree.Index.remove"
+remove path = removeWorktree path
+
+foreign import listWorktrees :: Aff (Either String (Array Worktree))
+foreign import createWorktree :: String -> String -> Aff (Either String Worktree)
+foreign import removeWorktree :: String -> Aff (Either String Unit)

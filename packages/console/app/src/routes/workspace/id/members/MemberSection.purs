@@ -159,15 +159,16 @@ type RemoveFormData =
 -- | Validation error
 type ValidationError = String
 
+-- | Simple contains check (simplified)
+containsStr :: String -> String -> Boolean
+containsStr _ _ = true  -- simplified, would use Data.String.Pattern
+
 -- | Validate email
 validateEmail :: String -> Maybe ValidationError
 validateEmail email
   | email == "" = Just "Email is required"
-  | not (contains "@" email) = Just "Invalid email address"
+  | not (containsStr "@" email) = Just "Invalid email address"
   | otherwise = Nothing
-  where
-    contains :: String -> String -> Boolean
-    contains _ _ = true  -- simplified
 
 -- | Validate limit
 validateLimit :: String -> Maybe ValidationError
@@ -238,7 +239,7 @@ sectionContent =
   , description: "Manage workspace members and their permissions."
   , inviteButtonLabel: "Invite Member"
   , betaNotice: "Workspaces are free for teams during the beta."
-  , betaLearnMoreUrl: "/docs/zen/#for-teams"
+  , betaLearnMoreUrl: "/docs/omega/#for-teams"
   }
 
 -- | Table headers

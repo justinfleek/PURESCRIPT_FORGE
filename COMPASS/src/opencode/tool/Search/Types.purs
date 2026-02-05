@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Search.Types
 Description : Type definitions for SearXNG search
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Search Types
 
 Core type definitions for the SearXNG metasearch integration.

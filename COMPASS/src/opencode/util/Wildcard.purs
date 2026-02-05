@@ -1,18 +1,25 @@
 -- | Wildcard pattern matching
--- | TODO: Implement based on _OTHER/opencode-original/packages/opencode/src/util/wildcard.ts
 module Opencode.Util.Wildcard where
 
 import Prelude
+import Data.String as String
+import Data.Array as Array
 
 -- | Match a string against a wildcard pattern
--- | Supports * and ? wildcards
+-- | Supports * (matches any sequence) and ? (matches single character)
 match :: String -> String -> Boolean
-match pattern str = false -- TODO: Implement
+match pattern str = matchWildcard pattern str
+  where
+    foreign import matchWildcard :: String -> String -> Boolean
 
 -- | Convert wildcard pattern to regex
 toRegex :: String -> String
-toRegex pattern = pattern -- TODO: Implement
+toRegex pattern = convertWildcardToRegex pattern
+  where
+    foreign import convertWildcardToRegex :: String -> String
 
 -- | Check if pattern is a wildcard pattern
 isWildcard :: String -> Boolean
-isWildcard pattern = false -- TODO: Check for * or ?
+isWildcard pattern = 
+  String.contains (String.Pattern "*") pattern || 
+  String.contains (String.Pattern "?") pattern

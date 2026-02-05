@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Codesearch
 Description : External code search via Exa API
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Code Search Tool
 
 Searches for code context, API documentation, and library examples
@@ -54,15 +51,17 @@ module Tool.Codesearch
 
 import Prelude
 
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Either (Either(..))
 import Data.Array as Array
 import Data.String as String
-import Data.Argonaut (Json, class EncodeJson, encodeJson, decodeJson)
+import Data.Argonaut (Json, class EncodeJson, encodeJson, decodeJson, (.:), (.:?), jsonParser, stringify)
 import Effect.Aff (Aff)
 
-import Opencode.Types.Tool (ToolContext, ToolResult, ToolInfo)
+import Opencode.Types.Tool (ToolContext, ToolResult, ToolInfo, ToolMetadata(..))
 import Aleph.Coeffect (Resource(..))
+-- | FFI for HTTP POST with timeout
+foreign import httpPostWithTimeout :: Int -> String -> String -> Aff (Either String { statusCode :: Int, body :: String })
 
 -- ============================================================================
 -- CONFIGURATION
@@ -146,23 +145,29 @@ execute params ctx = do
   
   -- 2. Build MCP request
   let request = buildRequest params.query tokens
+  let requestBodyStr = stringify (encodeJson request)
   
-  -- 3. Make HTTP request
-  -- TODO: HTTP FFI call to Exa API
-  
-  -- 4. Parse SSE response
-  -- TODO: Parse "data: " lines
-  
-  -- 5. Return result
-  pure
-    { title: "Code search: " <> params.query
-    , metadata: encodeJson
-        { query: params.query
-        , tokensNum: tokens
-        }
-    , output: "TODO: Implement Exa API call"
-    , attachments: Nothing
-    }
+  -- 3. Make HTTP request to Exa API
+  httpResult <- httpPostWithTimeout requestTimeout (apiBaseUrl <> apiEndpoint) requestBodyStr
+  case httpResult of
+    Left err -> pure $ mkErrorResult ("HTTP request failed: " <> err)
+    Right response -> do
+      -- 4. Parse SSE response (or JSON response)
+      case parseResponse response.body of
+        Left err -> pure $ mkErrorResult ("Parse error: " <> err)
+        Right results -> do
+          -- 5. Format and return result
+          let output = formatCodeSearchResults params.query results
+          pure
+            { title: "Code search: " <> params.query
+            , metadata: CodesearchMetadata
+                { query: params.query
+                , tokensNum: tokens
+                , resultsCount: Array.length results
+                }
+            , output
+            , attachments: Nothing
+            }
   where
     fromMaybe :: forall a. a -> Maybe a -> a
     fromMaybe def Nothing = def
@@ -212,16 +217,79 @@ codesearchDescription =
   "Use this for finding up-to-date documentation, usage patterns, " <>
   "and SDK configuration."
 
-codesearchSchema :: { type :: String }
-codesearchSchema = { type: "object" }
+codesearchSchema :: Json
+codesearchSchema = encodeJson
+  { type: "object"
+  , properties:
+      { query: { type: "string", description: "Search query for APIs/libraries" }
+      , tokensNum: { type: "integer", description: "Number of tokens to return (1000-50000)", minimum: 1000, maximum: 50000, default: 5000 }
+      }
+  , required: ["query"]
+  }
 
 decodeCodeSearchParams :: Json -> Either String CodeSearchParams
-decodeCodeSearchParams _ = notImplemented "decodeCodeSearchParams"
+decodeCodeSearchParams json = do
+  obj <- decodeJson json
+  query <- obj .: "query" >>= decodeJson
+  tokensNum <- (obj .:? "tokensNum" >>= \mb -> pure (mb >>= decodeJson))
+  pure { query, tokensNum }
+
+-- | Parse response from Exa API (handles both JSON and SSE)
+parseResponse :: String -> Either String (Array { type :: String, text :: String })
+parseResponse body =
+  -- Try parsing as JSON first
+  case jsonParser body of
+    Right json -> parseJsonResponse json
+    Left _ -> parseSseResponse body
+  where
+    jsonParser :: String -> Either String Json
+    jsonParser = jsonParserImpl
+    
+    foreign import jsonParserImpl :: String -> Either String Json
+
+-- | Parse JSON response
+parseJsonResponse :: Json -> Either String (Array { type :: String, text :: String })
+parseJsonResponse json = do
+  obj <- decodeJson json
+  result <- obj .: "result"
+  content <- result .: "content"
+  decodeJson content
+
+-- | Parse SSE (Server-Sent Events) response
+parseSseResponse :: String -> Either String (Array { type :: String, text :: String })
+parseSseResponse body =
+  let lines = String.split (String.Pattern "\n") body
+      dataLines = Array.filter (\line -> String.startsWith (String.Pattern "data: ") line) lines
+      parsed = Array.mapMaybe parseSseLine dataLines
+  in Right parsed
+  where
+    parseSseLine :: String -> Maybe { type :: String, text :: String }
+    parseSseLine line =
+      let content = String.drop 6 line  -- Remove "data: " prefix
+      in case jsonParser content of
+        Right json -> case decodeJson json of
+          Right obj -> do
+            text <- obj .:? "text" >>= \mb -> pure (mb >>= decodeJson)
+            pure { type: "text", text: fromMaybe "" text }
+          Left _ -> Nothing
+        Left _ -> Just { type: "text", text: content }
+
+-- | Format code search results for output
+formatCodeSearchResults :: String -> Array { type :: String, text :: String } -> String
+formatCodeSearchResults query results =
+  if Array.null results
+  then "No code context found for: " <> query
+  else "Found " <> show (Array.length results) <> " code context result(s) for: " <> query <> "\n\n" <>
+       String.joinWith "\n\n---\n\n" (Array.mapWithIndex formatResult results)
+  where
+    formatResult idx result =
+      show (idx + 1) <> ". [" <> result.type <> "]\n" <>
+      String.take 500 result.text <> (if String.length result.text > 500 then "..." else "")
 
 mkErrorResult :: String -> ToolResult
 mkErrorResult err =
   { title: "Code Search Error"
-  , metadata: encodeJson { error: err }
+  , metadata: ErrorMetadata { error: err }
   , output: "Error: " <> err
   , attachments: Nothing
   }

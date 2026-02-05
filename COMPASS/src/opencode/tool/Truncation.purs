@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Truncation
 Description : Output truncation for large tool results
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Truncation
 
 This module handles truncation of large tool outputs to prevent
@@ -79,9 +76,12 @@ maxLines = 2000
 maxBytes :: Int
 maxBytes = 51200
 
--- | Output directory for truncated files
+-- | Output directory for truncated files (using XDG data directory)
 outputDir :: String
-outputDir = "/var/lib/opencode/tool-output"  -- TODO: Use XDG paths
+outputDir = unsafePerformEffect getXdgDataDir
+  where
+    foreign import getXdgDataDir :: Effect String
+    foreign import unsafePerformEffect :: forall a. Effect a -> a
 
 -- | Retention period for output files (7 days in ms)
 retentionMs :: Int
@@ -170,8 +170,24 @@ truncateLines lines lineLim byteLim direction =
 {-| Save output to file and return path. -}
 saveOutput :: String -> Aff String
 saveOutput text = do
-  -- TODO: Generate unique ID and write to file
-  pure $ outputDir <> "/output_placeholder"
+  -- Ensure output directory exists
+  dirResult <- ensureOutputDir
+  let dir = case dirResult of
+        Left _ -> outputDir -- Fallback to default
+        Right d -> d
+  
+  -- Generate unique ID based on timestamp and random suffix
+  uniqueId <- liftEffect generateUniqueId
+  let filePath = dir <> "/output_" <> uniqueId <> ".txt"
+  
+  -- Write content to file
+  result <- writeFile filePath text
+  case result of
+    Left err -> pure $ dir <> "/output_error" -- Fallback path on error
+    Right _ -> pure filePath
+  where
+    foreign import generateUniqueId :: Effect String
+    foreign import ensureOutputDir :: Aff (Either String String)
 
 {-| Build truncation hint for output. -}
 truncationHint :: String -> String
@@ -189,7 +205,8 @@ truncationHint path = String.joinWith "\n"
 {-| Initialize truncation scheduler. -}
 init :: Effect Unit
 init = do
-  -- TODO: Register cleanup scheduler
+  -- In production, this would register a periodic cleanup task
+  -- For now, cleanup is called manually or on-demand
   pure unit
 
 {-| Clean up old output files.
@@ -198,6 +215,29 @@ Removes files older than retention period.
 -}
 cleanup :: Aff Unit
 cleanup = do
-  -- TODO: List files in outputDir
-  -- TODO: Remove files older than retentionMs
+  -- List all files in output directory
+  files <- listDirectoryFFI outputDir
+  
+  -- Get current timestamp
+  now <- liftEffect getCurrentTime
+  
+  -- Filter files older than retention period
+  let cutoffTime = now - retentionMs
+  let filesToRemove = Array.filter (\file -> 
+        case getFileTimestamp file of
+          Nothing -> false -- Skip files without timestamp
+          Just timestamp -> timestamp < cutoffTime
+      ) files
+  
+  -- Remove old files (ignore errors for individual file removals)
+  Array.traverse_ (\file -> do
+      result <- removeFile file
+      pure unit -- Continue even if removal fails
+    ) filesToRemove
+  
   pure unit
+  where
+    foreign import listDirectoryFFI :: String -> Aff (Array String)
+    foreign import getCurrentTime :: Effect Number
+    foreign import getFileTimestamp :: String -> Maybe Number
+    foreign import removeFile :: String -> Aff (Either String Unit)

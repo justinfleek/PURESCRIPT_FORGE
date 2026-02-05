@@ -1,9 +1,6 @@
 {-|
 Module      : Opencode.Provider.Registry
 Description : Provider and model registry
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Provider Registry
 
 Manages provider configurations, model discovery, and SDK initialization.

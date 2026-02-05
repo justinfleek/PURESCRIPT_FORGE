@@ -17,6 +17,7 @@ module Console.App.Lib.Changelog
 
 import Prelude
 
+import Effect.Aff (Aff)
 import Data.Array (filter, snoc, head, last)
 import Data.Either (Either(..))
 import Data.Foldable (foldl)
@@ -254,3 +255,6 @@ toChangelogData releases =
 -- | Empty/error changelog data
 emptyChangelogData :: ChangelogData
 emptyChangelogData = { ok: false, releases: [] }
+
+-- | FFI: Load changelog from GitHub API
+foreign import loadChangelog :: Aff ChangelogData

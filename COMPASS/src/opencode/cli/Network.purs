@@ -1,11 +1,12 @@
 -- | CLI Network utilities
--- | TODO: Implement based on _OTHER/opencode-original/packages/opencode/src/cli/network.ts
 module Opencode.CLI.Network where
 
 import Prelude
+import Effect (Effect)
 import Effect.Aff (Aff)
+import Effect.Class (liftEffect)
 import Data.Either (Either(..))
-import Opencode.Util.NotImplemented (notImplemented)
+import Bridge.FFI.Node.Fetch as Fetch
 
 -- | Network configuration
 type NetworkConfig =
@@ -16,8 +17,16 @@ type NetworkConfig =
 
 -- | Check if a server is available
 checkServer :: String -> Aff (Either String Boolean)
-checkServer url = notImplemented "CLI.Network.checkServer"
+checkServer url = do
+  result <- Fetch.fetch url { method: "GET", headers: {} } # liftEffect
+  case result of
+    Left err -> pure $ Left ("Failed to connect: " <> err)
+    Right _ -> pure $ Right true
 
 -- | Get available port
 findAvailablePort :: Int -> Aff (Either String Int)
-findAvailablePort startPort = notImplemented "CLI.Network.findAvailablePort"
+findAvailablePort startPort = do
+  port <- findAvailablePortFFI startPort # liftEffect
+  pure $ Right port
+
+foreign import findAvailablePortFFI :: Int -> Effect Int

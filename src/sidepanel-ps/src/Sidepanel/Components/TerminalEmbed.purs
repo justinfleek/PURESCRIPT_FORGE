@@ -43,6 +43,7 @@ import Effect (Effect)
 import Data.Maybe (Maybe(..))
 import Data.Array (snoc)
 import Data.Either (Either(..))
+import Data.String as String
 import Effect.Now (nowMillis)
 import Sidepanel.FFI.XTerm as XTerm
 import Sidepanel.WebSocket.Client as WS
@@ -91,10 +92,11 @@ component =
   H.mkComponent
     { initialState: \input -> initialState { wsClient = input.wsClient }
     , render
-    , eval: H.mkEval $ H.defaultEval
-        { handleAction = handleAction
-        , initialize = Just Initialize
-        }
+  , eval: H.mkEval $ H.defaultEval
+      { handleAction = handleAction
+      , handleQuery = handleQuery
+      , initialize = Just Initialize
+      }
     }
 
 initialState :: State
@@ -180,28 +182,47 @@ handleAction = case _ of
     -- Open terminal in DOM element
     liftEffect $ XTerm.open terminal state.terminalState.elementId
     
-    -- Set up input handler
-    state <- H.get
+    -- Set up input handler - handle user input
+    -- Note: onData callback runs in Effect, so we use launchAff_ to handle async operations
     liftEffect $ XTerm.onData terminal \input -> do
-      -- Handle user input - send to bridge server
-      case state.wsClient of
-        Just client -> do
-          -- Execute command via bridge server (launch in background)
-          void $ launchAff_ do
-            result <- Bridge.executeTerminalCommand client
-              { command: input
-              , cwd: Nothing
-              , sessionId: Nothing
-              }
-            case result of
-              Right response -> do
-                -- Write output to terminal
-                case response.output of
-                  Just output -> liftEffect $ XTerm.writeln terminal output
-                  Nothing -> liftEffect $ XTerm.writeln terminal ("Command completed with exit code: " <> show response.exitCode)
-              Left err -> do
-                liftEffect $ XTerm.writeln terminal ("Error: " <> err.message)
-        Nothing -> pure unit -- No client available
+      -- Launch async handler for command execution
+      void $ launchAff_ do
+        -- Get current state
+        state <- H.get
+        
+        -- Handle Enter key (execute command)
+        if input == "\r" || input == "\n" then do
+          let command = String.trim state.terminalState.inputBuffer
+          if String.length command > 0 then do
+            case state.wsClient of
+              Just client -> do
+                -- Execute command via bridge server
+                result <- Bridge.executeTerminalCommand client
+                  { command: command
+                  , cwd: Nothing
+                  , sessionId: Nothing
+                  }
+                case result of
+                  Right response -> do
+                    -- Write output to terminal
+                    case response.output of
+                      Just output -> liftEffect $ XTerm.writeln terminal output
+                      Nothing -> liftEffect $ XTerm.writeln terminal ("Command completed with exit code: " <> show response.exitCode)
+                    -- Clear input buffer and raise event
+                    H.modify_ \s -> s { terminalState { inputBuffer = "" } }
+                    H.raise (CommandExecuted command)
+                  Left err -> do
+                    liftEffect $ XTerm.writeln terminal ("Error: " <> err.message)
+                    H.modify_ \s -> s { terminalState { inputBuffer = "" } }
+              Nothing -> do
+                liftEffect $ XTerm.writeln terminal "Not connected to bridge server"
+                H.modify_ \s -> s { terminalState { inputBuffer = "" } }
+          else do
+            -- Empty command - just clear buffer
+            H.modify_ \s -> s { terminalState { inputBuffer = "" } }
+        else do
+          -- Regular input - append to buffer
+          H.modify_ \s -> s { terminalState { inputBuffer = s.terminalState.inputBuffer <> input } }
     
     -- Update state
     H.modify_ \s ->
@@ -264,3 +285,22 @@ handleAction = case _ of
       Nothing ->
         pure unit
 
+-- | Handle component queries
+handleQuery :: forall m a. MonadAff m => Query a -> H.HalogenM State Action () Output m (Maybe a)
+handleQuery = case _ of
+  WriteOutput text a -> do
+    handleAction (WriteOutput text)
+    pure (Just a)
+  
+  Clear a -> do
+    handleAction ClearTerminal
+    pure (Just a)
+  
+  Focus a -> do
+    state <- H.get
+    case state.terminalState.terminal of
+      Just terminal -> do
+        liftEffect $ XTerm.focus terminal
+        pure (Just a)
+      Nothing ->
+        pure (Just a)

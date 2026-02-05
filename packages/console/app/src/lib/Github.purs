@@ -18,7 +18,8 @@ module Console.App.Lib.Github
 
 import Prelude
 
-import Data.Array (head) as Array
+import Data.Array (head, index) as Array
+import Data.Array.NonEmpty (toArray) as NEA
 import Data.Either (Either(..))
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -139,8 +140,9 @@ parseContributorCount linkHeaderM = case linkHeaderM of
     in
       case matched of
         Just matches ->
-          case matches of
-            [_, Just numStr] ->
+          let arr = NEA.toArray matches
+          in case Array.index arr 1 of
+            Just (Just numStr) ->
               case fromString numStr of
                 Just n -> ContributorCount n
                 Nothing -> ContributorCount 0

@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Plan
 Description : Plan mode transition tools
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Plan Tool
 
 This module provides tools for transitioning between plan and build modes.
@@ -56,8 +53,10 @@ import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
 import Data.Argonaut (Json, class EncodeJson, encodeJson, decodeJson)
 import Effect.Aff (Aff)
+import Effect (Effect)
+import Effect.Class (liftEffect)
 
-import Opencode.Types.Tool (ToolContext, ToolResult, ToolInfo)
+import Opencode.Types.Tool (ToolContext, ToolResult, ToolInfo, ToolMetadata(..))
 
 -- ============================================================================
 -- TYPES
@@ -101,13 +100,24 @@ executePlanExit _ ctx = do
   -- 3. If confirmed, create message to switch to build agent
   -- 4. Return result
   
-  let planPath = ".opencode/plan.md"  -- TODO: Get from session
+  -- Get project root from worktree
+  projectRoot <- liftEffect getWorktreeRoot
+  let planPath = projectRoot <> "/.opencode/plan.md"
   
-  -- TODO: Actually ask user and switch modes
+  -- Ask user for confirmation using Question tool pattern
+  -- In production, this would use the Question tool or UI bridge
+  -- For now, format the confirmation request
+  let confirmationMessage = 
+        "Switch from plan mode to build mode?\n\n" <>
+        "Plan mode: Research and planning (read-only)\n" <>
+        "Build mode: Full implementation (can edit files)\n\n" <>
+        "Plan file: " <> planPath <> "\n\n" <>
+        "User confirmation required. In production, this would prompt via UI."
+  
   pure
     { title: "Switching to build agent"
-    , metadata: encodeJson { agent: "build", plan: planPath }
-    , output: "User approved switching to build agent. Wait for further instructions."
+    , metadata: PlanMetadata { agent: "build", plan: planPath }
+    , output: confirmationMessage
     , attachments: Nothing
     }
 
@@ -123,13 +133,24 @@ executePlanEnter _ ctx = do
   -- 3. If confirmed, create message to switch to plan agent
   -- 4. Return result
   
-  let planPath = ".opencode/plan.md"  -- TODO: Get from session
+  -- Get project root from worktree
+  projectRoot <- liftEffect getWorktreeRoot
+  let planPath = projectRoot <> "/.opencode/plan.md"
   
-  -- TODO: Actually ask user and switch modes
+  -- Ask user for confirmation using Question tool pattern
+  -- In production, this would use the Question tool or UI bridge
+  -- For now, format the confirmation request
+  let confirmationMessage =
+        "Switch from build mode to plan mode?\n\n" <>
+        "Build mode: Full implementation (can edit files)\n" <>
+        "Plan mode: Research and planning (read-only)\n\n" <>
+        "Plan file: " <> planPath <> "\n\n" <>
+        "User confirmation required. In production, this would prompt via UI."
+  
   pure
     { title: "Switching to plan agent"
-    , metadata: encodeJson { agent: "plan", plan: planPath }
-    , output: "User confirmed to switch to plan mode. Begin planning."
+    , metadata: PlanMetadata { agent: "plan", plan: planPath }
+    , output: confirmationMessage
     , attachments: Nothing
     }
 

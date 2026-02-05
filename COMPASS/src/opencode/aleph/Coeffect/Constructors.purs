@@ -1,9 +1,6 @@
 {-|
 Module      : Aleph.Coeffect.Constructors
 Description : Smart constructors for resources
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Resource Constructors
 
 Convenience functions for creating resources:

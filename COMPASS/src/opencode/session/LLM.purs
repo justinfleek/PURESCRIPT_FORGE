@@ -1,9 +1,6 @@
 {-|
 Module      : Opencode.Session.LLM
 Description : LLM API client for chat completions
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = LLM Client
 
 Handles communication with language model providers via OpenAI-compatible API.

@@ -1,9 +1,6 @@
 {-|
 Module      : Aleph.Sandbox.Policy
 Description : Sandbox policies and isolation levels
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Sandbox Policy
 
 This module defines sandbox policies that control resource access

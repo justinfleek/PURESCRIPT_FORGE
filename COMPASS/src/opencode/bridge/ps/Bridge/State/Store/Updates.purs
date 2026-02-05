@@ -1,9 +1,6 @@
 {-|
 Module      : Bridge.State.Store.Updates
 Description : State update functions
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = State Updates
 
 Functions for updating Bridge Server application state.

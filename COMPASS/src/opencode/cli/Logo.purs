@@ -1,14 +1,13 @@
 -- | CLI Logo display
--- | TODO: Implement based on _OTHER/opencode-original/packages/opencode/src/cli/logo.ts
 module Opencode.CLI.Logo where
 
 import Prelude
 import Effect (Effect)
-import Opencode.Util.NotImplemented (notImplemented)
+import Opencode.CLI.UI as UI
 
 -- | Print the OpenCode logo
 printLogo :: Effect Unit
-printLogo = notImplemented "CLI.Logo.printLogo"
+printLogo = UI.println [getLogo]
 
 -- | Get the ASCII logo as a string
 getLogo :: String

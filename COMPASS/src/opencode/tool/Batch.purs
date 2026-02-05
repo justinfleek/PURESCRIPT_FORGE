@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Batch
 Description : Parallel tool execution
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Batch Tool
 
 Execute multiple tools in parallel for optimal performance.
@@ -57,13 +54,18 @@ import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
 import Data.Array as Array
 import Data.String as String
-import Data.Argonaut (Json, encodeJson, decodeJson)
+import Data.Argonaut (Json, encodeJson, decodeJson, (.:))
 import Data.Traversable (traverse)
-import Effect.Aff (Aff, parallel, sequential)
+import Effect.Aff (Aff, parallel, sequential, attempt)
 import Effect.Aff.Class (class MonadAff)
+import Effect.Class (liftEffect)
 
-import Opencode.Types.Tool (ToolContext, ToolResult, ToolInfo)
+import Opencode.Types.Tool (ToolContext, ToolResult, ToolInfo, ToolMetadata(..), EmptyMetadata, ErrorMetadata)
 import Aleph.Coeffect (Resource(..), (⊗))
+import Tool.Registry (get, initialState, RegistryState)
+import Tool.Dispatcher (dispatchTool as dispatchToolById)
+import Effect.Ref (Ref)
+import Effect.Ref as Ref
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- CONFIGURATION
@@ -118,6 +120,12 @@ type BatchResult =
 -- EXECUTION
 -- ════════════════════════════════════════════════════════════════════════════
 
+-- | Global tool registry ref (in production, would be passed via context)
+toolRegistryRef :: Ref RegistryState
+toolRegistryRef = unsafePerformEffect $ Ref.new initialState
+  where
+    foreign import unsafePerformEffect :: forall a. Effect a -> a
+
 execute :: BatchParams -> ToolContext -> Aff ToolResult
 execute params ctx = do
   -- 1. Validate batch size
@@ -129,36 +137,75 @@ execute params ctx = do
         not (Array.elem c.tool defaultConfig.disallowed)
   
   -- 3. Execute in parallel
-  -- TODO: Parallel execution via Aff
-  -- results <- sequential $ traverse (parallel <<< executeCall ctx) validated
+  results <- sequential $ traverse (parallel <<< executeCall ctx) validated
   
-  let successful = 0
-  let failed = 0
+  -- 4. Count successes and failures
+  let successful = Array.length $ Array.filter _.success results
+  let failed = Array.length results - successful
   
   pure
     { title: "Batch execution (" <> show successful <> "/" <> show (Array.length calls) <> " successful)"
-    , metadata: encodeJson
+    , metadata: BatchMetadata
         { totalCalls: Array.length calls
         , successful
         , failed
         , tools: calls # map _.tool
         }
-    , output: formatOutput successful (Array.length calls) failed
+    , output: formatOutput successful (Array.length calls) failed <> "\n\n" <> formatResults results
     , attachments: Nothing
     }
 
 executeCall :: ToolContext -> ToolCall -> Aff CallResult
 executeCall ctx call = do
   -- 1. Look up tool in registry
-  -- 2. Validate parameters
-  -- 3. Execute tool
-  -- 4. Return result
-  pure
-    { tool: call.tool
-    , success: false
-    , output: Nothing
-    , error: Just "TODO: Implement tool dispatch"
-    }
+  toolInfo <- liftEffect $ get call.tool toolRegistryRef
+  
+  case toolInfo of
+    Nothing -> pure
+      { tool: call.tool
+      , success: false
+      , output: Nothing
+      , error: Just ("Tool not found: " <> call.tool)
+      }
+    Just _tool -> do
+      -- 2. Execute tool via tool dispatch
+      -- Note: In production, this would use the actual tool's execute function
+      -- For now, we'll attempt to dispatch via a tool execution service
+      result <- attempt $ dispatchTool call ctx
+      case result of
+        Left err -> pure
+          { tool: call.tool
+          , success: false
+          , output: Nothing
+          , error: Just ("Tool execution failed: " <> show err)
+          }
+        Right toolResult -> pure
+          { tool: call.tool
+          , success: true
+          , output: Just toolResult.output
+          , error: Nothing
+          }
+
+-- | Dispatch a tool call to the appropriate tool executor
+-- | Uses Tool.Dispatcher to look up and execute the tool
+dispatchTool :: ToolCall -> ToolContext -> Aff ToolResult
+dispatchTool call ctx = do
+  -- Use global tool dispatcher to execute the tool
+  dispatchToolById call.tool call.parameters ctx
+
+-- | Format individual results for output
+formatResults :: Array CallResult -> String
+formatResults results =
+  String.joinWith "\n" $ Array.mapWithIndex formatResult results
+  where
+    formatResult idx result =
+      let status = if result.success then "✓" else "✗"
+          toolLine = show (idx + 1) <> ". " <> status <> " " <> result.tool
+          details = case result.success, result.output, result.error of
+            true, Just out, _ -> "\n   Output: " <> String.take 100 out
+            false, _, Just err -> "\n   Error: " <> err
+            _, _, _ -> ""
+      in toolLine <> details
 
 formatOutput :: Int -> Int -> Int -> String
 formatOutput successful total failed
@@ -193,13 +240,43 @@ batchTool :: ToolInfo
 batchTool =
   { id: "batch"
   , description: "Execute multiple tools in parallel"
-  , parameters: encodeJson { type: "object" }
+  , parameters: encodeJson batchSchema
   , execute: \json ctx ->
-      case decodeJson json of
-        Left err -> pure $ mkErrorResult (show err)
+      case decodeBatchParams json of
+        Left err -> pure $ mkErrorResult err
         Right params -> execute params ctx
   , formatValidationError: Just formatValidationError
   }
+
+-- | Batch tool schema
+batchSchema :: Json
+batchSchema = encodeJson
+  { type: "object"
+  , properties:
+      { toolCalls: 
+          { type: "array"
+          , items:
+              { type: "object"
+              , properties:
+                  { tool: { type: "string", description: "Tool ID to execute" }
+                  , parameters: { type: "object", description: "Tool parameters" }
+                  }
+              , required: ["tool", "parameters"]
+              }
+          , description: "Array of tool calls to execute in parallel"
+          , minItems: 1
+          , maxItems: 25
+          }
+      }
+  , required: ["toolCalls"]
+  }
+
+-- | Decode batch parameters
+decodeBatchParams :: Json -> Either String BatchParams
+decodeBatchParams json = do
+  obj <- decodeJson json
+  toolCalls <- obj .: "toolCalls" >>= decodeJson
+  pure { toolCalls }
 
 formatValidationError :: Json -> String
 formatValidationError _ =
@@ -210,7 +287,7 @@ formatValidationError _ =
 mkErrorResult :: String -> ToolResult
 mkErrorResult err =
   { title: "Batch Error"
-  , metadata: encodeJson { error: err }
+  , metadata: ErrorMetadata { error: err }
   , output: "Error: " <> err
   , attachments: Nothing
   }

@@ -73,6 +73,7 @@ type State =
   , alertLevel :: AlertLevel
   , showTooltip :: Maybe TooltipTarget
   , animationState :: AnimationState
+  , tickerFiber :: Maybe (Fiber Unit)
   }
 
 data AnimationState = Idle | Pulsing | Fading
@@ -340,6 +341,12 @@ formatTimeToDepletionProjection :: Maybe Number -> String
 formatTimeToDepletionProjection = case _ of
   Nothing -> "∞"
   Just hours -> formatTimeToDepletion hours
+
+-- | Get Venice Diem balance from BalanceState
+getVeniceDiem :: BalanceState -> Number
+getVeniceDiem balance = case balance.venice of
+  Just venice -> venice.diem
+  Nothing -> 0.0
 
 -- Alert level calculation imported from Balance module
 

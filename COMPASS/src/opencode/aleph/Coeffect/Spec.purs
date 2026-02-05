@@ -1,9 +1,6 @@
 {-|
 Module      : Aleph.Coeffect.Spec
 Description : Resource specification types
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Resource Specifications
 
 Type-level specifications for indexed resources. Each spec

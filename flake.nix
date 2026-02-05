@@ -142,8 +142,8 @@
         purescript-overlay.overlays.default
       ];
       
-      # NativeLink - disabled
-      aleph.nativelink.enable = false;
+      # NativeLink - enabled for distributed builds
+      aleph.nativelink.enable = true;
 
       perSystem = { config, self', inputs', pkgs, system, lib, ... }:
         let
@@ -238,13 +238,12 @@
           });
 
           # Haskell project for rules/standards
-          rules-hs = haskellPackages.callCabal2nix "coder-rules-hs" ./src/rules-hs { 
-            test = true;
+          rules-hs = (haskellPackages.callCabal2nix "forge-rules-hs" ./src/rules-hs {}).overrideAttrs (finalAttrs: {
             meta = {
               description = "PURESCRIPT_FORGE coding rules and standards (Haskell)";
               license = pkgs.lib.licenses.mit;
             };
-          };
+          });
 
           # Lean4 project for proofs
           rules-lean = lean.buildPackage {
@@ -253,13 +252,13 @@
           };
 
           # PRISM Color Core (Haskell)
-          prism-color-core-hs = haskellPackages.callCabal2nix "prism-color-core" 
-            ./PRISM/prism-color-core/haskell { 
+          prism-color-core-hs = (haskellPackages.callCabal2nix "prism-color-core" 
+            ./PRISM/prism-color-core/haskell {}).overrideAttrs (finalAttrs: {
               meta = {
                 description = "PRISM color core";
                 license = pkgs.lib.licenses.mit;
               };
-            };
+            });
 
           # PRISM Color Core (Lean4)
           prism-color-core-lean = (lean.buildPackage {
@@ -312,43 +311,88 @@
             };
           });
 
+          # Console Core - Domain types and business logic (PureScript)
+          console-core-ps = pkgs.stdenv.mkDerivation (finalAttrs: {
+            pname = "console-core-ps";
+            version = "0.1.0";
+            src = ./packages/console/core;
+            buildInputs = [ purs spago ];
+            buildPhase = ''
+              export HOME=$TMPDIR
+              spago build
+            '';
+            installPhase = ''
+              mkdir -p $out
+              cp -r output $out/
+            '';
+            meta = {
+              description = "Console core domain types (PureScript)";
+              license = pkgs.lib.licenses.mit;
+            };
+          });
+
+          # Console App - Web application UI (PureScript/Halogen)
+          console-app-ps = pkgs.stdenv.mkDerivation (finalAttrs: {
+            pname = "console-app-ps";
+            version = "0.1.0";
+            src = ./packages/console/app;
+            buildInputs = [ purs spago pkgs.nodejs_20 ];
+            buildPhase = ''
+              export HOME=$TMPDIR
+              # Link to console-core output
+              mkdir -p .spago
+              ${if builtins.pathExists ./packages/console/core then ''
+                ln -s ${console-core-ps}/output .spago/console-core || true
+              '' else ""}
+              spago build
+            '';
+            installPhase = ''
+              mkdir -p $out
+              cp -r output $out/
+            '';
+            meta = {
+              description = "Console web application UI (PureScript/Halogen)";
+              license = pkgs.lib.licenses.mit;
+            };
+          });
+
           # Spec loader/parser (Haskell)
-          spec-loader-hs = haskellPackages.callCabal2nix "spec-loader" 
-            ./src/spec-loader-hs { 
+          spec-loader-hs = (haskellPackages.callCabal2nix "spec-loader" 
+            ./src/spec-loader-hs {}).overrideAttrs (finalAttrs: {
               meta = {
                 description = "Spec loader/parser";
                 license = pkgs.lib.licenses.mit;
               };
-            };
+            });
           
           # OpenCode validator (Haskell)
-          opencode-validator-hs = haskellPackages.callCabal2nix "opencode-validator" 
-            ./src/opencode-validator-hs { 
+          opencode-validator-hs = (haskellPackages.callCabal2nix "opencode-validator" 
+            ./src/opencode-validator-hs {}).overrideAttrs (finalAttrs: {
               meta = {
                 description = "OpenCode validator (Haskell)";
                 license = pkgs.lib.licenses.mit;
               };
-            };
+            });
           
           # Bridge Database (Haskell)
-          bridge-database-hs = haskellPackages.callCabal2nix "bridge-database" 
-            ./src/bridge-database-hs { 
+          bridge-database-hs = (haskellPackages.callCabal2nix "bridge-database" 
+            ./src/bridge-database-hs {}).overrideAttrs (finalAttrs: {
               meta = {
                 description = "Bridge database backend";
                 license = pkgs.lib.licenses.mit;
               };
-            };
+            });
           
           # Bridge Analytics (Haskell/DuckDB)
-          bridge-analytics-hs = haskellPackages.callCabal2nix "bridge-analytics" 
-            ./src/bridge-analytics-hs { 
-              # Note: duckdb-haskell may need to be added to haskellPackages
-              # or use DuckDB C API via FFI
+          # Note: duckdb-haskell may need to be added to haskellPackages
+          # or use DuckDB C API via FFI
+          bridge-analytics-hs = (haskellPackages.callCabal2nix "bridge-analytics" 
+            ./src/bridge-analytics-hs {}).overrideAttrs (finalAttrs: {
               meta = {
                 description = "Bridge analytics backend (Haskell/DuckDB)";
                 license = pkgs.lib.licenses.mit;
               };
-            };
+            });
           
           # OpenCode proofs (Lean4)
           opencode-proofs-lean = (lean.buildPackage {
@@ -677,6 +721,10 @@
             opencode-validator-hs = opencode-validator-hs;
             opencode-proofs-lean = opencode-proofs-lean;
             
+            # Console packages (PureScript)
+            console-core-ps = console-core-ps;
+            console-app-ps = console-app-ps;
+            
             # Bridge Database (Haskell)
             bridge-database-hs = bridge-database-hs;
             
@@ -926,6 +974,9 @@
                 bridge-server-ps
                 semantic-cells-python
                 engram-attestation-hs
+                # Console packages
+                console-core-ps
+                console-app-ps
                 # From packages set - need self'.packages
                 self'.packages.opencode-plugin-ps
               ];

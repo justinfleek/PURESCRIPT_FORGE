@@ -1,9 +1,6 @@
 {-|
 Module      : Opencode.Server.Server
 Description : Main HTTP server
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = HTTP Server
 
 Main server implementation matching OpenCode's server/server.ts.
@@ -324,12 +321,14 @@ coreRoutes =
 -- ════════════════════════════════════════════════════════════════════════════
 
 -- | Build JSON response
-jsonResponse :: forall a. a -> Response
-jsonResponse status _body =
+jsonResponse :: forall a. Int -> a -> Response
+jsonResponse status body =
   { status
   , headers: [{ key: "Content-Type", value: "application/json" }]
-  , body: "{}"  -- TODO: JSON encode body
+  , body: encodeJsonToString body
   }
+  where
+    foreign import encodeJsonToString :: forall a. a -> String
 
 -- | Build either response
 eitherResponse :: forall a. Either String a -> Response
@@ -357,11 +356,16 @@ sseResponse =
   , body: "data: {\"type\":\"server.connected\",\"properties\":{}}\n\n"
   }
 
--- | OpenAPI spec stub
-openApiSpec :: { info :: { title :: String, version :: String }, openapi :: String }
+-- | OpenAPI spec
+openApiSpec :: { info :: { title :: String, version :: String, description :: String }, openapi :: String, paths :: Json }
 openApiSpec =
-  { info: { title: "opencode", version: "1.0.0" }
+  { info: 
+      { title: "OpenCode API"
+      , version: "1.0.0"
+      , description: "OpenCode server API for AI coding assistant"
+      }
   , openapi: "3.1.1"
+  , paths: encodeJson {}
   }
 
 -- ════════════════════════════════════════════════════════════════════════════

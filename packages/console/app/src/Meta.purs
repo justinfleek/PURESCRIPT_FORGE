@@ -134,22 +134,6 @@ mergeMetadata base override =
   , canonicalPath: override.canonicalPath <|> base.canonicalPath
   }
 
--- ═══════════════════════════════════════════════════════════════════════════════
--- UTILITIES
--- ═══════════════════════════════════════════════════════════════════════════════
-
--- | Merge two metadata records, preferring the second
-mergeMetadata :: PageMetadata -> PageMetadata -> PageMetadata
-mergeMetadata base override =
-  { title: override.title
-  , description: override.description
-  , canonicalPath: override.canonicalPath <|> base.canonicalPath
-  }
-  where
-    (<|>) :: forall a. Maybe a -> Maybe a -> Maybe a
-    (<|>) (Just a) _ = Just a
-    (<|>) Nothing b = b
-
 -- | Format title with site suffix
 formatTitle :: String -> String
 formatTitle "" = "opencode"

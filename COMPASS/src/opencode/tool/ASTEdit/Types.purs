@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.ASTEdit.Types
 Description : Core types for unified editing system
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = ASTEdit Type System
 
 Core types shared across all editing modes.

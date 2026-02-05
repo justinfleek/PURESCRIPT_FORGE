@@ -27,6 +27,13 @@ import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Halogen.HTML.Events as HE
 import Effect.Aff.Class (class MonadAff)
+import Effect.Class (liftEffect)
+import Web.Event.Event (EventType(..))
+import Web.Event.EventTarget (addEventListener, eventListener, removeEventListener)
+import Web.HTML (window)
+import Web.HTML.Window (document)
+import Web.DOM.Document (toEventTarget)
+import Web.UIEvent.KeyboardEvent (KeyboardEvent, fromEvent, key)
 
 -- | Component state
 type State =
@@ -55,8 +62,10 @@ component = H.mkComponent
 
 -- | Actions
 data Action
-  = Receive Input
+  = Initialize
+  | Receive Input
   | Close
+  | HandleEscape
 
 handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Output m Unit
 handleAction = case _ of
@@ -98,25 +107,53 @@ render state =
   else
     HH.text ""
 
--- | Render keyboard shortcuts
+-- | Render keyboard shortcuts - Complete keyboard shortcut reference
 renderShortcuts :: forall m. H.ComponentHTML Action () m
 renderShortcuts =
   HH.div
     [ HP.class_ (H.ClassName "shortcuts") ]
     [ renderSection "Navigation"
-        [ renderShortcut "1-5" "Navigate to panels (Dashboard, Session, Proof, Timeline, Settings)"
-        , renderShortcut "j/k" "Move down/up (Vim mode)"
-        , renderShortcut "h/l" "Move left/right (Vim mode)"
+        [ renderShortcut "1 / g d" "Go to Dashboard"
+        , renderShortcut "2 / g s" "Go to Session"
+        , renderShortcut "3 / g p" "Go to Proofs"
+        , renderShortcut "4 / g t" "Go to Timeline"
+        , renderShortcut "5 / g e" "Go to Settings"
+        ]
+    , renderSection "Movement"
+        [ renderShortcut "j / ↓" "Move down"
+        , renderShortcut "k / ↑" "Move up"
+        , renderShortcut "h / ←" "Move left / Collapse"
+        , renderShortcut "l / →" "Move right / Expand"
+        , renderShortcut "gg" "Go to first item"
+        , renderShortcut "G" "Go to last item"
+        , renderShortcut "Ctrl+d" "Page down"
+        , renderShortcut "Ctrl+u" "Page up"
         ]
     , renderSection "Actions"
-        [ renderShortcut "Ctrl+Z" "Undo"
-        , renderShortcut "Ctrl+Shift+Z" "Redo"
-        , renderShortcut "Ctrl+Shift+P" "Open command palette"
-        , renderShortcut "r" "Refresh current view"
+        [ renderShortcut "Enter" "Select / Open"
+        , renderShortcut "Escape" "Close / Cancel / Back"
+        , renderShortcut "/" "Open search"
+        , renderShortcut "Ctrl+Shift+P" "Command palette"
         , renderShortcut "?" "Show this help"
-        , renderShortcut "Escape" "Cancel/Close"
-        , renderShortcut "Enter" "Confirm"
+        , renderShortcut "r" "Refresh current view"
+        , renderShortcut "[" "Toggle sidebar collapsed"
+        , renderShortcut "Ctrl+Z" "Undo"
+        , renderShortcut "Ctrl+Shift+Z" "Redo"
         ]
+    , renderSection "Dashboard"
+        [ renderShortcut "g b" "Focus balance widget"
+        , renderShortcut "g c" "Focus countdown widget"
+        , renderShortcut "g u" "Focus usage chart"
+        ]
+    , renderSection "Proofs"
+        [ renderShortcut "Tab" "Next goal"
+        , renderShortcut "Shift+Tab" "Previous goal"
+        , renderShortcut "a" "Apply selected tactic"
+        , renderShortcut "p" "Preview selected tactic"
+        ]
+    , HH.div
+        [ HP.class_ (H.ClassName "shortcuts__footer") ]
+        [ HH.text "Press ? to toggle this help • Esc to close" ]
     ]
 
 -- | Render a section of shortcuts

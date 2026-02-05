@@ -22,6 +22,10 @@
   , "numbers"
   , "refs"
   , "transformers"
+  , "control"
+  , "enums"
+  , "exceptions"
+  , "free"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "../core/src/**/*.purs" ]

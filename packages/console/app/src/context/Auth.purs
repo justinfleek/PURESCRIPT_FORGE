@@ -2,12 +2,13 @@
 -- | Migrated from: _OTHER/opencode-original/packages/console/app/src/context/auth.ts
 -- | Pure PureScript implementation - NO FFI
 module Console.App.Context.Auth
-  ( AuthSession(..)
-  , AuthClient(..)
-  , AccountInfo(..)
-  , SessionConfig(..)
-  , CookieConfig(..)
+  ( AuthSession
+  , AuthClient
+  , AccountInfo
+  , SessionConfig
+  , CookieConfig
   , ActorResult(..)
+  , emptySession
   , mkAuthClient
   , mkSessionConfig
   , defaultSessionConfig
@@ -19,14 +20,19 @@ module Console.App.Context.Auth
 
 import Prelude
 
-import Data.Array (head, index)
+import Data.Array (head, index, fromFoldable)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Either (Either(..))
 import Data.Tuple (Tuple(..))
-import Console.Core.Actor (ActorInfo(..), ActorType(..), AccountProperties, UserProperties)
-import Console.Core.Identifier (AccountId, UserId, WorkspaceId)
+import Forge.Console.Core.Actor (ActorInfo(..), ActorType(..), AccountActor, UserActor, UserRole(..))
+import Forge.Console.Core.Identifier (AccountId, UserId, WorkspaceId)
+
+-- | Parse role string to UserRole
+parseRole :: String -> UserRole
+parseRole "admin" = Admin
+parseRole _ = Member
 
 -- | Account information stored in session
 type AccountInfo =
@@ -103,8 +109,8 @@ defaultAuthClient issuer =
 
 -- | Result of getting actor from session
 data ActorResult
-  = ActorAccount AccountProperties
-  | ActorUser UserProperties
+  = ActorAccount AccountActor
+  | ActorUser UserActor
   | ActorPublic
   | ActorRedirect String
 
@@ -132,12 +138,12 @@ getActorFromSession session workspaceM userLookup = case workspaceM of
           Just info -> ActorAccount { email: info.email, accountID: info.id }
           Nothing ->
             -- Current not found, try first account
-            case head (Map.values session.account) of
+            case head (fromFoldable (Map.values session.account)) of
               Just info -> ActorAccount { email: info.email, accountID: info.id }
               Nothing -> ActorPublic
       Nothing ->
         -- No current, try first account
-        case head (Map.values session.account) of
+        case head (fromFoldable (Map.values session.account)) of
           Just info -> ActorAccount { email: info.email, accountID: info.id }
           Nothing -> ActorPublic
   
@@ -151,7 +157,7 @@ getActorFromSession session workspaceM userLookup = case workspaceM of
           { userID: user.userId
           , workspaceID: user.workspaceId
           , accountID: user.accountId
-          , role: user.role
+          , role: parseRole user.role
           }
         Nothing -> ActorRedirect "/auth/authorize"
 
@@ -174,7 +180,7 @@ removeAccountFromSession session accountId =
 -- | Returns workspace ID and array of account IDs for database query
 buildUserQuery :: AuthSession -> String -> Maybe { workspaceId :: String, accountIds :: Array String }
 buildUserQuery session workspaceId =
-  let accountIds = Map.keys session.account
+  let accountIds = fromFoldable (Map.keys session.account)
   in if accountIds == [] 
      then Nothing
      else Just { workspaceId, accountIds }
@@ -185,7 +191,7 @@ hasAccounts session = not (Map.isEmpty session.account)
 
 -- | Get all account IDs from session
 getAccountIds :: AuthSession -> Array String
-getAccountIds session = Map.keys session.account
+getAccountIds session = fromFoldable (Map.keys session.account)
 
 -- | SQL template for user seen update (pure data)
 type UpdateUserSeenQuery =

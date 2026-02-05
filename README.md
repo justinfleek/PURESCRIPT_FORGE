@@ -6,10 +6,13 @@ This workspace contains projects following strict development standards for type
 
 ## Projects
 
-- **opencode-dev**: TypeScript/Bun project (migration target)
-- **trtllm-serve-main**: Nix/Haskell reference standard
+- **COMPASS**: PureScript/Haskell/Lean4 implementations (main codebase)
+- **NEXUS**: Agent orchestration system with gVisor sandboxing
+- **PRISM**: Formally verified color system with Lean4 proofs
+- **packages/**: Migrated packages (console, app, ui, util, enterprise, plugin)
 - **opencode-sidepanel-specs**: 99 comprehensive spec files (PureScript/Halogen sidepanel)
-- **PRISM**: Color system with Haskell/Lean4 implementations
+
+**Migration Status:** ~94% complete (850+ files migrated from TypeScript to PureScript/Haskell/Lean4)
 
 ## Rules Implementation
 
@@ -65,7 +68,7 @@ PureScript/Halogen sidepanel (per specs 40-49):
 - Uses PRISM color system for theming
 - Integrates with opencode-dev
 
-**Status:** See `docs/IMPLEMENTATION_STATUS.md` for complete progress tracking.
+**Status:** See `STATE_OF_PROJECT.md` for complete progress tracking.
 
 ### PRISM Color System
 

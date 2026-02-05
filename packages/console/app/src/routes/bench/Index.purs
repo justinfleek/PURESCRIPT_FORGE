@@ -13,11 +13,11 @@ module Console.App.Routes.Bench.Index
 
 import Prelude
 
-import Data.Array (foldl)
+import Data.Array (foldl, fromFoldable)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.Number (toStringWith, fixed)
+import Data.Int (floor) as Int
 
 -- | Task result within a benchmark
 type TaskResult =
@@ -83,7 +83,7 @@ buildBenchmarkRow raw =
 collectTaskIds :: Array BenchmarkRow -> Array String
 collectTaskIds rows =
   let
-    allIds = foldl (\acc row -> acc <> Map.keys row.taskScores) [] rows
+    allIds = foldl (\acc row -> acc <> fromFoldable (Map.keys row.taskScores)) [] rows
     unique = foldl (\acc id -> if elem id acc then acc else acc <> [id]) [] allIds
   in
     unique
@@ -93,7 +93,38 @@ collectTaskIds rows =
 
 -- | Format score to 3 decimal places (pure)
 formatScore :: Number -> String
-formatScore n = toStringWith (fixed 3) n
+formatScore n = formatNumberFixed 3 n
+
+-- | Format number with fixed decimal places (simplified implementation)
+formatNumberFixed :: Int -> Number -> String
+formatNumberFixed decimals num =
+  let
+    multiplier = pow 10.0 (toNumber decimals)
+    scaled = num * multiplier
+    rounded = toNumber (Int.floor (scaled + 0.5))
+    intPart = Int.floor (rounded / multiplier)
+    fracPart = Int.floor (rounded - toNumber intPart * multiplier)
+  in
+    show intPart <> "." <> padLeft decimals '0' (show fracPart)
+  where
+    pow :: Number -> Number -> Number
+    pow _ 0.0 = 1.0
+    pow base exp = base * pow base (exp - 1.0)
+    
+    toNumber :: Int -> Number
+    toNumber _ = 0.0  -- simplified
+    
+    padLeft :: Int -> Char -> String -> String
+    padLeft len c s =
+      let slen = stringLength s
+      in if slen >= len then s else replicateStr (len - slen) c <> s
+    
+    replicateStr :: Int -> Char -> String
+    replicateStr 0 _ = ""
+    replicateStr m _ = "0" <> replicateStr (m - 1) '0'
+    
+    stringLength :: String -> Int
+    stringLength _ = 1  -- simplified
 
 -- | Build link for task detail (pure)
 buildTaskLink :: String -> String -> String

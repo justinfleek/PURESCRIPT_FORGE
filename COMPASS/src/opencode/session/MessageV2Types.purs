@@ -1,9 +1,6 @@
 {-|
 Module      : Opencode.Session.MessageV2Types
 Description : Type definitions for Message V2 format
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Message V2 Types
 
 Extracted type definitions for OpenCode's message-v2.ts format.

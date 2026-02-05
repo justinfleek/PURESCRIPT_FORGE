@@ -38,8 +38,11 @@ module Sidepanel.State.AppState where
 import Prelude
 import Data.DateTime (DateTime)
 import Data.Maybe (Maybe)
+import Data.Map as Map
 import Sidepanel.State.Balance (BalanceState, initialBalanceState)
 import Sidepanel.State.UndoRedo (UndoRedoState, initialUndoRedoState)
+import Sidepanel.State.RateLimit (RateLimitState, initialRateLimitState)
+import Sidepanel.State.Sessions (SessionTabsState, SessionMetadata, initialTabsState)
 
 -- | Root state type - Complete application state
 -- |
@@ -87,9 +90,20 @@ type AppState =
   -- Balance (all providers, Venice Diem included)
   , balance :: BalanceState
   
-  -- Session
-  , session :: Maybe SessionState
+  -- Rate Limits (Venice API)
+  , rateLimit :: RateLimitState
+  
+  -- Sessions (Multi-Session Support)
+  , sessions :: Map.Map String SessionState  -- All sessions by ID
+  , sessionMetadata :: Map.Map String SessionMetadata  -- Session metadata (title, icon, branching, etc.)
+  , sessionTabs :: SessionTabsState  -- Tab state (tabs, activeTabId, tabOrder)
+  , activeSessionId :: Maybe String  -- Currently active session ID
+  , sessionMessages :: Map.Map String (Array Message)  -- Messages per session (sessionId -> messages)
+  
+  -- Legacy single-session fields (deprecated, kept for compatibility during migration)
+  , session :: Maybe SessionState  -- DEPRECATED: Use sessions Map and activeSessionId
   , sessionHistory :: Array SessionSummary
+  , messages :: Array Message  -- DEPRECATED: Use sessionMessages Map
   
   -- Proof (Lean4)
   , proof :: ProofState
@@ -176,6 +190,92 @@ type SessionSummary =
   , tokenCount :: Int
   , startedAt :: DateTime
   }
+
+-- | Message - Chat message with optional tool calls and usage
+-- |
+-- | **Purpose:** Represents a single message in a conversation session.
+-- | **Fields:**
+-- | - `id`: Message identifier
+-- | - `role`: Message role (user, assistant, system, tool)
+-- | - `content`: Message content text
+-- | - `timestamp`: When message was created
+-- | - `usage`: Token usage (for assistant messages)
+-- | - `toolCalls`: Tool calls made (for assistant messages)
+type Message =
+  { id :: String
+  , role :: MessageRole
+  , content :: String
+  , timestamp :: DateTime
+  , usage :: Maybe MessageUsage
+  , toolCalls :: Array ToolCall
+  }
+
+-- | Message role
+data MessageRole = User | Assistant | System | Tool
+
+derive instance eqMessageRole :: Eq MessageRole
+
+-- | Message usage (token counts and cost)
+type MessageUsage =
+  { promptTokens :: Int
+  , completionTokens :: Int
+  , cost :: Number
+  }
+
+-- | Tool call information
+type ToolCall =
+  { name :: String
+  , status :: ToolStatus
+  , durationMs :: Maybe Int
+  }
+
+-- | Tool call status
+data ToolStatus = Pending | Running | Completed | Failed
+
+derive instance eqToolStatus :: Eq ToolStatus
+
+-- | Message - Chat message with optional tool calls and usage
+-- |
+-- | **Purpose:** Represents a single message in a conversation session.
+-- | **Fields:**
+-- | - `id`: Message identifier
+-- | - `role`: Message role (user, assistant, system, tool)
+-- | - `content`: Message content text
+-- | - `timestamp`: When message was created
+-- | - `usage`: Token usage (for assistant messages)
+-- | - `toolCalls`: Tool calls made (for assistant messages)
+type Message =
+  { id :: String
+  , role :: MessageRole
+  , content :: String
+  , timestamp :: DateTime
+  , usage :: Maybe MessageUsage
+  , toolCalls :: Array ToolCall
+  }
+
+-- | Message role
+data MessageRole = User | Assistant | System | Tool
+
+derive instance eqMessageRole :: Eq MessageRole
+
+-- | Message usage (token counts and cost)
+type MessageUsage =
+  { promptTokens :: Int
+  , completionTokens :: Int
+  , cost :: Number
+  }
+
+-- | Tool call information
+type ToolCall =
+  { name :: String
+  , status :: ToolStatus
+  , durationMs :: Maybe Int
+  }
+
+-- | Tool call status
+data ToolStatus = Pending | Running | Completed | Failed
+
+derive instance eqToolStatus :: Eq ToolStatus
 
 -- | Proof state (Lean4) - Lean4 LSP connection and proof status
 -- |
@@ -340,8 +440,15 @@ initialState =
   { connected: false
   , lastSyncTime: Nothing
   , balance: initialBalanceState
-  , session: Nothing
+  , rateLimit: initialRateLimitState
+  , sessions: Map.empty
+  , sessionMetadata: Map.empty
+  , sessionTabs: initialTabsState
+  , activeSessionId: Nothing
+  , sessionMessages: Map.empty
+  , session: Nothing  -- DEPRECATED
   , sessionHistory: []
+  , messages: []  -- DEPRECATED
   , proof: initialProofState
   , snapshots: []
   , selectedSnapshotId: Nothing

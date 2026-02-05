@@ -14,6 +14,7 @@ import Prelude
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple(..))
 import Console.App.Routes.Download.Types (DownloadPlatform(..))
 
 -- | Asset file name mapping
@@ -29,8 +30,6 @@ assetNames = Map.fromFoldable
   , Tuple LinuxX64AppImage "opencode-desktop-linux-amd64.AppImage"
   , Tuple LinuxX64Rpm "opencode-desktop-linux-x86_64.rpm"
   ]
-  where
-    Tuple a b = { key: a, value: b }
 
 -- | Download file name mapping (user-friendly names)
 type DownloadMapping = Map DownloadPlatform String
@@ -41,8 +40,6 @@ downloadNames = Map.fromFoldable
   , Tuple DarwinX64Dmg "OpenCode Desktop.dmg"
   , Tuple WindowsX64Nsis "OpenCode Desktop Installer.exe"
   ]
-  where
-    Tuple a b = { key: a, value: b }
 
 -- | Get asset name for platform
 getAssetName :: DownloadPlatform -> Maybe String

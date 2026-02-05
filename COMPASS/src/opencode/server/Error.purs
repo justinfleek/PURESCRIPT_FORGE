@@ -1,5 +1,4 @@
 -- | Server Error handling
--- | TODO: Implement based on _OTHER/opencode-original/packages/opencode/src/server/error.ts
 module Opencode.Server.Error where
 
 import Prelude

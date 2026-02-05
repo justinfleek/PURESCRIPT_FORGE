@@ -1,9 +1,6 @@
 {-|
 Module      : Opencode.Provider.SDK.OpenAICompatible.Responses.OpenAIResponsesAPITypes
 Description : OpenAI API type definitions
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = OpenAI Responses API Types
 
 Type definitions for OpenAI-compatible chat completion APIs.

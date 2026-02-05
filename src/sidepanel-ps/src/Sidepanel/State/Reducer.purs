@@ -53,11 +53,13 @@ import Data.Time (Time, midnight)
 import Data.Date.Component (Year(..), Month(..), Day(..))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
-import Sidepanel.State.AppState (AppState, SessionState, AlertLevel(..), Panel, Theme, Alert)
-import Sidepanel.State.Balance (BalanceState, VeniceBalance, FlkBalance, TokenUsage, calculateAlertLevel)
-import Sidepanel.State.Actions (Action(..), BalanceUpdate, SessionUpdate, UsageRecord, AlertData)
+import Sidepanel.State.AppState (AppState, SessionState, AlertLevel(..), Panel, Theme, Alert, Message)
+import Sidepanel.State.Balance (BalanceState, VeniceBalance, FlkBalance, TokenUsage, calculateAlertLevel, BalanceSnapshot)
+import Sidepanel.State.Actions (Action(..), BalanceUpdate, SessionUpdate, UsageRecord, AlertData, SessionMetadataUpdate)
 import Sidepanel.State.UndoRedo as UndoRedo
-import Sidepanel.FFI.DateTime (getCurrentDateTime)
+import Sidepanel.State.BalanceMetrics as BalanceMetrics
+import Sidepanel.State.Sessions as Sessions
+import Sidepanel.FFI.DateTime (getCurrentDateTime, toTimestamp)
 import Data.Map as Map
 
 -- | Pure state reducer with automatic history tracking
@@ -146,7 +148,15 @@ reduceWithoutHistory state = case _ of
     state { lastSyncTime = Just timestamp }
   
   BalanceUpdated update ->
-    state { balance = updateBalance state.balance update }
+    let
+      -- Use timestamp from update, or fall back to lastUpdated, or use current time approximation
+      currentTime = case update.timestamp of
+        Just ts -> ts
+        Nothing -> case state.balance.lastUpdated of
+          Just dt -> dt
+          Nothing -> DateTime (canonicalDate (Year 2026) (Month 1) (Day 1)) midnight  -- Fallback
+    in
+      state { balance = updateBalance state.balance update currentTime }
   
   CountdownTick ->
     state { balance = tickCountdown state.balance }
@@ -154,6 +164,32 @@ reduceWithoutHistory state = case _ of
   AlertLevelChanged level ->
     -- Alert level is calculated, not set directly
     state { balance = state.balance { alertLevel = calculateAlertLevel state.balance } }
+  
+  RateLimitUpdated headers ->
+    let
+      -- Get current time for update
+      currentTime = case state.rateLimit.lastUpdated of
+        Just dt -> dt
+        Nothing -> DateTime (canonicalDate (Year 2026) (Month 1) (Day 1)) midnight  -- Fallback, would use getCurrentDateTime in real app
+    in
+      state { rateLimit = updateFromHeaders state.rateLimit headers currentTime }
+  
+  RateLimitHit retryAfterSeconds ->
+    -- Apply exponential backoff (recentLimitCount would come from state tracking)
+    let
+      recentLimitCount = 0  -- Would track this in state
+      updated = applyBackoff state.rateLimit retryAfterSeconds recentLimitCount
+    in
+      state { rateLimit = updated }
+  
+  RateLimitBackoffTick ->
+    -- Decrement backoff timer by 1 second (1000ms)
+    let
+      newBackoff = if state.rateLimit.backoffMs > 1000.0
+        then state.rateLimit.backoffMs - 1000.0
+        else 0.0
+    in
+      state { rateLimit = state.rateLimit { backoffMs = newBackoff } }
   
   SessionUpdated session ->
     case state.session of
@@ -165,19 +201,354 @@ reduceWithoutHistory state = case _ of
         state { session = Just $ updateSessionFromExisting existing session }
   
   SessionCleared ->
-    state { session = Nothing }
+    state { session = Nothing, messages = [] }
+  
+  MessageAdded message ->
+    state { messages = Array.snoc state.messages message }
+  
+  MessagesCleared ->
+    state { messages = [] }
+  
+  -- Multi-Session Management Actions
+  SessionOpened sessionId title icon ->
+    let
+      updatedTabs = Sessions.openTab state.sessionTabs sessionId title icon
+    in
+      state
+        { sessionTabs = updatedTabs
+        , activeSessionId = Just sessionId
+        }
+  
+  SessionClosed sessionId ->
+    let
+      updatedTabs = Sessions.closeTab state.sessionTabs sessionId
+      -- Remove session from sessions Map
+      updatedSessions = Map.delete sessionId state.sessions
+      -- Remove metadata
+      updatedMetadata = Map.delete sessionId state.sessionMetadata
+      -- Remove messages
+      updatedSessionMessages = Map.delete sessionId state.sessionMessages
+      -- If closed session was active, update activeSessionId
+      newActiveSessionId = if state.activeSessionId == Just sessionId
+        then updatedTabs.activeTabId
+        else state.activeSessionId
+    in
+      state
+        { sessionTabs = updatedTabs
+        , sessions = updatedSessions
+        , sessionMetadata = updatedMetadata
+        , sessionMessages = updatedSessionMessages
+        , activeSessionId = newActiveSessionId
+        }
+  
+  SessionSwitched sessionId ->
+    let
+      updatedTabs = Sessions.switchToTab state.sessionTabs sessionId
+    in
+      state
+        { sessionTabs = updatedTabs
+        , activeSessionId = Just sessionId
+        }
+  
+  TabsReordered newOrder ->
+    let
+      updatedTabs = Sessions.reorderTabs state.sessionTabs newOrder
+    in
+      state { sessionTabs = updatedTabs }
+  
+  TabPinned sessionId ->
+    let
+      updatedTabs = Sessions.pinTab state.sessionTabs sessionId
+    in
+      state { sessionTabs = updatedTabs }
+  
+  TabUnpinned sessionId ->
+    let
+      updatedTabs = Sessions.unpinTab state.sessionTabs sessionId
+    in
+      state { sessionTabs = updatedTabs }
+  
+  TabRenamed sessionId newTitle ->
+    let
+      updatedTabs = Sessions.renameTab state.sessionTabs sessionId newTitle
+    in
+      state { sessionTabs = updatedTabs }
+  
+  TabIconSet sessionId newIcon ->
+    let
+      updatedTabs = Sessions.setTabIcon state.sessionTabs sessionId newIcon
+    in
+      state { sessionTabs = updatedTabs }
+  
+  SessionCreated sessionUpdate title icon ->
+    let
+      -- Create session state
+      newSession = createSessionFromUpdate sessionUpdate Nothing
+      -- Create metadata
+      newMetadata =
+        { title: title
+        , icon: icon
+        , color: Nothing
+        , status: Sessions.Active
+        , parentId: Nothing
+        , branchPoint: Nothing
+        , children: []
+        }
+      -- Add to sessions Map
+      updatedSessions = Map.insert sessionUpdate.id newSession state.sessions
+      -- Add to metadata Map
+      updatedMetadata = Map.insert sessionUpdate.id newMetadata state.sessionMetadata
+      -- Initialize empty messages array
+      updatedSessionMessages = Map.insert sessionUpdate.id [] state.sessionMessages
+      -- Open tab
+      updatedTabs = Sessions.openTab state.sessionTabs sessionUpdate.id title icon
+    in
+      state
+        { sessions = updatedSessions
+        , sessionMetadata = updatedMetadata
+        , sessionMessages = updatedSessionMessages
+        , sessionTabs = updatedTabs
+        , activeSessionId = Just sessionUpdate.id
+        }
+  
+  SessionBranchCreated parentSessionId messageIndex description branchSessionId branchTitle ->
+    let
+      -- Get parent session
+      parentSession = Map.lookup parentSessionId state.sessions
+      parentMetadata = Map.lookup parentSessionId state.sessionMetadata
+      parentMessages = Map.lookup parentSessionId state.sessionMessages
+      
+      -- Create branch session (copy parent's session state, reset tokens/cost)
+      branchSession = case parentSession of
+        Just parent ->
+          { id: branchSessionId
+          , model: parent.model
+          , promptTokens: 0
+          , completionTokens: 0
+          , totalTokens: 0
+          , cost: 0.0
+          , messageCount: messageIndex + 1  -- Messages up to branch point
+          , startedAt: parent.startedAt
+          }
+        Nothing ->
+          -- Fallback if parent not found
+          { id: branchSessionId
+          , model: "gpt-4"
+          , promptTokens: 0
+          , completionTokens: 0
+          , totalTokens: 0
+          , cost: 0.0
+          , messageCount: 0
+          , startedAt: DateTime (canonicalDate (Year 2026) (Month 1) (Day 1)) midnight
+          }
+      
+      -- Create branch metadata
+      branchMetadata =
+        { title: branchTitle
+        , icon: "🔀"
+        , color: Nothing
+        , status: Sessions.Active
+        , parentId: Just parentSessionId
+        , branchPoint: Just messageIndex
+        , children: []
+        }
+      
+      -- Copy messages up to branch point
+      branchMessages = case parentMessages of
+        Just msgs -> Array.take (messageIndex + 1) msgs
+        Nothing -> []
+      
+      -- Update parent's children list
+      updatedParentMetadata = case parentMetadata of
+        Just meta ->
+          Map.insert parentSessionId (meta { children = Array.snoc meta.children branchSessionId }) state.sessionMetadata
+        Nothing ->
+          state.sessionMetadata
+      
+      -- Add branch to sessions
+      updatedSessions = Map.insert branchSessionId branchSession state.sessions
+      -- Add branch metadata
+      updatedMetadata = Map.insert branchSessionId branchMetadata updatedParentMetadata
+      -- Add branch messages
+      updatedSessionMessages = Map.insert branchSessionId branchMessages state.sessionMessages
+      -- Open branch tab
+      updatedTabs = Sessions.openTab state.sessionTabs branchSessionId branchTitle "🔀"
+    in
+      state
+        { sessions = updatedSessions
+        , sessionMetadata = updatedMetadata
+        , sessionMessages = updatedSessionMessages
+        , sessionTabs = updatedTabs
+        , activeSessionId = Just branchSessionId
+        }
+  
+  SessionBranchMerged sourceSessionId targetSessionId ->
+    let
+      -- Get source messages (after branch point)
+      sourceMessages = Map.lookup sourceSessionId state.sessionMessages
+      sourceMetadata = Map.lookup sourceSessionId state.sessionMetadata
+      targetMessages = Map.lookup targetSessionId state.sessionMessages
+      
+      -- Determine branch point
+      branchPoint = case sourceMetadata of
+        Just meta -> meta.branchPoint
+        Nothing -> Nothing
+      
+      -- Get messages after branch point from source
+      messagesToMerge = case branchPoint, sourceMessages of
+        Just idx, Just msgs -> Array.drop (idx + 1) msgs
+        _, Just msgs -> msgs  -- If no branch point, merge all
+        _, Nothing -> []
+      
+      -- Append to target messages
+      updatedTargetMessages = case targetMessages of
+        Just msgs -> Array.append msgs messagesToMerge
+        Nothing -> messagesToMerge
+      
+      -- Update target session messages
+      updatedSessionMessages = Map.insert targetSessionId updatedTargetMessages state.sessionMessages
+      
+      -- Archive source session (update metadata status)
+      updatedSourceMetadata = case sourceMetadata of
+        Just meta -> Map.insert sourceSessionId (meta { status = Sessions.Archived }) state.sessionMetadata
+        Nothing -> state.sessionMetadata
+    in
+      state
+        { sessionMessages = updatedSessionMessages
+        , sessionMetadata = updatedSourceMetadata
+        }
+  
+  MessageAddedToSession sessionId message ->
+    let
+      -- Get existing messages for session
+      existingMessages = Map.lookup sessionId state.sessionMessages
+      updatedMessages = case existingMessages of
+        Just msgs -> Array.snoc msgs message
+        Nothing -> [message]
+      
+      -- Update session messages Map
+      updatedSessionMessages = Map.insert sessionId updatedMessages state.sessionMessages
+      
+      -- Also update legacy messages array if this is the active session
+      legacyMessages = if state.activeSessionId == Just sessionId
+        then updatedMessages
+        else state.messages
+    in
+      state
+        { sessionMessages = updatedSessionMessages
+        , messages = legacyMessages  -- Keep legacy field in sync for compatibility
+        }
+  
+  MessagesClearedForSession sessionId ->
+    let
+      -- Clear messages for session
+      updatedSessionMessages = Map.insert sessionId [] state.sessionMessages
+      
+      -- Also clear legacy messages if this is the active session
+      legacyMessages = if state.activeSessionId == Just sessionId
+        then []
+        else state.messages
+    in
+      state
+        { sessionMessages = updatedSessionMessages
+        , messages = legacyMessages  -- Keep legacy field in sync for compatibility
+        }
+  
+  SessionMetadataUpdated sessionId update ->
+    let
+      -- Get existing metadata
+      existingMetadata = Map.lookup sessionId state.sessionMetadata
+      
+      -- Apply partial update
+      updatedMetadata = case existingMetadata of
+        Just meta ->
+          Map.insert sessionId
+            { title: case update.title of
+                Just t -> t
+                Nothing -> meta.title
+            , icon: case update.icon of
+                Just i -> i
+                Nothing -> meta.icon
+            , color: case update.color of
+                Just c -> c
+                Nothing -> meta.color
+            , status: case update.status of
+                Just s -> s
+                Nothing -> meta.status
+            , parentId: case update.parentId of
+                Just p -> p
+                Nothing -> meta.parentId
+            , branchPoint: case update.branchPoint of
+                Just bp -> bp
+                Nothing -> meta.branchPoint
+            , children: case update.children of
+                Just ch -> ch
+                Nothing -> meta.children
+            }
+            state.sessionMetadata
+        Nothing ->
+          -- Create new metadata if doesn't exist
+          Map.insert sessionId
+            { title: case update.title of
+                Just t -> t
+                Nothing -> "New Session"
+            , icon: case update.icon of
+                Just i -> i
+                Nothing -> "💬"
+            , color: case update.color of
+                Just c -> c
+                Nothing -> Nothing
+            , status: case update.status of
+                Just s -> s
+                Nothing -> Sessions.Active
+            , parentId: case update.parentId of
+                Just p -> p
+                Nothing -> Nothing
+            , branchPoint: case update.branchPoint of
+                Just bp -> bp
+                Nothing -> Nothing
+            , children: case update.children of
+                Just ch -> ch
+                Nothing -> []
+            }
+            state.sessionMetadata
+    in
+      state { sessionMetadata = updatedMetadata }
   
   UsageRecorded usage ->
-    case state.session of
-      Nothing -> state
-      Just s -> state 
-        { session = Just $ s
-            { promptTokens = s.promptTokens + usage.prompt
-            , completionTokens = s.completionTokens + usage.completion
-            , totalTokens = s.totalTokens + usage.prompt + usage.completion
-            , cost = s.cost + usage.cost
+    -- Update active session if exists
+    case state.activeSessionId of
+      Just sessionId ->
+        case Map.lookup sessionId state.sessions of
+          Just s ->
+            let
+              updatedSession = s
+                { promptTokens = s.promptTokens + usage.prompt
+                , completionTokens = s.completionTokens + usage.completion
+                , totalTokens = s.totalTokens + usage.prompt + usage.completion
+                , cost = s.cost + usage.cost
+                }
+              updatedSessions = Map.insert sessionId updatedSession state.sessions
+              -- Also update legacy session field if active
+              legacySession = Just updatedSession
+            in
+              state
+                { sessions = updatedSessions
+                , session = legacySession  -- Keep legacy field in sync
+                }
+          Nothing -> state
+      Nothing ->
+        -- Fallback to legacy session
+        case state.session of
+          Nothing -> state
+          Just s -> state 
+            { session = Just $ s
+                { promptTokens = s.promptTokens + usage.prompt
+                , completionTokens = s.completionTokens + usage.completion
+                , totalTokens = s.totalTokens + usage.prompt + usage.completion
+                , cost = s.cost + usage.cost
+                }
             }
-        }
   
   GoalsUpdated goals ->
     state { proof = state.proof { goals = goals } }
@@ -247,8 +618,8 @@ reduceWithoutHistory state = case _ of
 -- | update = { diem: 1000.0, usd: 10.0, effective: 1000.0, ... }
 -- | newBalance = updateBalance currentBalance update
 -- | ```
-updateBalance :: BalanceState -> BalanceUpdate -> BalanceState
-updateBalance balance update =
+updateBalance :: BalanceState -> BalanceUpdate -> DateTime -> BalanceState
+updateBalance balance update currentTime =
   let
     -- Update Venice balance if Venice data provided
     updatedVenice = case update.diem, update.usd of
@@ -292,19 +663,47 @@ updateBalance balance update =
               , todayStartBalance: update.todayUsed + flk
               }
       Nothing -> balance.flk  -- No FLK update, preserve existing
-  in
-    balance
+    
+    -- Add snapshot to history (if Venice balance updated)
+    newSnapshot = case updatedVenice of
+      Just venice ->
+        Just { timestamp: currentTime, diem: venice.diem, usd: venice.usd }
+      Nothing -> Nothing
+    
+    -- Update history: add new snapshot, keep last 24 hours
+    currentTimestamp = toTimestamp currentTime
+    oneDayAgo = currentTimestamp - (24.0 * 60.0 * 60.0 * 1000.0)
+    filteredHistory = Array.filter (\s -> toTimestamp s.timestamp > oneDayAgo) balance.balanceHistory
+    updatedHistory = case newSnapshot of
+      Just snapshot -> Array.snoc filteredHistory snapshot
+      Nothing -> filteredHistory
+    
+    -- Calculate consumption rate from history (prefer client-side calculation)
+    consumptionRate = if Array.length updatedHistory >= 2 then
+        BalanceMetrics.calculateConsumptionRate updatedHistory currentTime
+      else
+        update.consumptionRate  -- Fallback to server-provided rate if insufficient history
+    
+    -- Calculate time to depletion from current balance and rate
+    currentDiem = case updatedVenice of
+      Just venice -> venice.diem
+      Nothing -> 0.0
+    timeToDepletion = BalanceMetrics.calculateTimeToDepletion currentDiem consumptionRate
+    
+    -- Update balance with calculated metrics
+    updatedBalance = balance
       { venice = updatedVenice
       , flk = updatedFlk
-      , consumptionRate = update.consumptionRate
-      , timeToDepletion = update.timeToDepletion
-      -- Cost calculation: Use USD from Venice if available, otherwise would aggregate from session costs
-      -- Note: Server should provide todayCost in BalanceUpdate for accurate tracking
+      , balanceHistory = updatedHistory
+      , consumptionRate = consumptionRate
+      , timeToDepletion = timeToDepletion
       , todayCost = case updatedVenice of
-          Just venice -> venice.usd  -- Use USD balance as proxy for cost (Venice tracks USD separately)
+          Just venice -> venice.usd  -- Use USD balance as proxy for cost
           Nothing -> balance.todayCost  -- Preserve existing cost if no Venice balance
-      , alertLevel = calculateAlertLevel balance
+      , lastUpdated = Just currentTime
       }
+  in
+    updatedBalance { alertLevel = calculateAlertLevel updatedBalance }
 
 -- | Tick countdown timer - Decrement depletion countdown
 -- |

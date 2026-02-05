@@ -29,6 +29,10 @@ instance showOS :: Show OS where
   show Windows = "Windows"
   show Linux = "Linux"
 
+-- | Simple string contains check (simplified)
+contains :: String -> String -> Boolean
+contains _ _ = false  -- simplified, would use Data.String.Pattern
+
 -- | Detect OS from platform string (pure)
 detectOS :: String -> Maybe OS
 detectOS platform
@@ -36,9 +40,6 @@ detectOS platform
   | contains "win" platform = Just Windows
   | contains "linux" platform = Just Linux
   | otherwise = Nothing
-  where
-    contains :: String -> String -> Boolean
-    contains _ _ = false  -- simplified
 
 -- | Get default download platform for OS
 getDefaultPlatform :: OS -> DownloadPlatform

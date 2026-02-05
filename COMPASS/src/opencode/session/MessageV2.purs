@@ -1,9 +1,6 @@
 {-|
 Module      : Opencode.Session.MessageV2
 Description : Message V2 operations and conversions
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Message V2 Operations
 
 Functions for message storage, retrieval, filtering, and LLM conversion.
@@ -39,37 +36,55 @@ import Prelude
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Array as Array
 import Data.String as String
+import Data.Map as Map
 import Effect.Aff (Aff)
+import Effect.Class (liftEffect)
+import Effect.Ref (Ref)
 
 -- Import types
 import Opencode.Session.MessageV2Types
+import Opencode.Session.Operations (SessionState)
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- STORAGE FUNCTIONS
 -- ════════════════════════════════════════════════════════════════════════════
 
 -- | Stream messages for a session (newest first)
--- | TODO: Implement with Storage module
-stream :: String -> Aff (Array WithParts)
-stream _sessionID = do
-  -- In real impl, would query Storage.list(["message", sessionID])
-  pure []
+-- | Uses Operations to get messages from session state
+stream :: String -> Ref SessionState -> Aff (Array WithParts)
+stream sessionID stateRef = do
+  -- Get messages using Operations
+  Operations.getMessages { sessionID, limit: Nothing } stateRef
+  where
+    import Opencode.Session.Operations as Operations
 
 -- | Get parts for a message
--- | TODO: Implement with Storage module
-parts :: String -> Aff (Array Part)
-parts _messageID = do
-  -- In real impl, would query Storage.list(["part", messageID])
-  pure []
+-- | Uses Operations to get parts from session state
+parts :: String -> Ref SessionState -> Aff (Array Part)
+parts messageID stateRef = do
+  state <- liftEffect $ Ref.read stateRef
+  case Map.lookup messageID state.parts of
+    Nothing -> pure []
+    Just partsMap -> pure $ Array.fromFoldable $ Map.values partsMap
+  where
+    import Opencode.Session.Operations (SessionState)
 
 -- | Get a message with its parts
-get :: { sessionID :: String, messageID :: String } -> Aff WithParts
-get input = do
-  ps <- parts input.messageID
-  pure { info: dummyUserInfo input.sessionID input.messageID
-       , parts: ps
-       }
+get :: { sessionID :: String, messageID :: String } -> Ref Operations.SessionState -> Aff WithParts
+get input stateRef = do
+  state <- liftEffect $ Ref.read stateRef
+  case Map.lookup input.sessionID state.messages of
+    Nothing -> pure $ dummyWithParts input.sessionID input.messageID
+    Just msgMap -> case Map.lookup input.messageID msgMap of
+      Nothing -> pure $ dummyWithParts input.sessionID input.messageID
+      Just msg -> do
+        ps <- parts input.messageID stateRef
+        pure { info: msg, parts: ps }
   where
+    dummyWithParts sid mid = 
+      { info: dummyUserInfo sid mid
+      , parts: []
+      }
     dummyUserInfo sid mid = InfoUser
       { id: mid
       , sessionID: sid

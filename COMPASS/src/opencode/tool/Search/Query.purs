@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Search.Query
 Description : Query building for SearXNG search
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Query Building
 
 This module provides a fluent API for building search queries to SearXNG.

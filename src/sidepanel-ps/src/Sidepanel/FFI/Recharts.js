@@ -248,3 +248,122 @@ function renderChart(chart) {
     ctx.fillText("Cost", width - 135, legendY + 48);
   }
 }
+
+// Pie chart functions
+exports.createPieChart = function(elementId) {
+  return function(config) {
+    return function(data) {
+      return function() {
+        var element = document.getElementById(elementId);
+        if (!element) {
+          console.error("Chart element not found:", elementId);
+          return null;
+        }
+        
+        // Create canvas for chart
+        var canvas = document.createElement("canvas");
+        canvas.width = config.width || 400;
+        canvas.height = config.height || 400;
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        element.appendChild(canvas);
+        
+        var ctx = canvas.getContext("2d");
+        
+        // Store chart state
+        var chartState = {
+          element: element,
+          canvas: canvas,
+          ctx: ctx,
+          config: config,
+          data: data,
+          elementId: elementId
+        };
+        
+        // Render initial chart
+        renderPieChart(chartState);
+        
+        return chartState;
+      };
+    };
+  };
+};
+
+exports.updatePieChartData = function(chart) {
+  return function(data) {
+    return function() {
+      if (chart) {
+        chart.data = data;
+        renderPieChart(chart);
+      }
+    };
+  };
+};
+
+// Simple pie chart rendering
+function renderPieChart(chart) {
+  if (!chart || !chart.data || chart.data.length === 0) {
+    return;
+  }
+  
+  var ctx = chart.ctx;
+  var canvas = chart.canvas;
+  var data = chart.data;
+  var config = chart.config;
+  
+  var width = canvas.width;
+  var height = canvas.height;
+  var centerX = width / 2;
+  var centerY = height / 2;
+  var radius = Math.min(width, height) / 2 - 20;
+  
+  // Clear canvas
+  ctx.clearRect(0, 0, width, height);
+  
+  // Draw background
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, width, height);
+  
+  // Calculate total for percentage
+  var total = 0;
+  for (var i = 0; i < data.length; i++) {
+    total += data[i].value;
+  }
+  
+  // Draw pie slices
+  var startAngle = -Math.PI / 2; // Start at top
+  for (var i = 0; i < data.length; i++) {
+    var sliceAngle = (data[i].value / total) * 2 * Math.PI;
+    
+    // Draw slice
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+    ctx.closePath();
+    ctx.fillStyle = data[i].color || "#cccccc";
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Draw label if enabled
+    if (config.showLabels) {
+      var labelAngle = startAngle + sliceAngle / 2;
+      var labelX = centerX + Math.cos(labelAngle) * (radius * 0.7);
+      var labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
+      
+      ctx.fillStyle = "#333333";
+      ctx.font = "12px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(data[i].label, labelX, labelY);
+      
+      if (config.showPercentages) {
+        ctx.font = "10px sans-serif";
+        ctx.fillText(data[i].percentage.toFixed(1) + "%", labelX, labelY + 15);
+      }
+    }
+    
+    startAngle += sliceAngle;
+  }
+}

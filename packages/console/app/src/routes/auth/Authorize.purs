@@ -1,59 +1,49 @@
--- | Auth Authorize Route
--- | Migrated from: _OTHER/opencode-original/packages/console/app/src/routes/auth/authorize.ts
--- | Pure PureScript implementation - NO FFI
+-- | Auth Authorize Route Handler
+-- |
+-- | Initiates OAuth authorization flow.
+-- | PureScript wrapper around SolidJS Start route handler.
+-- |
+-- | Source: _OTHER/opencode-original/packages/console/app/src/routes/auth/authorize.ts
+-- | Migrated: 2026-02-04
 module Console.App.Routes.Auth.Authorize
-  ( AuthorizeRequest(..)
-  , AuthorizeResponse(..)
-  , buildCallbackUrl
-  , buildAuthorizeRedirect
+  ( handleAuthorize
+  , AuthorizeParams
   ) where
 
 import Prelude
 
-import Data.Maybe (Maybe(..), fromMaybe)
+import Effect.Aff (Aff)
+import Data.Maybe (Maybe(..))
+import Console.App.FFI.SolidStart (APIEvent, getRequestUrl, getSearchParams, getSearchParam, createURL)
+import Console.App.Context.Auth (AuthClient)
+import Effect.Class (liftEffect)
 
--- | Authorize request parameters
-type AuthorizeRequest =
-  { requestUrl :: String
-  , continueParam :: Maybe String
+-- | Authorize parameters
+type AuthorizeParams =
+  { continue :: Maybe String
   }
 
--- | Authorize response
-data AuthorizeResponse
-  = RedirectResponse { url :: String, status :: Int }
+-- | FFI: Auth client authorize function
+foreign import authClientAuthorize :: String -> String -> String -> Aff String
 
-derive instance eqAuthorizeResponse :: Eq AuthorizeResponse
-
-instance showAuthorizeResponse :: Show AuthorizeResponse where
-  show (RedirectResponse r) = "(RedirectResponse " <> show r.url <> " " <> show r.status <> ")"
-
--- | Build callback URL from request URL and continue param (pure)
-buildCallbackUrl :: String -> Maybe String -> String
-buildCallbackUrl baseUrl continueParam =
-  let
-    cont = fromMaybe "" continueParam
-    -- Extract origin from URL (simplified - in real impl would parse URL)
-    callbackPath = "./callback" <> cont
-  in
-    callbackPath
-
--- | Authorization URL builder (pure data structure)
-type AuthorizationParams =
-  { callbackUrl :: String
-  , responseType :: String  -- "code"
-  }
-
--- | Build authorize redirect parameters (pure)
-buildAuthorizeRedirect :: AuthorizeRequest -> AuthorizationParams
-buildAuthorizeRedirect req =
-  let
-    cont = fromMaybe "" req.continueParam
-    callbackUrl = buildCallbackUrl req.requestUrl req.continueParam
-  in
-    { callbackUrl
-    , responseType: "code"
-    }
-
--- | Create redirect response (pure)
-redirectResponse :: String -> AuthorizeResponse
-redirectResponse url = RedirectResponse { url, status: 302 }
+-- | Handle auth authorize route
+-- | Builds callback URL and redirects to OAuth provider
+handleAuthorize :: APIEvent -> AuthClient -> Aff Response
+handleAuthorize event client = do
+  request <- liftEffect (getRequest event)
+  url <- liftEffect (getRequestUrl request)
+  searchParams <- liftEffect (getSearchParams url)
+  continueParam <- liftEffect (getSearchParam searchParams "continue")
+  
+  let continuePath = case continueParam of
+        Just path -> path
+        Nothing -> ""
+  
+  -- Build callback URL
+  callbackUrl <- liftEffect $ createURL $ "./callback" <> continuePath
+  
+  -- Get authorization URL from auth client
+  authUrl <- authClientAuthorize client.clientID client.issuer callbackUrl
+  
+  -- Redirect to auth URL
+  redirect authUrl

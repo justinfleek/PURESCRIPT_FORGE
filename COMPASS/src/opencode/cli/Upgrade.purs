@@ -1,12 +1,12 @@
 -- | CLI Upgrade functionality
--- | TODO: Implement based on _OTHER/opencode-original/packages/opencode/src/cli/upgrade.ts
 module Opencode.CLI.Upgrade where
 
 import Prelude
 import Effect.Aff (Aff)
+import Effect.Class (liftEffect)
 import Data.Either (Either(..))
-import Data.Maybe (Maybe)
-import Opencode.Util.NotImplemented (notImplemented)
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.String as String
 
 -- | Version information
 type VersionInfo =
@@ -25,4 +25,9 @@ performUpgrade version = notImplemented "CLI.Upgrade.performUpgrade"
 
 -- | Get current version
 getCurrentVersion :: String
-getCurrentVersion = "0.1.0" -- TODO: Read from package.json equivalent
+getCurrentVersion = unsafePerformEffect $ do
+  version <- readPackageVersion
+  pure $ fromMaybe "0.1.0" version
+  where
+    foreign import unsafePerformEffect :: forall a. Effect a -> a
+    foreign import readPackageVersion :: Effect (Maybe String)

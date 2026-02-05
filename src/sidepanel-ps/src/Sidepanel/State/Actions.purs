@@ -42,7 +42,10 @@ module Sidepanel.State.Actions where
 
 import Prelude
 import Data.DateTime (DateTime)
-import Sidepanel.State.AppState (AlertLevel, Panel, Theme, Goal, Diagnostic, Tactic, SnapshotSummary)
+import Data.Maybe (Maybe)
+import Sidepanel.State.AppState (AlertLevel, Panel, Theme, Goal, Diagnostic, Tactic, SnapshotSummary, Message)
+import Sidepanel.State.RateLimit (RateLimitHeaders)
+import Sidepanel.State.Sessions (SessionStatus)
 
 -- | All possible state actions - Sum type of all state transitions
 -- |
@@ -69,10 +72,33 @@ data Action
   | CountdownTick
   | AlertLevelChanged AlertLevel
   
-  -- Session
+  -- Rate Limits (Venice API)
+  | RateLimitUpdated RateLimitHeaders
+  | RateLimitHit Number  -- retryAfterSeconds
+  | RateLimitBackoffTick  -- Decrement backoff timer
+  
+  -- Session (Legacy single-session)
   | SessionUpdated SessionUpdate
   | SessionCleared
   | UsageRecorded UsageRecord
+  | MessageAdded Message  -- DEPRECATED: Use MessageAddedToSession
+  | MessagesCleared  -- DEPRECATED: Use MessagesClearedForSession
+  
+  -- Multi-Session Management
+  | SessionOpened String String String  -- sessionId, title, icon
+  | SessionClosed String  -- sessionId
+  | SessionSwitched String  -- sessionId
+  | TabsReordered (Array String)  -- New tab order (session IDs)
+  | TabPinned String  -- sessionId
+  | TabUnpinned String  -- sessionId
+  | TabRenamed String String  -- sessionId, newTitle
+  | TabIconSet String String  -- sessionId, newIcon
+  | SessionCreated SessionUpdate String String  -- sessionUpdate, title, icon (creates new session)
+  | SessionBranchCreated String Int String String String  -- parentSessionId, messageIndex, description, branchSessionId, branchTitle
+  | SessionBranchMerged String String  -- sourceSessionId, targetSessionId
+  | MessageAddedToSession String Message  -- sessionId, message
+  | MessagesClearedForSession String  -- sessionId
+  | SessionMetadataUpdated String SessionMetadataUpdate  -- sessionId, metadata update
   
   -- Proof (Lean4)
   | ProofConnected
@@ -107,9 +133,10 @@ data Action
 -- | - `flk`: Fleek Token (FLK) balance (optional, for FLK updates)
 -- | - `usd`: USD balance (optional, for Venice updates)
 -- | - `effective`: Effective balance (Diem + USD for Venice, or FLK for FLK)
--- | - `consumptionRate`: Tokens consumed per hour
--- | - `timeToDepletion`: Hours until balance depletion (Nothing if sufficient)
+-- | - `consumptionRate`: Tokens consumed per hour (from server, but will be recalculated from history)
+-- | - `timeToDepletion`: Hours until balance depletion (from server, but will be recalculated)
 -- | - `todayUsed`: Tokens used today
+-- | - `timestamp`: Timestamp of the balance update (for history tracking)
 -- |
 -- | **Invariants:**
 -- | - `diem >= 0.0` (cannot be negative, if provided)
@@ -120,14 +147,17 @@ data Action
 -- | - `todayUsed >= 0.0` (cannot be negative)
 -- |
 -- | **Note:** Either Venice fields (diem/usd) or FLK field should be provided, not both.
+-- | **Note:** Consumption rate and time-to-depletion are calculated client-side from history,
+-- |          but server-provided values are included for fallback/verification.
 type BalanceUpdate =
   { diem :: Maybe Number      -- Venice Diem (optional)
   , flk :: Maybe Number       -- Fleek Token (optional)
   , usd :: Maybe Number       -- Venice USD (optional)
   , effective :: Number
-  , consumptionRate :: Number
-  , timeToDepletion :: Maybe Number
+  , consumptionRate :: Number  -- From server (fallback), recalculated from history
+  , timeToDepletion :: Maybe Number  -- From server (fallback), recalculated from history
   , todayUsed :: Number
+  , timestamp :: Maybe DateTime  -- Timestamp of update (for history)
   }
 
 -- | Session update payload - Data for session updates
@@ -177,4 +207,18 @@ type AlertData =
   { level :: AlertLevel
   , message :: String
   , timestamp :: DateTime
+  }
+
+-- | Session metadata update - Partial update for session metadata
+-- |
+-- | **Purpose:** Allows partial updates to session metadata without requiring all fields.
+-- | **Fields:** All optional - only provided fields are updated
+type SessionMetadataUpdate =
+  { title :: Maybe String
+  , icon :: Maybe String
+  , color :: Maybe (Maybe String)  -- Maybe (Maybe String) to distinguish "set to Nothing" from "no change"
+  , status :: Maybe SessionStatus
+  , parentId :: Maybe (Maybe String)
+  , branchPoint :: Maybe (Maybe Int)
+  , children :: Maybe (Array String)
   }

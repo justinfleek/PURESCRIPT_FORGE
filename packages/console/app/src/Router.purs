@@ -21,7 +21,7 @@ module Console.App.Router
     -- Route utilities
   , isAuthRoute
   , isWorkspaceRoute
-  , isZenRoute
+  , isOmegaRoute
   , isApiRoute
   , parentRoute
   ) where
@@ -45,13 +45,13 @@ data Route
   = Home                          -- /
   | NotFound                      -- /[...404]
   
-  -- Zen (API proxy)
-  | Zen                           -- /zen
-  | ZenV1ChatCompletions          -- /zen/v1/chat/completions
-  | ZenV1Messages                 -- /zen/v1/messages
-  | ZenV1Models                   -- /zen/v1/models
-  | ZenV1ModelDetail String       -- /zen/v1/models/[model]
-  | ZenV1Responses                -- /zen/v1/responses
+  -- Omega (API proxy)
+  | Omega                           -- /omega
+  | OmegaV1ChatCompletions          -- /omega/v1/chat/completions
+  | OmegaV1Messages                 -- /omega/v1/messages
+  | OmegaV1Models                   -- /omega/v1/models
+  | OmegaV1ModelDetail String       -- /omega/v1/models/[model]
+  | OmegaV1Responses                -- /omega/v1/responses
   
   -- Black (subscription)
   | Black                         -- /black
@@ -146,13 +146,13 @@ matchSegments segments = case segments of
   -- Root
   [] -> Home
   
-  -- Zen routes
-  ["zen"] -> Zen
-  ["zen", "v1", "chat", "completions"] -> ZenV1ChatCompletions
-  ["zen", "v1", "messages"] -> ZenV1Messages
-  ["zen", "v1", "models"] -> ZenV1Models
-  ["zen", "v1", "models", model] -> ZenV1ModelDetail model
-  ["zen", "v1", "responses"] -> ZenV1Responses
+  -- Omega routes
+  ["omega"] -> Omega
+  ["omega", "v1", "chat", "completions"] -> OmegaV1ChatCompletions
+  ["omega", "v1", "messages"] -> OmegaV1Messages
+  ["omega", "v1", "models"] -> OmegaV1Models
+  ["omega", "v1", "models", model] -> OmegaV1ModelDetail model
+  ["omega", "v1", "responses"] -> OmegaV1Responses
   
   -- Black routes
   ["black"] -> Black
@@ -218,7 +218,7 @@ extractParams route _ = case route of
   WorkspaceIdSettings id -> emptyParams { id = Just id }
   BenchDetail id -> emptyParams { id = Just id }
   DocsPath p -> emptyParams { path = Just p }
-  ZenV1ModelDetail m -> emptyParams { model = Just m }
+  OmegaV1ModelDetail m -> emptyParams { model = Just m }
   BlackSubscribe p -> emptyParams { plan = Just p }
   _ -> emptyParams
 
@@ -232,12 +232,12 @@ routeToPath = case _ of
   Home -> "/"
   NotFound -> "/404"
   
-  Zen -> "/zen"
-  ZenV1ChatCompletions -> "/zen/v1/chat/completions"
-  ZenV1Messages -> "/zen/v1/messages"
-  ZenV1Models -> "/zen/v1/models"
-  ZenV1ModelDetail model -> "/zen/v1/models/" <> model
-  ZenV1Responses -> "/zen/v1/responses"
+  Omega -> "/omega"
+  OmegaV1ChatCompletions -> "/omega/v1/chat/completions"
+  OmegaV1Messages -> "/omega/v1/messages"
+  OmegaV1Models -> "/omega/v1/models"
+  OmegaV1ModelDetail model -> "/omega/v1/models/" <> model
+  OmegaV1Responses -> "/omega/v1/responses"
   
   Black -> "/black"
   BlackSubscribe plan -> "/black/subscribe/" <> plan
@@ -301,25 +301,25 @@ isWorkspaceRoute = case _ of
   WorkspaceIdSettings _ -> true
   _ -> false
 
--- | Check if route is a zen route
-isZenRoute :: Route -> Boolean
-isZenRoute = case _ of
-  Zen -> true
-  ZenV1ChatCompletions -> true
-  ZenV1Messages -> true
-  ZenV1Models -> true
-  ZenV1ModelDetail _ -> true
-  ZenV1Responses -> true
+-- | Check if route is an omega route
+isOmegaRoute :: Route -> Boolean
+isOmegaRoute = case _ of
+  Omega -> true
+  OmegaV1ChatCompletions -> true
+  OmegaV1Messages -> true
+  OmegaV1Models -> true
+  OmegaV1ModelDetail _ -> true
+  OmegaV1Responses -> true
   _ -> false
 
 -- | Check if route is an API route (not a page)
 isApiRoute :: Route -> Boolean
 isApiRoute = case _ of
-  ZenV1ChatCompletions -> true
-  ZenV1Messages -> true
-  ZenV1Models -> true
-  ZenV1ModelDetail _ -> true
-  ZenV1Responses -> true
+  OmegaV1ChatCompletions -> true
+  OmegaV1Messages -> true
+  OmegaV1Models -> true
+  OmegaV1ModelDetail _ -> true
+  OmegaV1Responses -> true
   _ -> false
 
 -- | Get parent route for navigation
@@ -328,12 +328,12 @@ parentRoute = case _ of
   Home -> Nothing
   NotFound -> Just Home
   
-  Zen -> Just Home
-  ZenV1ChatCompletions -> Just Zen
-  ZenV1Messages -> Just Zen
-  ZenV1Models -> Just Zen
-  ZenV1ModelDetail _ -> Just ZenV1Models
-  ZenV1Responses -> Just Zen
+  Omega -> Just Home
+  OmegaV1ChatCompletions -> Just Omega
+  OmegaV1Messages -> Just Omega
+  OmegaV1Models -> Just Omega
+  OmegaV1ModelDetail _ -> Just OmegaV1Models
+  OmegaV1Responses -> Just Omega
   
   Black -> Just Home
   BlackSubscribe _ -> Just Black

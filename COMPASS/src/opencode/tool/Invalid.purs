@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Invalid
 Description : Handler for invalid tool calls
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Invalid Tool
 
 This is a special tool that handles cases where the AI model

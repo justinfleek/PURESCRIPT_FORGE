@@ -1,9 +1,6 @@
 {-|
 Module      : Bridge.State.Store.Types
 Description : Type definitions for Bridge Server state
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = State Types
 
 Core type definitions for the Bridge Server application state.

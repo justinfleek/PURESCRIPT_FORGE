@@ -17,7 +17,8 @@ module Console.App.Routes.Workspace.Id.NewUserSection
 
 import Prelude
 
-import Data.Array (length)
+import Data.Array (length, uncons)
+import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Data.String (take, drop)
 import Data.String as String
@@ -65,17 +66,17 @@ maskApiKey key =
     prefix = take 8 key
     suffix = drop (keyLength - 4) key
     maskedLength = keyLength - 12
-    masked = prefix <> repeatChar '*' maskedLength <> suffix
+    masked = prefix <> repeatStr "*" maskedLength <> suffix
   in
     { actual: key
     , masked: masked
     }
   where
-    repeatChar :: Char -> Int -> String
-    repeatChar c n =
+    repeatStr :: String -> Int -> String
+    repeatStr s n =
       if n <= 0 
         then "" 
-        else String.singleton c <> repeatChar c (n - 1)
+        else s <> repeatStr s (n - 1)
 
 -- | Feature description
 type Feature =
@@ -93,7 +94,7 @@ features =
     , description: "Access models configured for optimal performance - no downgrades or routing to cheaper providers."
     }
   , { title: "No Lock-in"
-    , description: "Use Zen with any coding agent, and continue using other providers with opencode whenever you want."
+    , description: "Use Omega with any coding agent, and continue using other providers with opencode whenever you want."
     }
   ]
 
@@ -205,5 +206,6 @@ buildNextStepsList =
     mapWithIndex :: forall a b. (Int -> a -> b) -> Array a -> Array b
     mapWithIndex f arr = go arr 0
       where
-        go [] _ = []
-        go (x : xs) i = [f i x] <> go xs (i + 1)
+        go a i = case uncons a of
+          Nothing -> []
+          Just { head: x, tail: xs } -> [f i x] <> go xs (i + 1)

@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Webfetch
 Description : URL content fetching with format conversion
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Webfetch Tool
 
 Fetch content from URLs with automatic format conversion.
@@ -224,8 +221,9 @@ Uses turndown-style conversion:
 -}
 convertToMarkdown :: String -> String
 convertToMarkdown html =
-  -- TODO: Implement HTML → Markdown conversion
-  html
+  convertHtmlToMarkdown html
+  where
+    foreign import convertHtmlToMarkdown :: String -> String
 
 {-| Extract plain text from HTML.
 
@@ -236,8 +234,9 @@ Removes:
 -}
 extractText :: String -> String
 extractText html =
-  -- TODO: Implement HTML → text extraction
-  html
+  extractTextFromHtml html
+  where
+    foreign import extractTextFromHtml :: String -> String
 
 -- | Build Accept header for format
 acceptHeader :: OutputFormat -> String

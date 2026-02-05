@@ -8,7 +8,11 @@ module Forge.Console.Core.Identifier
   ( EntityType(..)
   , Prefix
   , Identifier(..)
+  , AccountId
+  , UserId
+  , WorkspaceId
   , create
+  , fromString
   , validate
   , getPrefix
   , allPrefixes
@@ -152,3 +156,13 @@ validate entityType id =
 -- | Convert identifier to string
 toString :: Identifier -> String
 toString (Identifier s) = s
+
+-- | Create identifier from a raw string
+-- | No validation - assumes the string is a valid identifier
+fromString :: String -> Identifier
+fromString = Identifier
+
+-- | Type aliases for common entity IDs
+type AccountId = String
+type UserId = String
+type WorkspaceId = String

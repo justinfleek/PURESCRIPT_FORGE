@@ -77,8 +77,9 @@ generateSecretKey randoms =
 maskKey :: SecretKey -> String
 maskKey key = 
   let 
+    len = String.length key
     prefix = String.take 7 key
-    suffix = String.takeRight 4 key
+    suffix = String.drop (len - 4) key
   in prefix <> "..." <> suffix
 
 -- | List keys (pure representation)

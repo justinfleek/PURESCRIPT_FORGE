@@ -119,5 +119,5 @@ type HeaderContent =
 headerContent :: HeaderContent
 headerContent =
   { title: "Reliable optimized models for coding agents."
-  , learnMoreUrl: "/docs/zen"
+  , learnMoreUrl: "/docs/omega"
   }

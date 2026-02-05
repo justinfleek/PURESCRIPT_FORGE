@@ -1,11 +1,9 @@
 -- | RPC utilities
--- | TODO: Implement based on _OTHER/opencode-original/packages/opencode/src/util/rpc.ts
 module Opencode.Util.RPC where
 
 import Prelude
 import Effect.Aff (Aff)
 import Data.Either (Either(..))
-import Opencode.Util.NotImplemented (notImplemented)
 
 -- | RPC request
 type RPCRequest =
@@ -23,4 +21,6 @@ type RPCResponse =
 
 -- | Call an RPC method
 call :: String -> RPCRequest -> Aff (Either String RPCResponse)
-call endpoint request = notImplemented "Util.RPC.call"
+call endpoint request = callRPC endpoint request
+
+foreign import callRPC :: String -> RPCRequest -> Aff (Either String RPCResponse)

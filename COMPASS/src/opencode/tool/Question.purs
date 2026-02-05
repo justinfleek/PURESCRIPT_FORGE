@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Question
 Description : Interactive user questioning tool
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Question Tool
 
 This tool enables the AI assistant to ask the user questions during
@@ -64,10 +61,11 @@ import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
 import Data.Array as Array
 import Data.String as String
-import Data.Argonaut (Json, class EncodeJson, class DecodeJson, encodeJson, decodeJson)
+import Data.Argonaut (Json, class EncodeJson, class DecodeJson, encodeJson, decodeJson, (.:), (.:?))
+import Data.Maybe as Maybe
 import Effect.Aff (Aff)
 
-import Opencode.Types.Tool (ToolContext, ToolResult, ToolInfo)
+import Opencode.Types.Tool (ToolContext, ToolResult, ToolInfo, ToolMetadata(..))
 import Aleph.Coeffect (Resource(..))
 
 -- ============================================================================
@@ -137,22 +135,54 @@ Returns formatted output with user responses.
 execute :: QuestionParams -> ToolContext -> Aff ToolResult
 execute params ctx = do
   -- 1. Validate parameters
-  -- 2. Request answers from UI via session
-  -- 3. Collect and format responses
   let numQuestions = Array.length params.questions
   let plural = if numQuestions > 1 then "s" else ""
   
-  -- TODO: Actually ask questions via session/UI bridge
-  -- For now, return placeholder indicating questions were asked
+  -- 2. Format questions for display
+  let formattedQuestions = formatQuestionsForDisplay params.questions
+  
+  -- 3. Request answers from UI via session bridge
+  -- In production, this would:
+  -- - Send questions to UI via WebSocket/JSON-RPC
+  -- - Wait for user responses
+  -- - Return answers
+  -- For now, format questions and indicate they need user input
   pure
     { title: "Asked " <> show numQuestions <> " question" <> plural
-    , metadata: encodeJson
+    , metadata: QuestionMetadata
         { questions: params.questions
         , answered: false
         }
-    , output: "Questions submitted to user. Awaiting responses..."
+    , output: "Questions submitted to user:\n\n" <> formattedQuestions <> "\n\nAwaiting user responses..."
     , attachments: Nothing
     }
+  where
+    formatQuestionsForDisplay :: Array QuestionDef -> String
+    formatQuestionsForDisplay questions =
+      String.joinWith "\n\n" $ Array.mapWithIndex formatQuestion questions
+    
+    formatQuestion :: Int -> QuestionDef -> String
+    formatQuestion idx q =
+      let num = show (idx + 1)
+          header = if String.length q.header > 0 then q.header else "Question " <> num
+          optionsText = String.joinWith "\n" $ Array.mapWithIndex formatOption q.options
+      in "Q" <> num <> ": " <> header <> "\n" <>
+         q.question <> "\n" <>
+         (if Array.length q.options > 0 then "\nOptions:\n" <> optionsText else "")
+    
+    formatOption :: Int -> Option -> String
+    formatOption idx opt =
+      let letter = case idx of
+            0 -> "A"
+            1 -> "B"
+            2 -> "C"
+            3 -> "D"
+            4 -> "E"
+            5 -> "F"
+            6 -> "G"
+            7 -> "H"
+            _ -> show (idx + 1)
+      in "  " <> letter <> ". " <> opt.label <> " - " <> opt.description
 
 {-| Tool registration. -}
 questionTool :: ToolInfo
@@ -209,19 +239,72 @@ questionDescription = String.joinWith "\n"
   , "- If you recommend a specific option, make it first and add '(Recommended)'"
   ]
 
-questionSchema :: { type :: String, properties :: {} }
-questionSchema =
+questionSchema :: Json
+questionSchema = encodeJson
   { type: "object"
-  , properties: {}  -- TODO: Full JSON Schema
+  , properties:
+      { questions:
+          { type: "array"
+          , items:
+              { type: "object"
+              , properties:
+                  { question: { type: "string", description: "Complete question text" }
+                  , header: { type: "string", description: "Short header (max 30 chars)", maxLength: 30 }
+                  , options:
+                      { type: "array"
+                      , items:
+                          { type: "object"
+                          , properties:
+                              { label: { type: "string", description: "Option label (1-5 words)" }
+                              , description: { type: "string", description: "Option description" }
+                              }
+                          , required: ["label", "description"]
+                          }
+                      , description: "Available answer options"
+                      , minItems: 1
+                      }
+                  , multiple: { type: "boolean", description: "Allow multiple selections (default: false)" }
+                  }
+              , required: ["question", "header", "options"]
+              }
+          , description: "Array of questions to ask the user"
+          , minItems: 1
+          }
+      }
+  , required: ["questions"]
   }
 
 decodeQuestionParams :: Json -> Either String QuestionParams
-decodeQuestionParams json = notImplemented "decodeQuestionParams"
+decodeQuestionParams json = do
+  obj <- decodeJson json
+  questions <- obj .: "questions" >>= decodeJsonArray decodeQuestionDef
+  pure { questions }
+  where
+    decodeQuestionDef :: Json -> Either String QuestionDef
+    decodeQuestionDef qJson = do
+      qObj <- decodeJson qJson
+      question <- qObj .: "question" >>= decodeJson
+      header <- qObj .: "header" >>= decodeJson
+      options <- qObj .: "options" >>= decodeJsonArray decodeOption
+      multiple <- (qObj .:? "multiple" >>= \mb -> pure (mb >>= decodeJson))
+      pure { question, header, options, multiple }
+    
+    decodeOption :: Json -> Either String Option
+    decodeOption oJson = do
+      oObj <- decodeJson oJson
+      label <- oObj .: "label" >>= decodeJson
+      description <- oObj .: "description" >>= decodeJson
+      pure { label, description }
+    
+    decodeJsonArray :: forall a. (Json -> Either String a) -> Json -> Either String (Array a)
+    decodeJsonArray decoder arrJson = do
+      arr <- decodeJson arrJson
+      traverse decoder arr
 
 mkErrorResult :: String -> ToolResult
 mkErrorResult err =
   { title: "Question Error"
-  , metadata: encodeJson { error: err }
+  , metadata: ErrorMetadata { error: err }
   , output: "Error: " <> err
   , attachments: Nothing
   }

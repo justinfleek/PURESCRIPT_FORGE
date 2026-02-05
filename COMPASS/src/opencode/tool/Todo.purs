@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Todo
 Description : Task list management tool
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Todo Tool
 
 This tool provides task list management for tracking progress during
@@ -66,10 +63,30 @@ import Prelude
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
 import Data.Array as Array
-import Data.Argonaut (Json, class EncodeJson, class DecodeJson, encodeJson, decodeJson)
+import Data.Argonaut (Json, class EncodeJson, class DecodeJson, encodeJson, decodeJson, (.:), (.:?))
+import Data.Map (Map)
+import Data.Map as Map
 import Effect.Aff (Aff)
+import Effect (Effect)
+import Effect.Ref (Ref)
+import Effect.Ref as Ref
+import Effect.Class (liftEffect)
 
-import Opencode.Types.Tool (ToolContext, ToolResult, ToolInfo)
+import Opencode.Types.Tool (ToolContext, ToolResult, ToolInfo, ToolMetadata(..))
+
+-- ============================================================================
+-- SESSION STORAGE (In-memory for now, can be connected to persistent storage)
+-- ============================================================================
+
+-- | In-memory todo storage keyed by session ID
+-- | In production, this would be replaced with persistent storage
+type TodoStorage = Map String (Array TodoItem)
+
+-- | Global todo storage ref (in production, would use session storage)
+todoStorageRef :: Ref TodoStorage
+todoStorageRef = unsafePerformEffect $ Ref.new Map.empty
+  where
+    foreign import unsafePerformEffect :: forall a. Effect a -> a
 
 -- ============================================================================
 -- TYPES
@@ -134,13 +151,15 @@ execute :: TodoWriteParams -> ToolContext -> Aff ToolResult
 execute params ctx = do
   -- 1. Validate todo items
   -- 2. Update session todo list
+  liftEffect $ Ref.modify_ (\storage -> Map.insert ctx.sessionID params.todos storage) todoStorageRef
+  
   -- 3. Return confirmation
   let pending = countPending params.todos
   let total = Array.length params.todos
   
   pure
     { title: show pending <> " todos"
-    , metadata: encodeJson { todos: params.todos }
+    , metadata: TodoMetadata { todos: params.todos }
     , output: formatTodos params.todos
     , attachments: Nothing
     }
@@ -151,13 +170,16 @@ Reads the current todo list from session.
 -}
 executeRead :: TodoReadParams -> ToolContext -> Aff ToolResult
 executeRead _ ctx = do
-  -- TODO: Read from session storage
-  let todos = [] :: Array TodoItem
+  -- Read from session storage
+  todos <- liftEffect $ do
+    storage <- Ref.read todoStorageRef
+    pure $ Map.lookup ctx.sessionID storage # fromMaybe []
+  
   let pending = countPending todos
   
   pure
     { title: show pending <> " todos"
-    , metadata: encodeJson { todos }
+    , metadata: TodoMetadata { todos }
     , output: formatTodos todos
     , attachments: Nothing
     }
@@ -199,7 +221,23 @@ filterByStatus status = Array.filter (\t -> t.status == status)
 
 {-| Format todos for output. -}
 formatTodos :: Array TodoItem -> String
-formatTodos todos = notImplemented "formatTodos"  -- TODO: JSON.stringify equivalent
+formatTodos todos =
+  if Array.null todos
+  then "No todos"
+  else String.joinWith "\n" $ Array.mapWithIndex formatTodo todos
+  where
+    formatTodo idx todo =
+      let statusIcon = case todo.status of
+            "completed" -> "✓"
+            "in_progress" -> "→"
+            "cancelled" -> "✗"
+            _ -> "○"
+        priorityPrefix = case todo.priority of
+            "high" -> "[HIGH]"
+            "medium" -> "[MED]"
+            "low" -> "[LOW]"
+            _ -> ""
+      in show (idx + 1) <> ". " <> statusIcon <> " " <> priorityPrefix <> " " <> todo.content <> " (" <> todo.status <> ")"
 
 todoWriteDescription :: String
 todoWriteDescription = "Use this tool to create and manage a structured task list for your current coding session."
@@ -211,12 +249,15 @@ emptySchema :: { type :: String }
 emptySchema = { type: "object" }
 
 decodeTodoWriteParams :: Json -> Either String TodoWriteParams
-decodeTodoWriteParams _ = notImplemented "decodeTodoWriteParams"
+decodeTodoWriteParams json = do
+  obj <- decodeJson json
+  todos <- obj .: "todos" >>= decodeJson
+  pure { todos }
 
 mkErrorResult :: String -> ToolResult
 mkErrorResult err =
   { title: "Todo Error"
-  , metadata: encodeJson { error: err }
+  , metadata: ErrorMetadata { error: err }
   , output: "Error: " <> err
   , attachments: Nothing
   }

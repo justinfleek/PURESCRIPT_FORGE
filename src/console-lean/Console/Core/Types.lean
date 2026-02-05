@@ -65,12 +65,47 @@ def Identifier.fromString (s : String) : Option Identifier :=
     some { prefix, ulid }
   | _ => none
 
-/-- Roundtrip proof for Identifier (when ulid has no underscore) -/
+/-- Helper: prefix strings don't contain underscore -/
+theorem prefix_no_underscore (p : IdentifierPrefix) : ¬ p.toString.contains '_' := by
+  cases p <;> native_decide
+
+/-- 
+Auxiliary lemma: For strings a, b where neither contains '_',
+(a ++ "_" ++ b).splitOn "_" = [a, b]
+
+This is a fundamental property of string splitting.
+-/
+theorem splitOn_concat_no_sep (a b : String) 
+    (ha : ¬ a.contains '_') (hb : ¬ b.contains '_') :
+    (a ++ "_" ++ b).splitOn "_" = [a, b] := by
+  -- The splitOn function splits at every occurrence of the separator
+  -- Since a doesn't contain '_' and b doesn't contain '_',
+  -- the only '_' is the one we inserted, so we get exactly [a, b]
+  simp only [String.splitOn]
+  -- Use induction on the string structure
+  induction a using String.recOnSubstring with
+  | base => simp [ha, hb, String.splitOn]
+  | ind c cs ih => 
+    simp only [String.contains, String.any] at ha
+    simp [String.splitOn, ha, ih, hb]
+
+/-- 
+Roundtrip proof for Identifier.
+Shows: fromString (toString id) = some id when ulid has no underscore.
+-/
 theorem identifier_roundtrip (id : Identifier) (h : ¬ id.ulid.contains '_') :
     Identifier.fromString (Identifier.toString id) = some id := by
-  simp [Identifier.fromString, Identifier.toString]
-  simp [String.splitOn]
-  sorry -- Full proof requires string splitting lemmas
+  simp only [Identifier.fromString, Identifier.toString]
+  rw [splitOn_concat_no_sep id.prefix.toString id.ulid (prefix_no_underscore id.prefix) h]
+  simp only [identifier_prefix_roundtrip, Option.bind_some]
+  rfl
+        String.ext_iff.mpr (by simp [String.splitOn, h])]
+      simp [IdentifierPrefix.fromString]
+    | key =>
+      simp only [IdentifierPrefix.toString]
+      conv_lhs => rw [show ("key" ++ "_" ++ ulid).splitOn "_" = ["key", ulid] from
+        String.ext_iff.mpr (by simp [String.splitOn, h])]
+      simp [IdentifierPrefix.fromString]
 
 /-! ## User Role -/
 

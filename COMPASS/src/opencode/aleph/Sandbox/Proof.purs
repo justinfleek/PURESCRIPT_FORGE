@@ -1,9 +1,6 @@
 {-|
 Module      : Aleph.Sandbox.Proof
 Description : Sandbox execution proofs
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Sandbox Proofs
 
 This module provides proof types for sandbox execution, enabling
@@ -39,9 +36,12 @@ module Aleph.Sandbox.Proof
 
 import Prelude
 
+import Effect (Effect)
+import Effect.Class (liftEffect)
 import Data.Either (Either(..))
 
 import Aleph.Sandbox.Policy (SandboxPolicy, IsolationLevel(..), ResourceUsage, deriveIsolationLevel)
+import Aleph.Sandbox.GVisor.FFI (getCurrentTimestamp)
 import Aleph.Coeffect (DischargeProof)
 
 -- Forward declarations to avoid circular imports
@@ -86,20 +86,25 @@ type SandboxProof =
 -- ============================================================================
 
 -- | Create sandbox proof from execution
-mkSandboxProof :: ContainerConfig -> GVisorRuntime -> SandboxProof
-mkSandboxProof config (GVisorRuntime rt) =
-  { containerId: rt.containerId
-  , isolationLevel: deriveIsolationLevel config.policy
-  , executionTime: 0.0  -- TODO: Calculate
-  , resourceUsage:
-      { cpuMs: 0
-      , memoryMB: 0
-      , diskMB: 0
-      , networkBytes: 0
-      }
-  , syscallsBlocked: 0
-  , networksBlocked: 0
-  }
+mkSandboxProof :: ContainerConfig -> GVisorRuntime -> Effect SandboxProof
+mkSandboxProof config (GVisorRuntime rt) = do
+  -- Calculate execution time from start time
+  currentTime <- getCurrentTimestamp
+  let executionTime = currentTime - rt.startTime
+  
+  pure
+    { containerId: rt.containerId
+    , isolationLevel: deriveIsolationLevel config.policy
+    , executionTime: executionTime
+    , resourceUsage:
+        { cpuMs: 0  -- Would be populated from container stats
+        , memoryMB: 0
+        , diskMB: 0
+        , networkBytes: 0
+        }
+    , syscallsBlocked: 0  -- Would be populated from gVisor logs
+    , networksBlocked: 0
+    }
 
 -- ============================================================================
 -- VERIFICATION

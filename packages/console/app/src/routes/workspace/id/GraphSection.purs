@@ -27,7 +27,7 @@ module Console.App.Routes.Workspace.Id.GraphSection
 
 import Prelude
 
-import Data.Array (filter, fromFoldable, sortBy, nub)
+import Data.Array (filter, fromFoldable, sortBy, nub, range, (..))
 import Data.Foldable (foldl)
 import Data.Int (toNumber)
 import Data.Map (Map)
@@ -181,9 +181,6 @@ generateHashColor str =
     
     abs :: Int -> Int
     abs n = if n < 0 then -n else n
-    
-    (..) :: Int -> Int -> Array Int
-    (..) start end = if start > end then [] else [start] <> ((start + 1) .. end)
 
 -- | Format date string for chart label
 -- | Input: "2024-01-15" -> Output: "Jan 15"
@@ -411,9 +408,6 @@ generateDateRange year month =
     
     replicateChar :: Int -> Char -> String
     replicateChar n _ = if n <= 0 then "" else "0" <> replicateChar (n - 1) '0'
-    
-    (..) :: Int -> Int -> Array Int
-    (..) start end = if start > end then [] else [start] <> ((start + 1) .. end)
 
 -- | Get key display name
 getKeyName :: Maybe String -> Array KeyInfo -> String

@@ -29,6 +29,7 @@ import Sidepanel.WebSocket.Client as WS
 import Sidepanel.Api.Types (ServerMessage(..))
 import Sidepanel.Theme.CSS as ThemeCSS
 import Sidepanel.Theme.Prism (generateHolographicTheme, fleekColors, MonitorType(..))
+import Sidepanel.Theme.ModernTheme as ModernTheme
 import Sidepanel.App.Types
   ( State
   , Action(..)
@@ -63,7 +64,10 @@ import Sidepanel.Components.HelpOverlay as HelpOverlay
 handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action Slots Void m Unit
 handleAction = case _ of
   Initialize -> do
-    -- Apply PRISM theme CSS
+    -- Apply modern theme (matching image styling)
+    liftEffect $ ModernTheme.applyTheme ModernTheme.defaultThemeConfig
+    
+    -- Apply PRISM theme CSS (for compatibility)
     let base16Colors = generateHolographicTheme OLED
     let css = ThemeCSS.generateCSS base16Colors fleekColors
     liftEffect $ ThemeCSS.applyTheme css

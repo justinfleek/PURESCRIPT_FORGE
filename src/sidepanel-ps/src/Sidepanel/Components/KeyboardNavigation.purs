@@ -45,6 +45,8 @@ import Web.DOM.Document (toEventTarget)
 import Web.UIEvent.KeyboardEvent (KeyboardEvent, fromEvent, key, ctrlKey, shiftKey, altKey)
 import Sidepanel.Router (Route(..))
 import Data.Foldable (for_)
+import Effect.Aff (error, killFiber, Fiber)
+import Effect.Aff as Aff
 
 -- | Keyboard action
 data KeyboardAction
@@ -60,12 +62,13 @@ data KeyboardAction
   | Confirm
   | Undo
   | Redo
+  | OpenSearch
+  | OpenGameSelection
 
 -- | Component state
 type State =
   { enabled :: Boolean
   , vimMode :: Boolean
-  , cleanup :: Maybe (Unit -> Effect Unit)
   }
 
 -- | Component output
@@ -78,12 +81,11 @@ type Input = Unit
 -- | Component
 component :: forall q m. MonadAff m => H.Component q Input Output m
 component = H.mkComponent
-  { initialState: const { enabled: true, vimMode: true, cleanup: Nothing }
+  { initialState: const { enabled: true, vimMode: true }
   , render: const (HH.text "")
   , eval: H.mkEval $ H.defaultEval
       { handleAction = handleAction
       , initialize = Just Initialize
-      , finalize = Just Finalize
       }
   }
 
@@ -91,44 +93,12 @@ component = H.mkComponent
 data Action
   = Initialize
   | HandleKeyDown KeyboardEvent
-  | Finalize
 
 handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Output m Unit
 handleAction = case _ of
   Initialize -> do
-    -- Add global keyboard listener
-    doc <- liftEffect $ document =<< window
-    let target = toEventTarget doc
-    
-    keydownListener <- liftEffect $ eventListener \e -> do
-      -- Parse keyboard event and trigger HandleKeyDown action
-      -- Note: In a full implementation, this would use Halogen's subscription system
-      -- to trigger HandleKeyDown actions from Effect context
-      -- For now, the event listener is set up but actions are triggered via DOM events
-      case fromEvent e of
-        Just ke -> do
-          -- Check if input is focused (don't intercept typing)
-          inputFocused <- isInputFocused ke
-          if inputFocused then
-            pure unit
-          else
-            -- Would trigger HandleKeyDown via subscription or message queue
-            pure unit
-        Nothing ->
-          pure unit
-    
-    liftEffect $ addEventListener (EventType "keydown") keydownListener false target
-    
-    -- Store cleanup function
-    let cleanupFn = \_ -> removeEventListener (EventType "keydown") keydownListener false target
-    H.modify_ \s -> s { cleanup = Just cleanupFn }
-  
-  Finalize -> do
-    -- Cleanup keyboard listener
-    state <- H.get
-    for_ state.cleanup \cleanupFn ->
-      liftEffect $ cleanupFn unit
-    H.modify_ \s -> s { cleanup = Nothing }
+    -- Subscribe to keyboard events using Halogen's subscription system
+    void $ H.subscribe keyboardEventEmitter
   
   HandleKeyDown event -> do
     state <- H.get
@@ -139,6 +109,30 @@ handleAction = case _ of
           H.raise (KeyboardActionTriggered action)
         Nothing ->
           pure unit
+
+-- | Keyboard event emitter - Subscribes to global keydown events
+keyboardEventEmitter :: forall m. MonadAff m => H.Emitter m Action
+keyboardEventEmitter = H.Emitter \emit -> do
+  doc <- liftEffect $ document =<< window
+  let target = toEventTarget doc
+  
+  keydownListener <- liftEffect $ eventListener \e -> do
+    case fromEvent e of
+      Just ke -> do
+        -- Check if input is focused (don't intercept typing)
+        inputFocused <- isInputFocused ke
+        if inputFocused then
+          pure unit
+        else
+          -- Emit HandleKeyDown action
+          liftEffect $ emit (HandleKeyDown ke)
+      Nothing ->
+        pure unit
+  
+  liftEffect $ addEventListener (EventType "keydown") keydownListener false target
+  
+  -- Return cleanup function
+  pure $ removeEventListener (EventType "keydown") keydownListener false target
 
 -- | Parse keyboard event to action
 parseKeyboardAction :: KeyboardEvent -> Boolean -> Maybe KeyboardAction
@@ -152,6 +146,14 @@ parseKeyboardAction event vimMode
   -- Command palette (Ctrl+Shift+P)
   | ctrlKey event && shiftKey event && key event == "p" = 
       Just OpenCommandPalette
+  
+  -- Search (Ctrl+K or Ctrl+F)
+  | ctrlKey event && not (shiftKey event) && (key event == "k" || key event == "f") = 
+      Just OpenSearch
+  
+  -- Easter egg games (Ctrl+Shift+T for Tetris, Ctrl+Shift+P for Pong when not command palette)
+  | ctrlKey event && shiftKey event && key event == "t" = 
+      Just OpenGameSelection
   
   -- Vim-style navigation (only if vimMode enabled)
   | vimMode && key event == "j" = Just MoveDown

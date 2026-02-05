@@ -11,7 +11,7 @@ import Prelude
 
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
-import Console.Core.Actor (ActorInfo(..), ActorType(..), provide)
+import Forge.Console.Core.Actor (ActorInfo(..), ActorType(..), provide, AccountActor, UserActor, PublicActor)
 import Console.App.Context.Auth (ActorResult(..), getActorFromSession, AuthSession)
 
 -- | Result of withActor operation
@@ -53,13 +53,13 @@ withActor
   -> WithActorResult a
 withActor actorResult fn = case actorResult of
   ActorAccount props ->
-    WithActorSuccess (fn (ActorInfo AccountActor props))
+    WithActorSuccess (fn (Account props))
   
   ActorUser props ->
-    WithActorSuccess (fn (ActorInfo UserActor props))
+    WithActorSuccess (fn (User props))
   
   ActorPublic ->
-    WithActorSuccess (fn (ActorInfo PublicActor {}))
+    WithActorSuccess (fn (Public {}))
   
   ActorRedirect url ->
     WithActorRedirect url
@@ -72,13 +72,13 @@ withActorM
   -> WithActorResult a
 withActorM actorResult fn = case actorResult of
   ActorAccount props ->
-    fn (ActorInfo AccountActor props)
+    fn (Account props)
   
   ActorUser props ->
-    fn (ActorInfo UserActor props)
+    fn (User props)
   
   ActorPublic ->
-    fn (ActorInfo PublicActor {})
+    fn (Public {})
   
   ActorRedirect url ->
     WithActorRedirect url
@@ -103,3 +103,7 @@ withActorFromSession
 withActorFromSession session workspace userLookup fn =
   let actorResult = getActorFromSession session workspace userLookup
   in withActor actorResult fn
+
+-- | FFI: Execute function with actor context (server-side)
+-- | Wraps Actor.provide from console-core
+foreign import withActorFFI :: forall a. String -> Maybe String -> (Unit -> Aff a) -> Aff a

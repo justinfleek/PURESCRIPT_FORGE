@@ -8,6 +8,10 @@ module Forge.Console.Core.Drizzle.Database
   ( DatabaseF(..)
   , Database
   , Query(..)
+  , InsertQuery
+  , SelectQuery
+  , UpdateQuery
+  , DeleteQuery
   , insert
   , select
   , update
@@ -19,47 +23,78 @@ module Forge.Console.Core.Drizzle.Database
 import Prelude
 
 import Control.Monad.Free (Free, liftF)
-import Data.Either (Either)
+import Data.Either (Either(..))
 import Data.Maybe (Maybe)
+import Foreign (Foreign)
+
+-- | Insert query parameters
+type InsertQuery =
+  { table :: String
+  , values :: Foreign  -- Type-erased values using Foreign
+  }
+
+-- | Select query parameters
+type SelectQuery =
+  { table :: String
+  , where_ :: Maybe String
+  }
+
+-- | Update query parameters
+type UpdateQuery =
+  { table :: String
+  , set :: Foreign  -- Type-erased set values using Foreign
+  , where_ :: Maybe String
+  }
+
+-- | Delete query parameters
+type DeleteQuery =
+  { table :: String
+  , where_ :: Maybe String
+  }
 
 -- | Query types
-data Query a
-  = Insert { table :: String, values :: a }
-  | Select { table :: String, where_ :: Maybe String }
-  | Update { table :: String, set :: a, where_ :: Maybe String }
-  | Delete { table :: String, where_ :: Maybe String }
+data Query
+  = InsertQ InsertQuery
+  | SelectQ SelectQuery
+  | UpdateQ UpdateQuery
+  | DeleteQ DeleteQuery
+
+-- Note: Cannot derive Eq due to Foreign not having Eq instance
 
 -- | Database operations as a functor
-data DatabaseF a next
-  = RunQuery (Query a) (a -> next)
-  | Transaction (Database a) (a -> next)
-  | Effect (Unit -> next)
+data DatabaseF next
+  = RunInsert InsertQuery next
+  | RunSelect SelectQuery next
+  | RunUpdate UpdateQuery next
+  | RunDelete DeleteQuery next
+  | RunTransaction (Database Unit) (Unit -> next)
 
-derive instance functorDatabaseF :: Functor (DatabaseF a)
+derive instance functorDatabaseF :: Functor DatabaseF
 
 -- | Free monad for database operations
-type Database a = Free (DatabaseF a) a
+type Database a = Free DatabaseF a
 
 -- | Insert a record
-insert :: forall a. String -> a -> Database Unit
-insert table values = liftF $ RunQuery (Insert { table, values }) (const unit)
+-- | The values parameter is type-erased via Foreign for the DSL
+insert :: InsertQuery -> Database Unit
+insert query = liftF $ RunInsert query unit
 
 -- | Select records
-select :: forall a. String -> Maybe String -> Database (Array a)
-select table where_ = liftF $ RunQuery (Select { table, where_ }) (\_ -> [])
+select :: SelectQuery -> Database Unit
+select query = liftF $ RunSelect query unit
 
 -- | Update records
-update :: forall a. String -> a -> Maybe String -> Database Unit
-update table set where_ = liftF $ RunQuery (Update { table, set, where_ }) (const unit)
+update :: UpdateQuery -> Database Unit
+update query = liftF $ RunUpdate query unit
 
 -- | Delete records
-delete :: String -> Maybe String -> Database Unit
-delete table where_ = liftF $ RunQuery (Delete { table, where_ }) (const unit)
+delete :: DeleteQuery -> Database Unit
+delete query = liftF $ RunDelete query unit
 
 -- | Run operations in a transaction
-transaction :: forall a. Database a -> Database a
-transaction db = liftF $ Transaction db identity
+transaction :: Database Unit -> Database Unit
+transaction db = liftF $ RunTransaction db identity
 
 -- | Run a query (placeholder - actual implementation would interpret)
-runQuery :: forall a. Query a -> Either String a
-runQuery _ = Left "Database interpreter not implemented"
+runQuery :: Query -> Either String Unit
+runQuery _ = Left "Database interpreter not implemented - this is a pure DSL"

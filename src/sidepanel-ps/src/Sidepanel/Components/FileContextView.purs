@@ -136,10 +136,11 @@ component =
   H.mkComponent
     { initialState: \input -> initialState { wsClient = input.wsClient }
     , render
-    , eval: H.mkEval $ H.defaultEval
-        { handleAction = handleAction
-        , initialize = Just Initialize
-        }
+  , eval: H.mkEval $ H.defaultEval
+      { handleAction = handleAction
+      , handleQuery = handleQuery
+      , initialize = Just Initialize
+      }
     }
 
 initialState :: State
@@ -261,16 +262,12 @@ renderFile index file selected =
         [ HH.text $ "Read " <> show file.readAt ]
     , HH.button
         [ HP.class_ (H.ClassName "btn-remove")
-        , HE.onClick \e -> do
-            H.stopPropagation e
-            RemoveSelected
+        , HE.onClick \_ -> RemoveSelected
         ]
         [ HH.text "−" ]
     , HH.button
         [ HP.class_ (H.ClassName "btn-preview")
-        , HE.onClick \e -> do
-            H.stopPropagation e
-            OpenPreview file.path
+        , HE.onClick \_ -> OpenPreview file.path
         ]
         [ HH.text "👁" ]
     ]
@@ -509,6 +506,22 @@ handleAction = case _ of
   NoOp ->
     pure unit
 
+-- | Handle component queries
+handleQuery :: forall m a. MonadAff m => Query a -> H.HalogenM State Action () Output m (Maybe a)
+handleQuery = case _ of
+  Refresh a -> do
+    handleAction RefreshContext
+    pure (Just a)
+  
+  AddFile path a -> do
+    handleAction (AddRecommended path)
+    pure (Just a)
+  
+  RemoveFile path a -> do
+    H.modify_ \s -> s { selectedFiles = [path] }
+    handleAction RemoveSelected
+    pure (Just a)
+
 -- | Group files by directory
 groupFilesByDirectory :: Array FileInContext -> Array DirectoryGroup
 groupFilesByDirectory files =
@@ -593,10 +606,10 @@ renderPreviewModal state =
         [ HP.class_ (H.ClassName "modal-overlay")
         , HE.onClick \_ -> ClosePreview
         ]
-        [ HH.div
-            [ HP.class_ (H.ClassName "modal modal-large")
-            , HE.onClick \e -> H.stopPropagation e
-            ]
+            [ HH.div
+                [ HP.class_ (H.ClassName "modal modal-large")
+                , HE.onClick \_ -> pure unit
+                ]
             [ HH.div
                 [ HP.class_ (H.ClassName "modal-header") ]
                 [ HH.h3_ [ HH.text $ "Preview: " <> file ]

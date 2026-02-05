@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.ASTEdit.Text
 Description : Text-based string replacement
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Text Editing Mode
 
 Exact string replacement for simple edits.
@@ -154,5 +151,47 @@ replaceFirst old new str =
 
 computeDiff :: String -> String -> String
 computeDiff old new =
-  -- TODO: Proper unified diff computation
-  "--- a/file\n+++ b/file\n"
+  let oldLines = String.split (String.Pattern "\n") old
+      newLines = String.split (String.Pattern "\n") new
+      diffLines = computeDiffLines oldLines newLines
+  in "--- a/file\n+++ b/file\n" <> String.joinWith "\n" diffLines
+
+-- | Compute unified diff between two line arrays
+computeDiffLines :: Array String -> Array String -> Array String
+computeDiffLines oldLines newLines =
+  let oldLen = Array.length oldLines
+      newLen = Array.length newLines
+      -- Simple line-by-line comparison
+      -- In production, would use Myers diff algorithm or similar
+      diff = computeDiffLinesImpl oldLines newLines 0 0 []
+  in diff
+
+-- | Compute diff lines with context
+computeDiffLinesImpl :: Array String -> Array String -> Int -> Int -> Array String -> Array String
+computeDiffLinesImpl oldLines newLines oldIdx newIdx acc
+  | oldIdx >= Array.length oldLines && newIdx >= Array.length newLines = Array.reverse acc
+  | oldIdx >= Array.length oldLines = 
+      -- All remaining new lines are additions
+      case Array.index newLines newIdx of
+        Just newLine -> computeDiffLinesImpl oldLines newLines oldIdx (newIdx + 1) 
+          (Array.cons ("+" <> newLine) acc)
+        Nothing -> Array.reverse acc
+  | newIdx >= Array.length newLines = 
+      -- All remaining old lines are deletions
+      case Array.index oldLines oldIdx of
+        Just oldLine -> computeDiffLinesImpl oldLines newLines (oldIdx + 1) newIdx 
+          (Array.cons ("-" <> oldLine) acc)
+        Nothing -> Array.reverse acc
+  | otherwise =
+      case Array.index oldLines oldIdx, Array.index newLines newIdx of
+        Just oldLine, Just newLine ->
+          if oldLine == newLine
+          then
+            -- Lines match, include as context
+            computeDiffLinesImpl oldLines newLines (oldIdx + 1) (newIdx + 1)
+              (Array.cons (" " <> oldLine) acc)
+          else
+            -- Lines differ, show deletion and addition
+            computeDiffLinesImpl oldLines newLines (oldIdx + 1) (newIdx + 1)
+              (Array.cons ("+" <> newLine) (Array.cons ("-" <> oldLine) acc))
+        _, _ -> Array.reverse acc

@@ -1,5 +1,4 @@
 -- | IIFE (Immediately Invoked Function Expression) utilities
--- | TODO: Implement based on _OTHER/opencode-original/packages/opencode/src/util/iife.ts
 -- | Note: In PureScript, this pattern is not as necessary due to pure functional nature
 module Opencode.Util.IIFE where
 

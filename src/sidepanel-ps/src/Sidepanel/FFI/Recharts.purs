@@ -62,3 +62,25 @@ foreign import updateChartConfig :: ChartInstance -> ChartConfig -> Effect Unit
 
 -- | Dispose chart
 foreign import disposeChart :: ChartInstance -> Effect Unit
+
+-- | Pie chart data point
+type PieChartDataPoint =
+  { label :: String
+  , value :: Number
+  , percentage :: Number
+  , color :: String
+  }
+
+-- | Pie chart configuration
+type PieChartConfig =
+  { width :: Int
+  , height :: Int
+  , showLabels :: Boolean
+  , showPercentages :: Boolean
+  }
+
+-- | Create pie chart in DOM element
+foreign import createPieChart :: String -> PieChartConfig -> Array PieChartDataPoint -> Effect ChartInstance
+
+-- | Update pie chart data
+foreign import updatePieChartData :: ChartInstance -> Array PieChartDataPoint -> Effect Unit

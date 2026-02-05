@@ -2,9 +2,10 @@
 -- | Migrated from: _OTHER/opencode-original/packages/console/app/src/routes/brand/index.tsx
 -- | Pure PureScript implementation - NO FFI
 module Console.App.Routes.Brand.Index
-  ( BrandAsset(..)
+  ( BrandAsset
   , AssetFormat(..)
   , AssetVariant(..)
+  , AssetType(..)
   , allBrandAssets
   , getAssetFilename
   , getAssetDownloadUrl

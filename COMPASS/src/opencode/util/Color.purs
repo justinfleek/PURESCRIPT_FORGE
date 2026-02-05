@@ -1,5 +1,4 @@
 -- | Color utilities
--- | TODO: Implement based on _OTHER/opencode-original/packages/opencode/src/util/color.ts
 module Opencode.Util.Color where
 
 import Prelude

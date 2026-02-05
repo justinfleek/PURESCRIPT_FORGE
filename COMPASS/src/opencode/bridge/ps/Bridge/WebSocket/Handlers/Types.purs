@@ -1,9 +1,6 @@
 {-|
 Module      : Bridge.WebSocket.Handlers.Types
 Description : Type definitions for WebSocket JSON-RPC handlers
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Handler Types
 
 Core type definitions for the JSON-RPC 2.0 WebSocket handlers,

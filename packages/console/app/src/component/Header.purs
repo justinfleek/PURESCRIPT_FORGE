@@ -23,7 +23,7 @@ import Data.Maybe (Maybe(..))
 
 -- | Header component props
 type HeaderProps =
-  { zen :: Boolean
+  { omega :: Boolean
   , hideGetStarted :: Boolean
   }
 
@@ -50,7 +50,7 @@ data NavItem
   = GitHubLink { starCount :: String }
   | DocsLink
   | EnterpriseLink
-  | ZenLink
+  | OmegaLink
   | LoginLink
   | DownloadLink
 
@@ -86,7 +86,7 @@ getNavItems props stars =
       , DocsLink
       , EnterpriseLink
       ]
-    authItem = if props.zen then LoginLink else ZenLink
+    authItem = if props.omega then LoginLink else OmegaLink
     ctaItem = if props.hideGetStarted then [] else [DownloadLink]
   in baseItems <> [authItem] <> ctaItem
 

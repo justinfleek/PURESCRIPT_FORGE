@@ -57,7 +57,8 @@ import Data.Array as Array
 import Routing.Duplex (parse)
 import Routing.Hash (matchesWith)
 import Sidepanel.Router (Route(..), routeCodec, routeToPanel, parseRoute)
-import Sidepanel.State.AppState (AppState, initialState, Panel(..))
+import Sidepanel.State.AppState (AppState, initialState, Panel(..), Message(..), MessageRole(..), MessageUsage(..), ToolCall(..), ToolStatus(..))
+import Sidepanel.Components.Session.SessionPanel as SessionPanel
 import Sidepanel.State.Reducer (reduce)
 import Sidepanel.State.Actions (Action(..), BalanceUpdate)
 import Sidepanel.Components.Sidebar as Sidebar
@@ -76,6 +77,11 @@ import Sidepanel.Components.FileContextView as FileContextView
 import Sidepanel.Components.DiffViewer as DiffViewer
 import Sidepanel.Components.KeyboardNavigation as KeyboardNavigation
 import Sidepanel.Components.HelpOverlay as HelpOverlay
+import Sidepanel.Components.Session.SessionTabs as SessionTabs
+import Sidepanel.Components.Session.BranchDialog as BranchDialog
+import Sidepanel.Components.Search.SearchView as SearchView
+import Sidepanel.Components.QuickActions.QuickActions as QuickActions
+import Sidepanel.Components.Performance.PerformanceProfiler as PerformanceProfiler
 import Sidepanel.WebSocket.Client as WS
 import Sidepanel.State.Settings (defaultSettings, Settings as FullSettings)
 import Sidepanel.Api.Types (ServerMessage(..), NotificationPayload, BalanceUpdatePayload)
@@ -140,12 +146,18 @@ _terminalEmbed = H.Slot :: H.Slot TerminalEmbed.Query TerminalEmbed.Output Unit
 _fileContextView = H.Slot :: H.Slot FileContextView.Query FileContextView.Output Unit
 _diffViewer = H.Slot :: H.Slot DiffViewer.Query DiffViewer.Output Unit
 _helpOverlay = H.Slot :: H.Slot HelpOverlay.Query HelpOverlay.Output Unit
+_sessionTabs = H.Slot :: H.Slot SessionTabs.Query SessionTabs.Output Unit
+_branchDialog = H.Slot :: H.Slot BranchDialog.Query BranchDialog.Output Unit
+_searchView = H.Slot :: H.Slot SearchView.Query SearchView.Output Unit
+_quickActions = H.Slot :: H.Slot QuickActions.Query QuickActions.Output Unit
+_performanceProfiler = H.Slot :: H.Slot PerformanceProfiler.Query PerformanceProfiler.Output Unit
 
 -- | App state
 type State =
   { appState :: AppState
   , currentRoute :: Route
   , wsClient :: Maybe WS.WSClient
+  , helpOverlayVisible :: Boolean
   }
 
 -- | App actions - All possible actions the App component can handle
@@ -183,6 +195,14 @@ data Action
   | CloseHelp
   | HandleHelpOverlayOutput HelpOverlay.Output
   | HandleWebSocketNotification NotificationPayload
+  | HandleSearchViewOutput SearchView.Output
+  | HandleQuickActionsOutput QuickActions.Output
+  | HandlePerformanceProfilerOutput PerformanceProfiler.Output
+  | OpenSearch
+  | CloseSearch
+  | OpenPerformanceProfiler
+  | ClosePerformanceProfiler
+  | OpenGameSelection
 
 -- | App component - Root Halogen component factory
 -- |
@@ -203,7 +223,7 @@ data Action
 -- | ```
 component :: forall q m. MonadAff m => H.Component q Unit Void m
 component = H.mkComponent
-  { initialState: const { appState: initialState, currentRoute: Dashboard, wsClient: Nothing, helpOverlayVisible: false }
+  { initialState: const { appState: initialState, currentRoute: Dashboard, wsClient: Nothing, helpOverlayVisible: false, searchViewVisible: false, performanceProfilerVisible: false }
   , render
   , eval: H.mkEval $ H.defaultEval
       { handleAction = handleAction
@@ -226,12 +246,42 @@ render state =
     , -- Sidebar
       HH.slot _sidebar unit Sidebar.component state.currentRoute
         HandleSidebarOutput
+    , -- Session tabs (if on session route)
+      if shouldShowTabs state.currentRoute then
+        HH.slot _sessionTabs unit SessionTabs.component state.appState.sessionTabs HandleSessionTabsOutput
+      else
+        HH.text ""
     , -- Main content
       HH.main
         [ HP.class_ (H.ClassName "app__main") ]
         [ renderCurrentPanel state ]
     , -- Help overlay
       HH.slot _helpOverlay unit HelpOverlay.component { visible: state.helpOverlayVisible } HandleHelpOverlayOutput
+    , -- Search view (overlay)
+      HH.slot _searchView unit SearchView.component
+        { visible: state.searchViewVisible, wsClient: state.wsClient }
+        HandleSearchViewOutput
+    , -- Quick actions (on Dashboard)
+      if state.currentRoute == Dashboard then
+        HH.slot _quickActions unit QuickActions.component
+          { appState: state.appState, wsClient: state.wsClient }
+          HandleQuickActionsOutput
+      else
+        HH.text ""
+    , -- Performance profiler (overlay)
+      if state.performanceProfilerVisible then
+        HH.slot _performanceProfiler unit PerformanceProfiler.component
+          { sessionId: state.appState.activeSessionId, wsClient: state.wsClient }
+          HandlePerformanceProfilerOutput
+      else
+        HH.text ""
+    , -- Branch dialog
+      HH.slot _branchDialog unit BranchDialog.component
+        { sessionId: getBranchDialogSessionId state.appState
+        , messageIndex: 0  -- Would come from message selection
+        , visible: false  -- Would be controlled by state
+        }
+        HandleBranchDialogOutput
     ]
 
 -- | Render undo/redo toolbar buttons - Undo/Redo UI controls
@@ -353,17 +403,60 @@ renderCurrentPanel state = case state.currentRoute of
 getSessionForRoute :: AppState -> Maybe String -> Maybe SessionPanel.Session
 getSessionForRoute appState sessionId = case appState.session of
   Just session ->
-    Just
-      { id: session.id
-      , model: session.model
-      , provider: "venice"  -- Would come from session data
-      , startedAt: session.startedAt
-      , promptTokens: session.promptTokens
-      , completionTokens: session.completionTokens
-      , cost: session.cost
-      , messages: []  -- Would load from store
-      }
+    -- Convert AppState messages to SessionPanel messages
+    let
+      convertedMessages = Array.map convertMessage appState.messages
+    in
+      Just
+        { id: session.id
+        , model: session.model
+        , provider: "venice"  -- Would come from session data
+        , startedAt: session.startedAt
+        , promptTokens: session.promptTokens
+        , completionTokens: session.completionTokens
+        , cost: session.cost
+        , messages: convertedMessages
+        }
   Nothing -> Nothing
+  where
+    -- Convert AppState.Message to SessionPanel.Message
+    convertMessage :: AppState.Message -> SessionPanel.Message
+    convertMessage msg =
+      { id: msg.id
+      , role: convertRole msg.role
+      , content: msg.content
+      , timestamp: msg.timestamp
+      , usage: map convertUsage msg.usage
+      , toolCalls: Array.map convertToolCall msg.toolCalls
+      }
+    
+    convertRole :: AppState.MessageRole -> SessionPanel.Role
+    convertRole = case _ of
+      AppState.User -> SessionPanel.User
+      AppState.Assistant -> SessionPanel.Assistant
+      AppState.System -> SessionPanel.System
+      AppState.Tool -> SessionPanel.Tool
+    
+    convertUsage :: AppState.MessageUsage -> SessionPanel.MessageUsage
+    convertUsage usage =
+      { promptTokens: usage.promptTokens
+      , completionTokens: usage.completionTokens
+      , cost: usage.cost
+      }
+    
+    convertToolCall :: AppState.ToolCall -> SessionPanel.ToolCall
+    convertToolCall tool =
+      { name: tool.name
+      , status: convertToolStatus tool.status
+      , durationMs: tool.durationMs
+      }
+    
+    convertToolStatus :: AppState.ToolStatus -> SessionPanel.ToolStatus
+    convertToolStatus = case _ of
+      AppState.Pending -> SessionPanel.Pending
+      AppState.Running -> SessionPanel.Running
+      AppState.Completed -> SessionPanel.Completed
+      AppState.Failed -> SessionPanel.Failed
 
 -- | Handle action - Main action handler for App component
 -- |
@@ -485,9 +578,8 @@ handleAction = case _ of
       let appSettings = convertSettingsToAppState newSettings
       in H.modify_ \s -> s { appState = s.appState { settings = appSettings } }
     SettingsPanel.DataCleared ->
-      -- STUB: Clear all data
-      -- TODO: Implement data clearing
-      H.modify_ \s -> s { appState = initialState }
+      -- Clear all data: reset to initial state and clear session history
+      H.modify_ \s -> s { appState = initialState { sessionHistory = [] } }
 
   HandleTokenChartOutput output -> case output of
     TokenUsageChart.ChartReady ->
@@ -514,15 +606,15 @@ handleAction = case _ of
       
       KeyboardNavigation.OpenCommandPalette ->
         handleAction OpenCommandPalette
+      KeyboardNavigation.OpenSearch ->
+        handleAction OpenSearch
       KeyboardNavigation.NavigateToRoute route ->
         handleAction (HandleRouteChange route)
       KeyboardNavigation.Refresh ->
         -- Refresh current view (would reload data)
         pure unit
       KeyboardNavigation.ShowHelp ->
-        -- STUB: Show keyboard shortcuts help
-        -- TODO: Open help overlay
-        pure unit
+        handleAction OpenHelp
       KeyboardNavigation.Cancel ->
         handleAction CloseCommandPalette
       KeyboardNavigation.Confirm ->
@@ -605,6 +697,129 @@ handleAction = case _ of
 
   HandleAppAction action ->
     H.modify_ \s -> s { appState = reduce s.appState action }
+  
+  HandleSessionTabsOutput output -> case output of
+    SessionTabs.TabSelected sessionId -> do
+      H.modify_ \s -> s { appState = reduce s.appState (SessionSwitched sessionId) }
+      -- Navigate to session route
+      handleAction (HandleRouteChange (Session (Just sessionId)))
+    
+    SessionTabs.TabClosed sessionId -> do
+      H.modify_ \s -> s { appState = reduce s.appState (SessionClosed sessionId) }
+      -- If closed session was active, navigate away
+      state <- H.get
+      if state.appState.activeSessionId == Just sessionId then
+        handleAction (HandleRouteChange Dashboard)
+      else
+        pure unit
+    
+    SessionTabs.TabsReordered newOrder -> do
+      H.modify_ \s -> s { appState = reduce s.appState (TabsReordered newOrder) }
+    
+    SessionTabs.NewTabRequested -> do
+      -- Create new session (would generate ID, get model from settings, etc.)
+      -- For now, just show a placeholder - would need Bridge API call
+      pure unit
+  
+  HandleBranchDialogOutput output -> case output of
+    BranchDialog.BranchCreated sessionId messageIndex description -> do
+      -- Generate branch session ID (would use UUID generator)
+      let branchSessionId = "branch-" <> sessionId <> "-" <> show messageIndex
+      let branchTitle = if description == "" then "Branch" else description
+      H.modify_ \s -> s { appState = reduce s.appState (SessionBranchCreated sessionId messageIndex description branchSessionId branchTitle) }
+      -- Navigate to branch session
+      handleAction (HandleRouteChange (Session (Just branchSessionId)))
+    
+    BranchDialog.BranchCancelled ->
+      pure unit
+  
+  HandleSearchViewOutput output -> case output of
+    SearchView.ResultSelected result -> do
+      -- Navigate to result based on type
+      case result.type_ of
+        SearchView.SessionResult -> do
+          case result.metadata.sessionId of
+            Just sessionId -> handleAction (HandleRouteChange (Session (Just sessionId)))
+            Nothing -> pure unit
+        SearchView.MessageResult -> do
+          -- Navigate to session and scroll to message
+          case result.metadata.sessionId of
+            Just sessionId -> handleAction (HandleRouteChange (Session (Just sessionId)))
+            Nothing -> pure unit
+        SearchView.FileResult -> do
+          -- Would open file in editor (via Bridge API)
+          pure unit
+        SearchView.ProofResult -> do
+          handleAction (HandleRouteChange Proof)
+        SearchView.RecordingResult -> do
+          -- Would open recording player
+          pure unit
+      handleAction CloseSearch
+    
+    SearchView.SearchClosed ->
+      handleAction CloseSearch
+  
+  HandleQuickActionsOutput output -> case output of
+    QuickActions.ActionTriggered action -> do
+      -- Handle action based on ID
+      case action.id of
+        "session.new" -> do
+          -- Create new session
+          handleAction (HandleRouteChange (Session Nothing))
+        "nav.search" -> do
+          handleAction OpenSearch
+        "export.session" -> do
+          -- Export current session
+          state <- H.get
+          case state.appState.activeSessionId of
+            Just sessionId -> do
+              case state.wsClient of
+                Just client -> do
+                  result <- liftEffect $ Bridge.exportSession client
+                    { sessionId: sessionId
+                    , format: "markdown"
+                    , includeTimeline: Just true
+                    }
+                  case result of
+                    Right response -> pure unit  -- Would trigger download
+                    Left _ -> pure unit
+                Nothing -> pure unit
+            Nothing -> pure unit
+        "nav.timeline" -> do
+          handleAction (HandleRouteChange Timeline)
+        "nav.settings" -> do
+          handleAction (HandleRouteChange Settings)
+        "snapshot.create" -> do
+          -- Create snapshot
+          state <- H.get
+          case state.wsClient of
+            Just client -> do
+              result <- liftEffect $ Bridge.saveSnapshot client
+                { trigger: "manual"
+                , description: Just "Quick action snapshot"
+                }
+              case result of
+                Right response -> pure unit
+                Left _ -> pure unit
+            Nothing -> pure unit
+        _ -> pure unit
+  
+  HandlePerformanceProfilerOutput output -> case output of
+    PerformanceProfiler.SnapshotCreated id -> do
+      -- Snapshot created, could show notification
+      pure unit
+  
+  OpenSearch -> do
+    H.modify_ _ { searchViewVisible = true }
+  
+  CloseSearch -> do
+    H.modify_ _ { searchViewVisible = false }
+  
+  OpenPerformanceProfiler -> do
+    H.modify_ _ { performanceProfilerVisible = true }
+  
+  ClosePerformanceProfiler -> do
+    H.modify_ _ { performanceProfilerVisible = false }
 
   WebSocketConnected client ->
     H.modify_ _ { wsClient = Just client }
@@ -670,8 +885,7 @@ convertSettingsToAppState fullSettings =
 -- | Convert BalanceUpdatePayload to BalanceUpdate - WebSocket payload conversion
 -- |
 -- | **Purpose:** Converts a `BalanceUpdatePayload` (from WebSocket) to a `BalanceUpdate`
--- |             (for state reducer). Strips the `timestamp` field as it's not needed
--- |             in the reducer (reducer uses current time or preserves existing).
+-- |             (for state reducer). Includes timestamp for history tracking.
 -- | **Parameters:**
 -- | - `payload`: Balance update payload from WebSocket
 -- | **Returns:** BalanceUpdate for reducer
@@ -685,4 +899,27 @@ convertBalanceUpdatePayload payload =
   , consumptionRate: payload.consumptionRate
   , timeToDepletion: payload.timeToDepletion
   , todayUsed: payload.todayUsed
+  , timestamp: payload.timestamp  -- Include timestamp for history tracking
   }
+
+-- | Should show tabs - Determine if session tabs should be displayed
+-- |
+-- | **Purpose:** Returns true if session tabs should be shown for the current route.
+-- | **Parameters:**
+-- | - `route`: Current route
+-- | **Returns:** Boolean indicating if tabs should be shown
+shouldShowTabs :: Route -> Boolean
+shouldShowTabs = case _ of
+  Session _ -> true
+  _ -> false
+
+-- | Get branch dialog session ID - Get session ID for branch dialog
+-- |
+-- | **Purpose:** Returns the session ID to use for the branch dialog (active session).
+-- | **Parameters:**
+-- | - `appState`: Current application state
+-- | **Returns:** Session ID string (empty string if no active session)
+getBranchDialogSessionId :: AppState -> String
+getBranchDialogSessionId appState = case appState.activeSessionId of
+  Just id -> id
+  Nothing -> ""

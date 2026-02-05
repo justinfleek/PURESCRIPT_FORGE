@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Write
 Description : File writing with LSP diagnostics
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Write Tool
 
 Write content to files with LSP integration for error detection.

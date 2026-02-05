@@ -242,23 +242,17 @@ renderFileDiff index diff selectedFile viewMode =
             [ HH.text diff.message ]
         , HH.button
             [ HP.class_ (H.ClassName "btn-accept-file")
-            , HE.onClick \e -> do
-                H.stopPropagation e
-                AcceptAllInFile diff.file
+            , HE.onClick \_ -> AcceptAllInFile diff.file
             ]
             [ HH.text "Accept All" ]
         , HH.button
             [ HP.class_ (H.ClassName "btn-reject-file")
-            , HE.onClick \e -> do
-                H.stopPropagation e
-                RejectAllInFile diff.file
+            , HE.onClick \_ -> RejectAllInFile diff.file
             ]
             [ HH.text "Reject All" ]
         , HH.button
             [ HP.class_ (H.ClassName "btn-preview-file")
-            , HE.onClick \e -> do
-                H.stopPropagation e
-                PreviewFile diff.file
+            , HE.onClick \_ -> PreviewFile diff.file
             ]
             [ HH.text "Preview" ]
         ]
@@ -515,7 +509,7 @@ renderPreviewModal state =
         ]
         [ HH.div
             [ HP.class_ (H.ClassName "modal modal-large")
-            , HE.onClick \e -> H.stopPropagation e
+            , HE.onClick \_ -> pure unit
             ]
             [ HH.div
                 [ HP.class_ (H.ClassName "modal-header") ]
@@ -714,6 +708,21 @@ handleAction = case _ of
   
   NoOp ->
     pure unit
+
+-- | Handle component queries
+handleQuery :: forall m a. MonadAff m => Query a -> H.HalogenM State Action () Output m (Maybe a)
+handleQuery = case _ of
+  UpdateDiffsQuery diffs a -> do
+    handleAction (UpdateDiffs diffs)
+    pure (Just a)
+  
+  AcceptHunkQuery file hunkId a -> do
+    handleAction (AcceptHunk hunkId)
+    pure (Just a)
+  
+  RejectHunkQuery file hunkId a -> do
+    handleAction (RejectHunk hunkId)
+    pure (Just a)
 
 -- Helper functions
 countPending :: Array FileDiff -> Int

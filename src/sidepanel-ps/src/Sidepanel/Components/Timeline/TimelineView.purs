@@ -44,6 +44,7 @@ module Sidepanel.Components.Timeline.TimelineView where
 
 import Prelude
 import Data.Array as Array
+import Data.Array.NonEmpty as NEA
 import Data.Maybe (Maybe(..))
 import Data.DateTime (DateTime)
 import Halogen as H
@@ -57,9 +58,11 @@ import Sidepanel.Utils.Currency (formatDiem, formatUSD)
 import Sidepanel.Utils.Time (formatTime)
 import Sidepanel.WebSocket.Client as WS
 import Sidepanel.Api.Bridge as Bridge
-import Sidepanel.FFI.DateTime (fromISOString, getCurrentDateTime)
+import Sidepanel.FFI.DateTime (fromISOString, getCurrentDateTime, toTimestamp)
 import Data.Int (toNumber)
 import Data.String as String
+import Math (max, min, floor)
+import Effect.Class (liftEffect)
 
 -- | Full snapshot with state data
 type Snapshot =
@@ -187,14 +190,16 @@ renderScrubber :: forall m. State -> H.ComponentHTML Action () m
 renderScrubber state =
   HH.div
     [ HP.class_ (H.ClassName "timeline-scrubber")
-    , HE.onMouseDown \_ -> HandleScrubStart
+    , HP.ref scrubberRef
+    , HE.onMouseDown handleScrubMouseDown
+    , HE.onMouseMove handleScrubMouseMove
     , HE.onMouseUp \_ -> HandleScrubEnd
     , HE.onMouseLeave \_ -> HandleScrubEnd
     ]
     [ HH.div [ HP.class_ (H.ClassName "scrubber__track") ] []
     , HH.div
         [ HP.class_ (H.ClassName "scrubber__markers") ]
-        (mapWithIndex (\index snapshot -> renderMarker state snapshot index) state.snapshots)
+        (Array.mapWithIndex (\index snapshot -> renderMarker state snapshot index) state.snapshots)
     , HH.div
         [ HP.class_ (H.ClassName "scrubber__playhead")
         , HP.style $ "left: " <> show (playheadPosition state) <> "%"
@@ -204,14 +209,33 @@ renderScrubber state =
         [ HP.class_ (H.ClassName "scrubber__labels") ]
         (renderTimeLabels state.timeRange)
     ]
+  where
+    handleScrubMouseDown :: forall m2. MouseEvent -> H.HalogenM State Action () Output m2 Unit
+    handleScrubMouseDown event = do
+      H.modify_ _ { isDragging = true }
+      handleScrubMouseMove event
+    
+    handleScrubMouseMove :: forall m2. MouseEvent -> H.HalogenM State Action () Output m2 Unit
+    handleScrubMouseMove event = do
+      state <- H.get
+      if state.isDragging then do
+        -- Calculate position from mouse X relative to scrubber
+        position <- liftEffect $ calculateScrubPositionFromEvent event
+        handleAction (HandleScrubMove position)
+      else
+        pure unit
+    
+    scrubberRef = H.RefLabel "scrubber"
 
 renderMarker :: forall m. State -> SnapshotSummary -> Int -> H.ComponentHTML Action () m
 renderMarker state snapshot index =
   let
     total = Array.length state.snapshots
-    position = calculatePosition index total
+    -- Use index-based position for now (can be enhanced with timestamp-based later)
+    position = calculatePositionFromIndex index total
     isSelected = state.selectedId == Just snapshot.id
     markerClass = getMarkerClass snapshot isSelected
+    markerIcon = getMarkerIcon snapshot
   in
     HH.div
       [ HP.classes [ H.ClassName "scrubber__marker", markerClass ]
@@ -219,7 +243,14 @@ renderMarker state snapshot index =
       , HE.onClick \_ -> SelectSnapshot snapshot.id
       , HP.title $ formatSnapshotTooltip snapshot
       ]
-      []
+      [ HH.text markerIcon ]
+
+-- | Get marker icon based on snapshot type
+getMarkerIcon :: SnapshotSummary -> String
+getMarkerIcon snapshot =
+  -- Note: SnapshotSummary doesn't have isManual/hasWarning/hasError fields yet
+  -- This would be enhanced when SnapshotSummary is extended
+  "●"
 
 getMarkerClass :: SnapshotSummary -> Boolean -> H.ClassName
 getMarkerClass snapshot isSelected =
@@ -227,12 +258,39 @@ getMarkerClass snapshot isSelected =
     then "marker--selected"
     else "marker--auto"
 
--- | Calculate position of snapshot within timeline
--- | Returns percentage (0-100) based on snapshot index
--- | Note: Simplified implementation - would calculate based on actual time differences
-calculatePosition :: Int -> Int -> Number
-calculatePosition index total =
+-- | Calculate position of snapshot within timeline based on timestamp
+-- | Returns percentage (0-100) based on actual time differences
+-- | Note: This is a pure function that calculates position, but requires current time
+-- |       For rendering, we'll use a simpler index-based approach or pass current time
+calculatePositionFromTime :: DateTime -> DateTime -> TimeRange -> Number
+calculatePositionFromTime snapshotTime currentTime range =
+  let
+    rangeMs = getTimeRangeMs range
+    snapshotMs = toTimestamp snapshotTime
+    currentMs = toTimestamp currentTime
+    startMs = currentMs - rangeMs
+    position = ((snapshotMs - startMs) / rangeMs) * 100.0
+  in
+    max 0.0 (min 100.0 position)
+
+-- | Fallback: Calculate position based on index (for when timestamps aren't available)
+calculatePositionFromIndex :: Int -> Int -> Number
+calculatePositionFromIndex index total =
   if total > 0 then (toNumber index / toNumber total) * 100.0 else 0.0
+
+-- | Get time range in milliseconds
+getTimeRangeMs :: TimeRange -> Number
+getTimeRangeMs = case _ of
+  LastHour -> 60.0 * 60.0 * 1000.0
+  Last6Hours -> 6.0 * 60.0 * 60.0 * 1000.0
+  Last24Hours -> 24.0 * 60.0 * 60.0 * 1000.0
+  AllTime -> 7.0 * 24.0 * 60.0 * 60.0 * 1000.0  -- 7 days
+
+-- | Convert DateTime to timestamp (milliseconds)
+toTimestamp :: DateTime -> Number
+toTimestamp dt = toTimestampImpl dt
+
+foreign import toTimestampImpl :: DateTime -> Number
 
 playheadPosition :: State -> Number
 playheadPosition state =

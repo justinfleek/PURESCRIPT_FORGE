@@ -18,3 +18,9 @@ import Console.App.Context.Auth
   , mkSessionConfig
   , emptySession
   )
+
+import Effect.Aff (Aff)
+
+-- | FFI: Get current auth session
+-- | Wraps SolidJS Start's useAuthSession hook
+foreign import useAuthSession :: Aff { data :: AuthSession, update :: (AuthSession -> AuthSession) -> Aff Unit }

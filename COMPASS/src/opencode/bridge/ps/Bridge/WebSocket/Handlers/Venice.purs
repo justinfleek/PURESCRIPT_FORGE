@@ -1,9 +1,6 @@
 {-|
 Module      : Bridge.WebSocket.Handlers.Venice
 Description : Venice AI chat and image generation handlers
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Venice Handlers
 
 JSON-RPC handlers for Venice AI integration including chat (streaming

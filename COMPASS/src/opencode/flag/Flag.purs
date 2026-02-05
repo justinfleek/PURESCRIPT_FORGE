@@ -1,19 +1,34 @@
 -- | Feature Flags
--- | TODO: Implement based on _OTHER/opencode-original/packages/opencode/src/flag/flag.ts
 module Opencode.Flag.Flag where
 
 import Prelude
 import Effect (Effect)
-import Opencode.Util.NotImplemented (notImplemented)
+import Data.String as String
+import Bridge.FFI.Node.Process (getEnv)
 
 -- | Feature flag for auto-share
 opencode_AUTO_SHARE :: Boolean
-opencode_AUTO_SHARE = false -- TODO: Read from env
+opencode_AUTO_SHARE = unsafePerformEffect $ do
+  envValue <- getEnv "OPENCODE_AUTO_SHARE"
+  pure $ case envValue of
+    Just "true" -> true
+    Just "1" -> true
+    _ -> false
+  where
+    foreign import unsafePerformEffect :: forall a. Effect a -> a
 
 -- | Check if a feature flag is enabled
 isEnabled :: String -> Effect Boolean
-isEnabled flag = notImplemented "Flag.Flag.isEnabled"
+isEnabled flag = do
+  envValue <- getEnv ("OPENCODE_" <> String.toUpper flag)
+  pure $ case envValue of
+    Just "true" -> true
+    Just "1" -> true
+    _ -> false
 
 -- | Get all enabled flags
 getEnabled :: Effect (Array String)
-getEnabled = notImplemented "Flag.Flag.getEnabled"
+getEnabled = do
+  -- In production, would scan all OPENCODE_* env vars
+  -- For now, return empty array
+  pure []

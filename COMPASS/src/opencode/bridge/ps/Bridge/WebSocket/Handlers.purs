@@ -1,9 +1,6 @@
 {-|
 Module      : Bridge.WebSocket.Handlers
 Description : JSON-RPC 2.0 Request Routing and Processing
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = WebSocket JSON-RPC Handlers
 
 Implements all JSON-RPC 2.0 method handlers for WebSocket communication

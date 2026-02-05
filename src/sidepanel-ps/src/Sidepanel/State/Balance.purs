@@ -42,6 +42,9 @@ import Prelude
 import Data.DateTime (DateTime)
 import Data.Maybe (Maybe)
 import Data.Map as Map
+import Data.Array as Array
+import Sidepanel.State.BalanceMetrics as BalanceMetrics
+import Sidepanel.FFI.DateTime (getCurrentDateTime, toTimestamp)
 
 -- | Provider identifier
 type ProviderId = String
@@ -84,6 +87,13 @@ type TokenUsage =
   , totalTokens :: Int
   }
 
+-- | Balance snapshot for history tracking
+type BalanceSnapshot =
+  { timestamp :: DateTime
+  , diem :: Number
+  , usd :: Number
+  }
+
 -- | Comprehensive balance state
 type BalanceState =
   { -- Provider-specific balances
@@ -95,13 +105,16 @@ type BalanceState =
   -- FLK (Fleek Token) balance - Independent payment method
   , flk :: Maybe FlkBalance
   
+  -- Balance history (for consumption rate calculation)
+  , balanceHistory :: Array BalanceSnapshot  -- Last 24 hours of snapshots
+  
   -- Aggregated metrics (all providers)
   , totalTokens :: TokenUsage
   , totalCost :: Number
   , totalCostToday :: Number
   
-  -- Consumption metrics
-  , consumptionRate :: Number      -- Tokens per hour
+  -- Consumption metrics (calculated from history)
+  , consumptionRate :: Number      -- Diem per hour
   , costRate :: Number            -- USD per hour
   , timeToDepletion :: Maybe Number -- Hours (Venice-specific)
   
@@ -143,6 +156,7 @@ initialBalanceState =
   { providerBalances: Map.empty
   , venice: Nothing
   , flk: Nothing
+  , balanceHistory: []
   , totalTokens:
       { promptTokens: 0
       , completionTokens: 0

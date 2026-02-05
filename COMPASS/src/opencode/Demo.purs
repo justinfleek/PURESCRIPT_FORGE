@@ -1,9 +1,6 @@
 {-|
 Module      : Opencode.Demo
 Description : Integration demonstration
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = COMPASS Integration Demo
 
 Demonstrates the full flow from user input to LLM response with tool execution.

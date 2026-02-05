@@ -1,10 +1,11 @@
 -- | CLI UI utilities
--- | TODO: Implement based on _OTHER/opencode-original/packages/opencode/src/cli/ui.ts
 module Opencode.CLI.UI where
 
 import Prelude
 import Effect (Effect)
-import Opencode.Util.NotImplemented (notImplemented)
+import Effect.Console as Console
+import Data.String as String
+import Data.Array as Array
 
 -- | Text styles for terminal output
 type Style = String
@@ -36,16 +37,38 @@ textHighlight = "\x1b[35m"
 
 -- | Print a line with styles
 println :: Array String -> Effect Unit
-println parts = notImplemented "CLI.UI.println"
+println parts = do
+  let output = String.joinWith "" parts <> textNormal
+  Console.log output
 
 -- | Print an error message
 error :: String -> Effect Unit
-error msg = notImplemented "CLI.UI.error"
+error msg = Console.error (textDanger <> msg <> textNormal)
 
 -- | Format markdown for terminal display
+-- | Basic markdown formatting: strips markdown syntax, preserves text
 markdown :: String -> String
-markdown input = input -- TODO: Implement markdown rendering
+markdown input =
+  let lines = String.split (String.Pattern "\n") input
+      formatted = Array.map formatMarkdownLine lines
+  in String.joinWith "\n" formatted
+  where
+    formatMarkdownLine :: String -> String
+    formatMarkdownLine line =
+      -- Remove markdown headers (# ## ###) - simple prefix removal
+      let noHeaders = if String.startsWith (String.Pattern "#") line
+            then String.dropWhile (\c -> c == '#' || c == ' ') line
+            else line
+      -- Remove bold markers (**text**)
+      let noBold = String.replaceAll (String.Pattern "**") (String.Replacement "") noHeaders
+      -- Remove italic markers (*text*)
+      let noItalic = String.replaceAll (String.Pattern "*") (String.Replacement "") noBold
+      -- Remove code blocks (`code`)
+      let noCode = String.replaceAll (String.Pattern "`") (String.Replacement "") noItalic
+      in noCode
 
 -- | Clear the screen
 clearScreen :: Effect Unit
-clearScreen = notImplemented "CLI.UI.clearScreen"
+clearScreen = clearTerminalScreen
+  where
+    foreign import clearTerminalScreen :: Effect Unit

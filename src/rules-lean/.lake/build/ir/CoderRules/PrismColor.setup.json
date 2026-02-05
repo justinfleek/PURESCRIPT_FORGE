@@ -1,0 +1,7 @@
+{"plugins": [],
+ "package": "CoderRules",
+ "options": {"pp.unicode.fun": true},
+ "name": "CoderRules.PrismColor",
+ "isModule": false,
+ "importArts": {},
+ "dynlibs": []}

@@ -1,9 +1,6 @@
 {-|
 Module      : Bridge.State.Store
 Description : Single Source of Truth for Bridge Server Application State
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = State Store
 
 Provides centralized state management for the Bridge Server, maintaining

@@ -87,14 +87,22 @@ data Output
   = ChartReady
   | ChartError String
 
+-- | Component query - Token Usage Chart queries
+-- |
+-- | **Purpose:** Allows parent components to update chart data.
+-- | **Queries:**
+-- | - `UpdateData data`: Updates chart with new data points
+data Query a = UpdateData (Array TokenDataPoint) a
+
 -- | Token Usage Chart component
-component :: forall q m. MonadAff m => H.Component q Unit Output m
+component :: forall m. MonadAff m => H.Component Query Unit Output m
 component =
   H.mkComponent
     { initialState: const initialState
     , render
     , eval: H.mkEval $ H.defaultEval
         { handleAction = handleAction
+        , handleQuery = handleQuery
         , initialize = Just Initialize
         }
     }
@@ -203,6 +211,13 @@ handleAction = case _ of
           }
       Nothing ->
         pure unit
+
+-- | Handle component queries
+handleQuery :: forall m a. MonadAff m => Query a -> H.HalogenM State Action () Output m (Maybe a)
+handleQuery = case _ of
+  UpdateData data k -> do
+    handleAction (UpdateData data)
+    pure (Just k)
 
 -- | Convert TokenDataPoint to ChartDataPoint
 toChartDataPoint :: TokenDataPoint -> Recharts.ChartDataPoint

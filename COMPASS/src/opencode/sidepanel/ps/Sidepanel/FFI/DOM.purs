@@ -28,5 +28,11 @@ import Effect (Effect)
 -- | Inject CSS into document head
 foreign import injectCSS :: String -> Effect Unit
 
+-- | Inject CSS with specific ID (for theme management)
+foreign import injectCSSWithId :: String -> String -> Effect Unit
+
 -- | Get or create style element for theme
 foreign import ensureThemeStyleElement :: Effect Unit
+
+-- | Set CSS custom property (variable) on document root
+foreign import setCSSVariable :: String -> String -> Effect Unit

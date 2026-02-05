@@ -7,14 +7,15 @@
   , "either"
   , "arrays"
   , "strings"
-  , "tuples"
   , "ordered-collections"
-  , "foldable-traversable"
   , "foreign"
-  , "foreign-object"
   , "datetime"
   , "integers"
-  , "numbers"
+  , "free"
+  , "transformers"
+  , "refs"
+  , "enums"
+  , "exceptions"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs" ]

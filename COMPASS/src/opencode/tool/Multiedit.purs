@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Multiedit
 Description : Multiple sequential edits on a single file
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Multiedit Tool
 
 This tool performs multiple sequential edit operations on a single file.
@@ -59,11 +56,15 @@ import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
 import Data.Array as Array
 import Data.Foldable (foldM)
-import Data.Argonaut (Json, class EncodeJson, encodeJson, decodeJson)
+import Data.String as String
+import Data.Argonaut (Json, class EncodeJson, encodeJson, decodeJson, (.:), (.:?))
+import Data.Maybe as Maybe
 import Effect.Aff (Aff)
 
-import Opencode.Types.Tool (ToolContext, ToolResult, ToolInfo)
+import Opencode.Types.Tool (ToolContext, ToolResult, ToolInfo, ToolMetadata(..))
 import Aleph.Coeffect (Resource(..))
+import Tool.ASTEdit.FFI.FileIO (readFile, writeFile)
+import Tool.ASTEdit.Text (applyText, TextParams)
 
 -- ============================================================================
 -- TYPES
@@ -110,21 +111,33 @@ Applies all edits sequentially to the target file.
 execute :: MultieditParams -> ToolContext -> Aff ToolResult
 execute params ctx = do
   -- 1. Read original file content
-  -- 2. Apply each edit in sequence
-  -- 3. Write final content
-  -- 4. Return summary
-  let numEdits = Array.length params.edits
-  
-  -- TODO: Actually perform edits via ASTEdit.Text
-  pure
-    { title: relativePath params.filePath
-    , metadata: encodeJson
-        { filePath: params.filePath
-        , editsApplied: numEdits
-        }
-    , output: "Applied " <> show numEdits <> " edits to " <> params.filePath
-    , attachments: Nothing
-    }
+  readResult <- readFile params.filePath
+  case readResult of
+    Left err -> pure $ mkErrorResult ("Failed to read file: " <> err)
+    Right originalContent -> do
+      -- 2. Apply each edit in sequence
+      case applyEdits originalContent params.edits of
+        Left err -> pure $ mkErrorResult err
+        Right finalContent -> do
+          -- 3. Write final content
+          writeResult <- writeFile params.filePath finalContent
+          case writeResult of
+            Left err -> pure $ mkErrorResult ("Failed to write file: " <> err)
+            Right _ -> do
+              -- 4. Return summary
+              let numEdits = Array.length params.edits
+              let relPath = relativePath params.filePath
+              pure
+                { title: relPath
+                , metadata: MultieditMetadata
+                    { filePath: params.filePath
+                    , relativePath: relPath
+                    , editsApplied: numEdits
+                    }
+                , output: "Successfully applied " <> show numEdits <> " edit(s) to " <> relPath <> "\n\n" <>
+                         formatEditSummary params.edits
+                , attachments: Nothing
+                }
 
 {-| Tool registration. -}
 multieditTool :: ToolInfo
@@ -151,13 +164,24 @@ applyEdits :: String -> Array Edit -> Either String String
 applyEdits content edits = foldM applyOne content edits
   where
     applyOne :: String -> Edit -> Either String String
-    applyOne current edit =
-      -- TODO: Implement actual string replacement
-      Right current
+    applyOne current edit = do
+      let textParams :: TextParams
+          textParams =
+            { filePath: edit.filePath
+            , oldString: edit.oldString
+            , newString: edit.newString
+            , replaceAll: Maybe.fromMaybe false edit.replaceAll
+            }
+      applyText textParams current
 
 {-| Get relative path from absolute path. -}
 relativePath :: String -> String
-relativePath path = path  -- TODO: Make relative to worktree
+relativePath path =
+  -- Extract relative path by removing common prefixes
+  -- In production, would use actual worktree root
+  case String.indexOf (String.Pattern "/") path of
+    Just idx -> String.drop (idx + 1) path
+    Nothing -> path
 
 multieditDescription :: String
 multieditDescription = 
@@ -165,16 +189,57 @@ multieditDescription =
   "Edits are applied in order, with each edit operating on the result " <>
   "of the previous edit."
 
-multieditSchema :: { type :: String }
-multieditSchema = { type: "object" }
+multieditSchema :: Json
+multieditSchema = encodeJson
+  { type: "object"
+  , properties:
+      { filePath: { type: "string", description: "Absolute path to the file to edit" }
+      , edits:
+          { type: "array"
+          , items:
+              { type: "object"
+              , properties:
+                  { filePath: { type: "string", description: "Target file path (must match parent filePath)" }
+                  , oldString: { type: "string", description: "Text to replace" }
+                  , newString: { type: "string", description: "Replacement text" }
+                  , replaceAll: { type: "boolean", description: "Replace all occurrences (default: false)" }
+                  }
+              , required: ["filePath", "oldString", "newString"]
+              }
+          , description: "Array of edits to apply sequentially"
+          , minItems: 1
+          }
+      }
+  , required: ["filePath", "edits"]
+  }
 
 decodeMultieditParams :: Json -> Either String MultieditParams
-decodeMultieditParams _ = notImplemented "decodeMultieditParams"
+decodeMultieditParams json = do
+  obj <- decodeJson json
+  filePath <- obj .: "filePath" >>= decodeJson
+  edits <- obj .: "edits" >>= decodeJson
+  pure { filePath, edits }
+
+-- | Format edit summary for output
+formatEditSummary :: Array Edit -> String
+formatEditSummary edits =
+  if Array.null edits
+  then ""
+  else "Edits applied:\n" <>
+       String.joinWith "\n" (Array.mapWithIndex formatEdit edits)
+  where
+    formatEdit idx edit =
+      let replaceAllText = case edit.replaceAll of
+            Just true -> " (all occurrences)"
+            _ -> ""
+      in "  " <> show (idx + 1) <> ". Replace \"" <>
+         String.take 50 edit.oldString <> "\" with \"" <>
+         String.take 50 edit.newString <> "\"" <> replaceAllText
 
 mkErrorResult :: String -> ToolResult
 mkErrorResult err =
   { title: "Multiedit Error"
-  , metadata: encodeJson { error: err }
+  , metadata: ErrorMetadata { error: err }
   , output: "Error: " <> err
   , attachments: Nothing
   }

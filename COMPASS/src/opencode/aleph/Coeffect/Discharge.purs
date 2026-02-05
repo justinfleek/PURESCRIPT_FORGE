@@ -1,9 +1,6 @@
 {-|
 Module      : Aleph.Coeffect.Discharge
 Description : Discharge proofs for coeffect verification
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Discharge Protocol
 
 Proofs that resource requirements were satisfied:

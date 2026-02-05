@@ -1,0 +1,357 @@
+/* Modern Futuristic Theme - Matching Image Styling */
+/* All values use CSS custom properties for global editability */
+/* Import the theme CSS file in your main HTML or via PureScript */
+
+/* Base styles applied globally */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* ═══════════════════════════════════════════════════════════════════════
+     BASE STYLES
+     ═══════════════════════════════════════════════════════════════════════ */
+  
+  /* Background */
+  background-color: var(--theme-bg-primary, #1A1A1A);
+  color: var(--theme-text-primary, #FFFFFF);
+  
+  /* Typography */
+  font-family: var(--theme-font-family, 'Inter', 'Montserrat', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif);
+  font-size: 16px;
+  line-height: 1.6;
+  
+  /* Smooth transitions */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CARD STYLES (Bento Box Layout)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.theme-card {
+  background: var(--theme-bg-card, #2C2C2C);
+  border-radius: var(--theme-border-radius, 10px);
+  padding: var(--theme-padding-card, 24px);
+  box-shadow: 
+    0 4px var(--theme-shadow-blur, 8px) rgba(0, 0, 0, 0.3),
+    inset 0 0 20px rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theme-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px var(--theme-shadow-blur, 8px) rgba(0, 0, 0, 0.4),
+    var(--theme-glow-blue, 0 0 12px 2px rgba(84, 174, 255, 0.6));
+}
+
+.theme-card-glow-blue {
+  box-shadow: 
+    0 4px var(--theme-shadow-blur, 8px) rgba(0, 0, 0, 0.3),
+    var(--theme-glow-blue, 0 0 12px 2px rgba(84, 174, 255, 0.6));
+}
+
+.theme-card-glow-purple {
+  box-shadow: 
+    0 4px var(--theme-shadow-blur, 8px) rgba(0, 0, 0, 0.3),
+    var(--theme-glow-purple, 0 0 12px 2px rgba(157, 78, 221, 0.6));
+}
+
+.theme-card-glow-pink {
+  box-shadow: 
+    0 4px var(--theme-shadow-blur, 8px) rgba(0, 0, 0, 0.3),
+    var(--theme-glow-pink, 0 0 12px 2px rgba(255, 0, 110, 0.6));
+}
+
+.theme-card-glow-green {
+  box-shadow: 
+    0 4px var(--theme-shadow-blur, 8px) rgba(0, 0, 0, 0.3),
+    var(--theme-glow-green, 0 0 12px 2px rgba(0, 255, 136, 0.6));
+}
+
+.theme-card-glow-orange {
+  box-shadow: 
+    0 4px var(--theme-shadow-blur, 8px) rgba(0, 0, 0, 0.3),
+    var(--theme-glow-orange, 0 0 12px 2px rgba(255, 107, 53, 0.6));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TYPOGRAPHY
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.theme-title {
+  font-size: var(--theme-font-size-title, 42px);
+  font-weight: var(--theme-font-weight-title, 600);
+  color: var(--theme-text-primary, #FFFFFF);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.theme-subtitle {
+  font-size: var(--theme-font-size-subtitle, 17px);
+  font-weight: var(--theme-font-weight-regular, 400);
+  color: var(--theme-text-secondary, #E0E0E0);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.theme-card-title {
+  font-size: var(--theme-font-size-card-title, 22px);
+  font-weight: var(--theme-font-weight-card-title, 600);
+  color: var(--theme-text-primary, #FFFFFF);
+  line-height: 1.3;
+  margin: 0 0 8px 0;
+}
+
+.theme-card-description {
+  font-size: var(--theme-font-size-card-description, 15px);
+  font-weight: var(--theme-font-weight-regular, 400);
+  color: var(--theme-text-secondary, #E0E0E0);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.theme-percentage {
+  font-size: var(--theme-font-size-percentage, 22px);
+  font-weight: var(--theme-font-weight-card-title, 600);
+  color: var(--theme-text-primary, #FFFFFF);
+}
+
+.theme-tag {
+  font-size: var(--theme-font-size-tag, 13px);
+  font-weight: var(--theme-font-weight-regular, 400);
+  color: var(--theme-text-primary, #FFFFFF);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 4px 8px;
+  border-radius: 12px;
+  display: inline-block;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   GRID LAYOUT (Bento Box)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--theme-grid-columns, 3), 1fr);
+  gap: var(--theme-gap-grid, 20px);
+  padding: var(--theme-gap-horizontal, 24px);
+}
+
+.theme-grid-item {
+  min-width: var(--theme-card-min-width, 300px);
+  max-width: var(--theme-card-max-width, 100%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   GRADIENT ELEMENTS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.theme-gradient-blue-purple {
+  background: var(--theme-gradient-blue-purple, linear-gradient(135deg, #54AEFF 0%, #9D4EDD 100%));
+}
+
+.theme-gradient-pink-purple {
+  background: var(--theme-gradient-pink-purple, linear-gradient(135deg, #FF006E 0%, #9D4EDD 100%));
+}
+
+.theme-gradient-multi {
+  background: var(--theme-gradient-multi, radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, #FF006E 30%, #9D4EDD 60%, #54AEFF 100%));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   GLOWING ELEMENTS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.theme-glow-blue {
+  box-shadow: var(--theme-glow-blue, 0 0 12px 2px rgba(84, 174, 255, 0.6));
+}
+
+.theme-glow-purple {
+  box-shadow: var(--theme-glow-purple, 0 0 12px 2px rgba(157, 78, 221, 0.6));
+}
+
+.theme-glow-pink {
+  box-shadow: var(--theme-glow-pink, 0 0 12px 2px rgba(255, 0, 110, 0.6));
+}
+
+.theme-glow-green {
+  box-shadow: var(--theme-glow-green, 0 0 12px 2px rgba(0, 255, 136, 0.6));
+}
+
+.theme-glow-orange {
+  box-shadow: var(--theme-glow-orange, 0 0 12px 2px rgba(255, 107, 53, 0.6));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   BUTTONS & INTERACTIVE ELEMENTS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.theme-button {
+  background: var(--theme-bg-card, #2C2C2C);
+  color: var(--theme-text-primary, #FFFFFF);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--theme-border-radius, 10px);
+  padding: 12px 24px;
+  font-size: var(--theme-font-size-card-description, 15px);
+  font-weight: var(--theme-font-weight-regular, 400);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.theme-button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: var(--theme-glow-blue, 0 0 12px 2px rgba(84, 174, 255, 0.6));
+  transform: translateY(-1px);
+}
+
+.theme-button-primary {
+  background: var(--theme-gradient-blue-purple, linear-gradient(135deg, #54AEFF 0%, #9D4EDD 100%));
+  border: none;
+  box-shadow: var(--theme-glow-blue, 0 0 12px 2px rgba(84, 174, 255, 0.6));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PROGRESS BARS & LINES
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.theme-progress-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--theme-bg-card, #2C2C2C);
+  overflow: hidden;
+  position: relative;
+}
+
+.theme-progress-bar-fill {
+  height: 100%;
+  background: var(--theme-gradient-blue-purple, linear-gradient(135deg, #54AEFF 0%, #9D4EDD 100%));
+  box-shadow: 0 0 8px rgba(84, 174, 255, 0.6);
+  transition: width 0.3s ease;
+}
+
+.theme-progress-line-blue {
+  background: var(--theme-accent-blue, #54AEFF);
+  box-shadow: 0 0 8px rgba(84, 174, 255, 0.6);
+}
+
+.theme-progress-line-pink {
+  background: var(--theme-accent-pink, #FF006E);
+  box-shadow: 0 0 8px rgba(255, 0, 110, 0.6);
+}
+
+.theme-progress-line-green {
+  background: var(--theme-accent-green, #00FF88);
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
+}
+
+.theme-progress-line-purple {
+  background: var(--theme-accent-purple, #9D4EDD);
+  box-shadow: 0 0 8px rgba(157, 78, 221, 0.6);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ICONS & GRAPHICAL ELEMENTS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.theme-icon {
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+  transition: filter 0.2s ease;
+}
+
+.theme-icon:hover {
+  filter: drop-shadow(0 0 12px rgba(84, 174, 255, 0.6));
+}
+
+.theme-icon-glow-blue {
+  filter: drop-shadow(var(--theme-glow-blue, 0 0 12px rgba(84, 174, 255, 0.6)));
+}
+
+.theme-icon-glow-purple {
+  filter: drop-shadow(var(--theme-glow-purple, 0 0 12px rgba(157, 78, 221, 0.6)));
+}
+
+.theme-icon-glow-pink {
+  filter: drop-shadow(var(--theme-glow-pink, 0 0 12px rgba(255, 0, 110, 0.6)));
+}
+
+.theme-icon-glow-green {
+  filter: drop-shadow(var(--theme-glow-green, 0 0 12px rgba(0, 255, 136, 0.6)));
+}
+
+.theme-icon-glow-orange {
+  filter: drop-shadow(var(--theme-glow-orange, 0 0 12px rgba(255, 107, 53, 0.6)));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RADIAL GLOW (AI Assistance style)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.theme-radial-glow {
+  position: relative;
+}
+
+.theme-radial-glow::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  background: var(--theme-gradient-multi, radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, #FF006E 30%, #9D4EDD 60%, #54AEFF 100%));
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.6;
+  z-index: -1;
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   UTILITY CLASSES
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.theme-spacing-vertical {
+  margin-bottom: var(--theme-gap-vertical, 32px);
+}
+
+.theme-spacing-horizontal {
+  margin-right: var(--theme-gap-horizontal, 24px);
+}
+
+.theme-rounded {
+  border-radius: var(--theme-border-radius, 10px);
+}
+
+.theme-glass {
+  background: rgba(44, 44, 44, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.theme-live-indicator {
+  color: var(--theme-accent-green, #00FF88);
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.8);
+  font-weight: var(--theme-font-weight-card-title, 600);
+}

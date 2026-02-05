@@ -1,9 +1,6 @@
 {-|
 Module      : Bridge.WebSocket.Handlers.Auth
 Description : Authentication and settings handlers
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Auth Handlers
 
 JSON-RPC handlers for authentication, settings, notifications,

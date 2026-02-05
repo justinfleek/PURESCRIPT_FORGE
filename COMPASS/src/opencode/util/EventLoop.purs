@@ -1,20 +1,25 @@
 -- | Event loop utilities
--- | TODO: Implement based on _OTHER/opencode-original/packages/opencode/src/util/eventloop.ts
 module Opencode.Util.EventLoop where
 
 import Prelude
 import Effect (Effect)
 import Effect.Aff (Aff)
-import Opencode.Util.NotImplemented (notImplemented)
+import Effect.Class (liftEffect)
 
 -- | Schedule on next tick
 nextTick :: Effect Unit -> Effect Unit
-nextTick action = notImplemented "Util.EventLoop.nextTick"
+nextTick action = processNextTick action
+  where
+    foreign import processNextTick :: Effect Unit -> Effect Unit
 
 -- | Schedule with setImmediate
 setImmediate :: Effect Unit -> Effect Unit
-setImmediate action = notImplemented "Util.EventLoop.setImmediate"
+setImmediate action = scheduleImmediate action
+  where
+    foreign import scheduleImmediate :: Effect Unit -> Effect Unit
 
 -- | Keep event loop alive
 keepAlive :: Aff Unit
-keepAlive = notImplemented "Util.EventLoop.keepAlive"
+keepAlive = liftEffect keepAliveLoop
+  where
+    foreign import keepAliveLoop :: Effect Unit

@@ -1,9 +1,6 @@
 {-|
 Module      : Bridge.WebSocket.Handlers.Session
 Description : Session and snapshot management handlers
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Session Handlers
 
 JSON-RPC handlers for session management (create, export) and

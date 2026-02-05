@@ -107,4 +107,4 @@ defaultLinks =
 -- | Copyright text builder (pure)
 buildCopyrightText :: Year -> String -> String
 buildCopyrightText (Year year) company =
-  "\u00A9" <> show year <> " " <> company
+  "©" <> show year <> " " <> company

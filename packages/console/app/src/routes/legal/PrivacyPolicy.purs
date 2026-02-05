@@ -30,50 +30,52 @@ privacyPolicyMeta =
 effectiveDate :: String
 effectiveDate = "Dec 16, 2025"
 
--- | Table of contents item
-type TableOfContentsItem =
+-- | Table of contents item (newtype to avoid cycle in type synonym)
+newtype TableOfContentsItem = TableOfContentsItem
   { id :: String
   , title :: String
   , children :: Array TableOfContentsItem
   }
 
+derive instance eqTableOfContentsItem :: Eq TableOfContentsItem
+
 -- | Table of contents
 tableOfContents :: Array TableOfContentsItem
 tableOfContents =
-  [ { id: "what-this-privacy-policy-covers"
+  [ TableOfContentsItem { id: "what-this-privacy-policy-covers"
     , title: "What this Privacy Policy Covers"
     , children: []
     }
-  , { id: "personal-data"
+  , TableOfContentsItem { id: "personal-data"
     , title: "Personal Data"
     , children:
-        [ { id: "categories-of-personal-data", title: "Categories of Personal Data We Collect", children: [] }
-        , { id: "commercial-purposes", title: "Our Commercial or Business Purposes for Collecting Personal Data", children: [] }
-        , { id: "other-permitted-purposes", title: "Other Permitted Purposes for Processing Personal Data", children: [] }
-        , { id: "categories-of-sources", title: "Categories of Sources of Personal Data", children: [] }
+        [ TableOfContentsItem { id: "categories-of-personal-data", title: "Categories of Personal Data We Collect", children: [] }
+        , TableOfContentsItem { id: "commercial-purposes", title: "Our Commercial or Business Purposes for Collecting Personal Data", children: [] }
+        , TableOfContentsItem { id: "other-permitted-purposes", title: "Other Permitted Purposes for Processing Personal Data", children: [] }
+        , TableOfContentsItem { id: "categories-of-sources", title: "Categories of Sources of Personal Data", children: [] }
         ]
     }
-  , { id: "how-we-disclose"
+  , TableOfContentsItem { id: "how-we-disclose"
     , title: "How We Disclose Your Personal Data"
     , children: []
     }
-  , { id: "tracking-tools"
+  , TableOfContentsItem { id: "tracking-tools"
     , title: "Tracking Tools and Opt-Out"
     , children: []
     }
-  , { id: "data-security"
+  , TableOfContentsItem { id: "data-security"
     , title: "Data Security"
     , children: []
     }
-  , { id: "personal-data-of-children"
+  , TableOfContentsItem { id: "personal-data-of-children"
     , title: "Personal Data of Children"
     , children: []
     }
-  , { id: "california-resident-rights"
+  , TableOfContentsItem { id: "california-resident-rights"
     , title: "California Resident Rights (\"CCPA\")"
     , children: []
     }
-  , { id: "contact-information"
+  , TableOfContentsItem { id: "contact-information"
     , title: "Contact Information"
     , children: []
     }

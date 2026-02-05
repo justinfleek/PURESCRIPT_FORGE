@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Grep
 Description : Content search via ripgrep
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Grep Tool
 
 Fast content search using ripgrep (rg) with regex support.
@@ -283,7 +280,9 @@ sortByModTime = Array.sortBy (\a b -> compare b.modTime a.modTime)
 validatePattern :: String -> Either String Unit
 validatePattern pat
   | String.null pat = Left "Pattern is required"
-  | otherwise = Right unit  -- TODO: Validate regex syntax
+  | otherwise = validateRegexSyntax pat
+  where
+    foreign import validateRegexSyntax :: String -> Either String Unit
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- OUTPUT FORMATTING

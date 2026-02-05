@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /mnt/c/Users/justi/desktop/coder remote:*)",
+      "Bash(git -C /mnt/c/Users/justi/desktop/coder status)",
+      "Bash(git -C /mnt/c/Users/justi/desktop/coder log --oneline -5)",
+      "Bash(du:*)",
+      "Bash(wc:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd aleph-b7r6-continuity-0x08 infrastructure\n\nComplete Nix build infrastructure implementing the Continuity protocols:\n\n## Core Infrastructure\n- Nix prelude with typed language namespaces \\(Python 3.12, GHC 9.10, Lean 4.15, Rust 1.92, Clang 20\\)\n- Stdenv constraint system with GPU/libc rules\n- 100+ functional core functions \\(map, filter, fold, maybe, either\\)\n- Bundle export for Bazel/Buck2 consumption\n\n## Build System Integration\n- Buck2 configuration with Mercury-based Haskell rules\n- NVIDIA SDK packaging \\(CUDA, cuDNN, TensorRT, NCCL, cuSPARSELt, cuTensor, CUTLASS\\)\n- Local Remote Execution \\(LRE\\) support\n- NativeLink distributed build integration\n\n## Protocol Implementation\n- RFC-001: Straylight Standard Nix \\(naming, structure, patterns\\)\n- RFC-002: aleph-lint with 18 enforcement rules\n- RFC-003: Typed prelude with language namespaces\n- RFC-004: Aleph.Script typed shell infrastructure \\(layers 1-3\\)\n- RFC-007: CA derivations and typed package DSL \\(6 WASM packages\\)\n- RFC-008: Continuity Phase 0 \\(full Nix compatibility\\)\n\n## Tooling\n- Armitage proxy/CAS/RE tools \\(Haskell\\)\n- 18 lint rules with test suites\n- 6 project templates\n- Comprehensive documentation and RFCs\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git config:*)",
+      "Bash(git push:*)",
+      "Bash(gh auth:*)",
+      "Bash(ssh-add:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh api:*)",
+      "Bash(gh repo list:*)",
+      "Bash(curl:*)",
+      "Bash(git fetch:*)",
+      "Bash(git rebase:*)",
+      "Bash(git stash:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git pull:*)",
+      "Bash(nix flake update:*)",
+      "Bash(nix flake check:*)",
+      "Bash(nix develop:*)",
+      "Bash(nix-shell:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)"
+    ]
+  }
+}

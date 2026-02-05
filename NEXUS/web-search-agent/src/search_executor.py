@@ -1,6 +1,6 @@
 """
 Nexus Web Search Agent - Search Executor
-Execute web searches (DuckDuckGo, Google, etc.)
+Execute web searches (SearXNG preferred, DuckDuckGo/Google fallback)
 """
 
 from typing import List, Optional, Dict, Any
@@ -9,36 +9,55 @@ import time
 import requests
 from urllib.parse import quote
 
-
-@dataclass
-class SearchResult:
-    """Search result"""
-    title: str
-    url: str
-    snippet: str
-    rank: int
-    source: str  # duckduckgo, google, etc.
+# Import SearXNG executor (preferred)
+try:
+    from .searxng_executor import SearXNGExecutor, SearchResult
+    SEARXNG_AVAILABLE = True
+except ImportError:
+    SEARXNG_AVAILABLE = False
+    # Fallback SearchResult definition
+    @dataclass
+    class SearchResult:
+        """Search result"""
+        title: str
+        url: str
+        snippet: str
+        rank: int
+        source: str  # duckduckgo, google, searxng, etc.
 
 
 class SearchExecutor:
     """
     Search executor for executing web searches.
     
-    Supports multiple search engines:
-    - DuckDuckGo (default, no API key needed)
-    - Google (requires API key)
+    Uses SearXNG (privacy-respecting metasearch) by default.
+    Falls back to DuckDuckGo/Google if SearXNG unavailable.
     """
     
-    def __init__(self, default_engine: str = "duckduckgo", google_api_key: Optional[str] = None):
+    def __init__(
+        self,
+        default_engine: str = "searxng",
+        searxng_url: Optional[str] = None,
+        google_api_key: Optional[str] = None
+    ):
         """
         Initialize search executor.
         
         Args:
-            default_engine: Default search engine (duckduckgo, google)
-            google_api_key: Optional Google API key
+            default_engine: Default search engine (searxng, duckduckgo, google)
+            searxng_url: SearXNG instance URL (default: public instance)
+            google_api_key: Optional Google API key (for fallback)
         """
         self.default_engine = default_engine
         self.google_api_key = google_api_key
+        
+        # Initialize SearXNG executor if available
+        if SEARXNG_AVAILABLE and default_engine == "searxng":
+            self.searxng_executor = SearXNGExecutor(
+                searxng_url=searxng_url or "https://searx.be"
+            )
+        else:
+            self.searxng_executor = None
     
     def search(
         self,
@@ -59,12 +78,19 @@ class SearchExecutor:
         """
         engine = engine or self.default_engine
         
-        if engine == "duckduckgo":
+        # Prefer SearXNG if available
+        if engine == "searxng" and self.searxng_executor:
+            return self.searxng_executor.search_web(query, max_results)
+        elif engine == "duckduckgo":
             return self._search_duckduckgo(query, max_results)
         elif engine == "google":
             return self._search_google(query, max_results)
         else:
-            raise ValueError(f"Unknown search engine: {engine}")
+            # Fallback: try SearXNG if available, otherwise DuckDuckGo
+            if self.searxng_executor:
+                return self.searxng_executor.search_web(query, max_results)
+            else:
+                return self._search_duckduckgo(query, max_results)
     
     def _search_duckduckgo(self, query: str, max_results: int) -> List[SearchResult]:
         """

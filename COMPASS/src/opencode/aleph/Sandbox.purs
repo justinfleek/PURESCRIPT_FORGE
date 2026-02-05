@@ -1,9 +1,6 @@
 {-|
 Module      : Aleph.Sandbox
 Description : Container isolation via gVisor
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Sandbox Isolation Layer
 
 This module provides type-safe container isolation using gVisor (runsc).
@@ -16,6 +13,7 @@ The Sandbox module is split into sub-modules for maintainability:
 * "Aleph.Sandbox.Types" - Container config, mount types, exec output
 * "Aleph.Sandbox.Policy" - Isolation policies and resource limits
 * "Aleph.Sandbox.GVisor" - gVisor runtime management
+* "Aleph.Sandbox.WASM" - WebAssembly sandboxing for untrusted code
 * "Aleph.Sandbox.Proof" - Execution proofs and verification
 
 == System F-w Encoding
@@ -67,6 +65,7 @@ module Aleph.Sandbox
     module Aleph.Sandbox.Types
   , module Aleph.Sandbox.Policy
   , module Aleph.Sandbox.GVisor
+  , module Aleph.Sandbox.WASM
   , module Aleph.Sandbox.Proof
     -- * Configuration Presets
   , defaultConfig
@@ -81,6 +80,7 @@ import Prelude
 import Aleph.Sandbox.Types
 import Aleph.Sandbox.Policy
 import Aleph.Sandbox.GVisor
+import Aleph.Sandbox.WASM
 import Aleph.Sandbox.Proof
 
 -- ============================================================================

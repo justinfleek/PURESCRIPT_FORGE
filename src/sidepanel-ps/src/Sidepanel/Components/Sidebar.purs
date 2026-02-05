@@ -66,6 +66,12 @@ type State =
   , version :: String
   }
 
+-- | Actions
+data Action
+  = Initialize
+  | Navigate Route
+  | ToggleCollapse
+  | SetRoute Route
 
 -- | Output to parent
 data Output = RouteSelected Route

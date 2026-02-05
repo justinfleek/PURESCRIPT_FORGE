@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.ExternalDirectory
 Description : External directory access control
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = External Directory
 
 This module provides access control for operations on files and
@@ -54,9 +51,16 @@ module Tool.ExternalDirectory
 import Prelude
 
 import Data.Maybe (Maybe(..))
+import Data.String as String
 import Effect.Aff (Aff)
+import Effect.Class (liftEffect)
 
 import Opencode.Types.Tool (ToolContext)
+
+-- | FFI for path operations
+foreign import getWorktreeRoot :: Effect String
+foreign import normalizePath :: String -> String
+foreign import pathStartsWith :: String -> String -> Boolean
 
 -- ============================================================================
 -- TYPES
@@ -116,10 +120,18 @@ assertExternalDirectory ctx target options = do
                     Just DirectoryAccess -> "directory"
                     _ -> "file"
               
-              -- TODO: Call ctx.ask for permission
-              -- TODO: Cache permission for parent directory
-              
-              notImplemented "assertExternalDirectory permission request"
+              -- Check if path is within worktree (should have been caught earlier, but double-check)
+              if containsPath path
+                then pure unit
+                else do
+              -- For external paths, we require explicit permission
+              -- Check permission cache first (would be stored in session state)
+              -- If not cached, request permission via UI bridge
+              permissionGranted <- requestExternalPermission ctx path kind
+              if permissionGranted
+                then pure unit -- Permission granted, proceed
+                else liftEffect $ unsafeCrashWith 
+                  ("External " <> kind <> " access denied: " <> path <> ". User permission required.")
 
 -- ============================================================================
 -- PATH CHECKING
@@ -137,12 +149,45 @@ This is a security-critical function. It handles:
 - Directory traversal attacks (..)
 -}
 containsPath :: String -> Boolean
-containsPath _path =
-  -- TODO: Implement proper path containment check
+containsPath path = unsafePerformEffect $ do
   -- 1. Get project worktree root
+  worktreeRoot <- getWorktreeRoot
+  
   -- 2. Normalize both paths
-  -- 3. Check if path starts with worktree
-  true  -- Default to allowing (safe for development)
+  let normalizedPath = normalizePath path
+  let normalizedRoot = normalizePath worktreeRoot
+  
+  -- 3. Check if path starts with worktree root
+  pure $ pathStartsWith normalizedPath normalizedRoot
+  where
+    foreign import unsafePerformEffect :: forall a. Effect a -> a
+
+-- ============================================================================
+-- PERMISSION MANAGEMENT
+-- ============================================================================
+
+{-| Request permission for external directory/file access.
+In production, this would:
+1. Check permission cache in session state
+2. If not cached, prompt user via UI bridge (ctx.ask or WebSocket)
+3. Cache permission decision for future requests
+-}
+requestExternalPermission :: ToolContext -> String -> String -> Aff Boolean
+requestExternalPermission ctx path kind = do
+  -- In production, this would:
+  -- 1. Check if permission is cached in ctx.sessionState or similar
+  -- 2. If cached, return cached decision
+  -- 3. If not cached, use ctx.ask to prompt user:
+  --    ctx.ask { 
+  --      question: "Allow access to external " <> kind <> ": " <> path <> "?",
+  --      options: [{ label: "Allow", value: "allow" }, { label: "Deny", value: "deny" }]
+  --    }
+  -- 4. Cache the decision
+  -- 5. Return the decision
+  
+  -- For now, deny by default for security
+  -- This ensures external access is explicitly granted
+  pure false
 
 -- ============================================================================
 -- HELPERS

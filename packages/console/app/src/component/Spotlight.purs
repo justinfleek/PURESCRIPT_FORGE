@@ -6,12 +6,14 @@
 -- | spotlight effect. The actual WebGPU rendering would require platform
 -- | bindings, but all configuration and state management is pure.
 module Console.App.Component.Spotlight
-  ( SpotlightConfig(..)
-  , ParticlesConfig(..)
-  , SpotlightAnimationState(..)
+  ( SpotlightConfig
+  , ParticlesConfig
+  , SpotlightAnimationState
+  , PulsatingConfig(..)
   , Placement
   , HexColor
-  , UniformData(..)
+  , RGB
+  , UniformData
   , defaultConfig
   , defaultParticlesConfig
   , mkPlacement
@@ -20,7 +22,7 @@ module Console.App.Component.Spotlight
   , getAnchorAndDir
   , buildUniformData
   , updateUniformData
-  , UNIFORM_BUFFER_SIZE
+  , uniformBufferSize
   ) where
 
 import Prelude
@@ -248,8 +250,8 @@ getAnchorAndDir (Tuple px py) w h =
     }
 
 -- | Uniform buffer size (144 bytes as per source)
-UNIFORM_BUFFER_SIZE :: Int
-UNIFORM_BUFFER_SIZE = 144
+uniformBufferSize :: Int
+uniformBufferSize = 144
 
 -- | Uniform data structure for WebGPU shader
 type UniformData =

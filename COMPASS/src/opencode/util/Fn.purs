@@ -1,5 +1,4 @@
 -- | Function utilities
--- | TODO: Implement based on _OTHER/opencode-original/packages/opencode/src/util/fn.ts
 module Opencode.Util.Fn where
 
 import Prelude

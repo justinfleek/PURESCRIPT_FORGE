@@ -10,7 +10,7 @@ module Console.App.Routes.Auth.Logout
 
 import Prelude
 
-import Data.Array (head)
+import Data.Array (head, fromFoldable)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
@@ -39,20 +39,20 @@ removeCurrentAccount session currentId = case currentId of
   Just id ->
     let
       newAccounts = Map.delete id session.account
-      newCurrent = head (Map.keys newAccounts)
+      newCurrent = head (fromFoldable (Map.keys newAccounts))
     in
       session { account = newAccounts, current = newCurrent }
 
 -- | Handle logout (pure logic)
 handleLogout :: AuthSession -> LogoutResult
 handleLogout session = case session.current of
-  Nothing -> LogoutNoSession { redirectTo: "/zen" }
+  Nothing -> LogoutNoSession { redirectTo: "/omega" }
   Just currentId ->
     let
       newSession = removeCurrentAccount session (Just currentId)
     in
-      LogoutSuccess { newSession, redirectTo: "/zen" }
+      LogoutSuccess { newSession, redirectTo: "/omega" }
 
 -- | Redirect URL after logout
 logoutRedirectUrl :: String
-logoutRedirectUrl = "/zen"
+logoutRedirectUrl = "/omega"

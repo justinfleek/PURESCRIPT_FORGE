@@ -1,5 +1,4 @@
 -- | Format utilities
--- | TODO: Implement based on _OTHER/opencode-original/packages/opencode/src/util/format.ts
 module Opencode.Util.Format where
 
 import Prelude
@@ -21,4 +20,7 @@ formatDuration ms
 
 -- | Truncate string with ellipsis
 truncate :: Int -> String -> String
-truncate maxLen str = str -- TODO: Implement with String.take
+truncate maxLen str = 
+  if String.length str <= maxLen
+    then str
+    else String.take (maxLen - 3) str <> "..."

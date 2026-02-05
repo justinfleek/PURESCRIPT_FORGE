@@ -1,9 +1,6 @@
 {-|
 Module      : Aleph.Sandbox.GVisor
 Description : gVisor runtime management
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = gVisor Runtime
 
 This module provides the gVisor (runsc) container runtime integration.
@@ -74,10 +71,20 @@ import Data.Generic.Rep (class Generic)
 import Effect (Effect)
 import Effect.Aff (Aff, attempt)
 import Effect.Class (liftEffect)
+import Data.Unit (Unit, unit)
 
 import Aleph.Sandbox.Types (ContainerConfig, ExecOutput)
 import Aleph.Sandbox.Policy (SandboxPolicy, IsolationLevel, deriveIsolationLevel)
 import Aleph.Sandbox.Proof (SandboxProof, mkSandboxProof)
+import Aleph.Sandbox.GVisor.FFI
+  ( createContainer
+  , startContainer
+  , execInContainer
+  , killContainer
+  , deleteContainer
+  , ContainerId(..)
+  , ExecResult(..)
+  )
 
 -- ============================================================================
 -- GVISOR RUNTIME
@@ -144,23 +151,55 @@ defaultRuntimeConfig =
 
 -- | Create gVisor runtime
 createRuntime :: ContainerConfig -> Aff GVisorRuntime
-createRuntime _config = do
-  -- TODO: FFI to runsc
-  -- 1. Generate container ID
-  -- 2. Create OCI bundle from config
-  -- 3. Call runsc create
-  -- 4. Call runsc start
-  -- 5. Return runtime handle
-  notImplemented "createRuntime"
+createRuntime config = do
+  -- Use default runtime config (can be made configurable later)
+  let runtimeConfig = defaultRuntimeConfig
+  
+  -- 1. Create container (this creates OCI bundle and calls runsc create)
+  createResult <- createContainer runtimeConfig config
+  case createResult of
+    Left err -> liftEffect $ unsafeCrashWith ("Failed to create container: " <> err)
+    Right (ContainerId containerId) -> do
+      -- 2. Start container
+      startResult <- startContainer runtimeConfig (ContainerId containerId)
+      case startResult of
+        Left err -> liftEffect $ unsafeCrashWith ("Failed to start container: " <> err)
+        Right _ -> do
+          -- 3. Construct runtime handle
+          -- Bundle path is constructed in FFI: rootDir/containerId
+          let bundlePath = runtimeConfig.rootDir <> "/" <> containerId
+          let socketPath = bundlePath <> "/socket"
+          -- Get current timestamp
+          startTime <- liftEffect getCurrentTimestamp
+          -- Get PID from container status
+          pidResult <- getContainerPid runtimeConfig (ContainerId containerId)
+          let pid = case pidResult of
+                Left _ -> 0  -- Fallback to 0 if PID unavailable
+                Right p -> p
+          
+          pure $ GVisorRuntime
+            { containerId: containerId
+            , bundlePath: bundlePath
+            , socketPath: socketPath
+            , pid: pid
+            , startTime: startTime
+            }
 
 -- | Destroy gVisor runtime
-destroyRuntime :: GVisorRuntime -> Aff Unit
-destroyRuntime (GVisorRuntime _rt) = do
-  -- TODO: FFI to runsc
-  -- 1. Call runsc kill
-  -- 2. Call runsc delete
-  -- 3. Cleanup bundle
-  notImplemented "destroyRuntime"
+destroyRuntime :: GVisorRuntime -> Aff (Either String Unit)
+destroyRuntime (GVisorRuntime rt) = do
+  let runtimeConfig = defaultRuntimeConfig
+  let containerId = ContainerId rt.containerId
+  -- 1. Kill container
+  killResult <- killContainer runtimeConfig containerId
+  case killResult of
+    Left err -> pure $ Left err
+    Right _ -> do
+      -- 2. Delete container
+      deleteResult <- deleteContainer runtimeConfig containerId
+      case deleteResult of
+        Left err -> pure $ Left err
+        Right _ -> pure $ Right unit
 
 -- ============================================================================
 -- SANDBOXED COMPUTATION
@@ -209,10 +248,12 @@ withSandbox (Sandboxed { config, computation }) = do
           { reason: "Computation failed"
           , details: show err
           }
-        Right a -> pure $ SandboxSuccess
-          { value: a
-          , proof: mkSandboxProof config runtime
-          }
+        Right a -> do
+          proof <- liftEffect $ mkSandboxProof config runtime
+          pure $ SandboxSuccess
+            { value: a
+            , proof: proof
+            }
 
 -- ============================================================================
 -- EXECUTION
@@ -237,10 +278,25 @@ data SandboxResult a
 derive instance genericSandboxResult :: Generic (SandboxResult a) _
 
 -- | Execute command in sandbox
-execute :: ContainerConfig -> Aff (SandboxResult ExecOutput)
-execute config = withSandbox $ runInSandbox config \_runtime -> do
-  -- TODO: Execute via runsc exec
-  notImplemented "execute"
+execute :: RuntimeConfig -> ContainerConfig -> Aff (SandboxResult ExecOutput)
+execute runtimeConfig config = 
+  withSandbox $ runInSandbox config \runtime -> do
+    let containerId = ContainerId runtime.containerId
+    execResult <- execInContainer runtimeConfig containerId config.command
+    case execResult of
+      Left err -> liftEffect $ unsafeCrashWith err
+      Right result -> pure
+        { stdout: result.stdout
+        , stderr: result.stderr
+        , exitCode: result.exitCode
+        , metrics:
+            { wallTimeMs: 0  -- Would measure from start
+            , userTimeMs: 0
+            , sysTimeMs: 0
+            , maxRssMB: 0
+            , syscallCount: 0
+            }
+        }
 
 -- | Execute with explicit timeout
 executeWithTimeout :: Int -> ContainerConfig -> Aff (SandboxResult ExecOutput)

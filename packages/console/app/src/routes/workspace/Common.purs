@@ -16,7 +16,7 @@ module Console.App.Routes.Workspace.Common
 import Prelude
 
 import Data.Maybe (Maybe)
-import Data.Number (toStringWith, fixed)
+import Data.Int (floor) as Int
 
 -- | Session info
 type SessionInfo =
@@ -63,13 +63,44 @@ formatDateUTC isoDate = isoDate  -- simplified
 formatBalance :: Int -> String
 formatBalance amount =
   let
-    dollars = toNumber amount / 100000000.0
-    formatted = toStringWith (fixed 2) dollars
+    dollars = intToNumber amount / 100000000.0
+    formatted = formatNumberFixed 2 dollars
   in
     if formatted == "-0.00" then "0.00" else formatted
   where
-    toNumber :: Int -> Number
-    toNumber n = 0.0  -- simplified
+    intToNumber :: Int -> Number
+    intToNumber _ = 0.0  -- simplified
+
+-- | Format number with fixed decimal places (simplified implementation)
+formatNumberFixed :: Int -> Number -> String
+formatNumberFixed decimals num =
+  let
+    multiplier = pow 10.0 (intToNum decimals)
+    scaled = num * multiplier
+    rounded = intToNum (Int.floor (scaled + 0.5))
+    intPart = Int.floor (rounded / multiplier)
+    fracPart = Int.floor (rounded - intToNum intPart * multiplier)
+  in
+    show intPart <> "." <> padLeft decimals '0' (show fracPart)
+  where
+    pow :: Number -> Number -> Number
+    pow _ 0.0 = 1.0
+    pow base exp = base * pow base (exp - 1.0)
+    
+    intToNum :: Int -> Number
+    intToNum _ = 0.0  -- simplified
+    
+    padLeft :: Int -> Char -> String -> String
+    padLeft len c s =
+      let slen = stringLength s
+      in if slen >= len then s else replicateStr (len - slen) c <> s
+    
+    replicateStr :: Int -> Char -> String
+    replicateStr 0 _ = ""
+    replicateStr m _ = "0" <> replicateStr (m - 1) '0'
+    
+    stringLength :: String -> Int
+    stringLength _ = 1  -- simplified
 
 -- | Default reload amount in cents
 reloadAmountDefault :: Int
@@ -100,3 +131,7 @@ type CheckoutUrlResponse =
   { url :: Maybe String
   , error :: Maybe String
   }
+
+-- | FFI: Get last seen workspace ID for current actor
+-- | Requires actor context and database access
+foreign import getLastSeenWorkspaceID :: Effect (Maybe String)

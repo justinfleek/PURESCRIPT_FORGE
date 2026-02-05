@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Ls
 Description : Directory listing tool
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Directory Listing Tool
 
 Lists files and directories in a tree structure. Uses ripgrep for
@@ -47,11 +44,13 @@ module Tool.Ls
   , fileLimit
     -- * Types
   , DirTree(..)
+    -- * FFI
+  , listDirectory
   ) where
 
 import Prelude
 
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Either (Either(..))
 import Data.Array as Array
 import Data.String as String
@@ -59,11 +58,15 @@ import Data.Set (Set)
 import Data.Set as Set
 import Data.Map (Map)
 import Data.Map as Map
-import Data.Argonaut (Json, class EncodeJson, encodeJson, decodeJson)
+import Data.Argonaut (Json, class EncodeJson, encodeJson, decodeJson, (.:), (.:?))
 import Effect.Aff (Aff)
+import Effect.Class (liftEffect)
 
-import Opencode.Types.Tool (ToolContext, ToolResult, ToolInfo)
+import Opencode.Types.Tool (ToolContext, ToolResult, ToolInfo, ToolMetadata(..))
 import Aleph.Coeffect (Resource(..))
+
+-- | FFI for directory listing
+foreign import listDirectory :: String -> Aff (Either String (Array { name :: String, isDirectory :: Boolean }))
 
 -- ============================================================================
 -- CONFIGURATION
@@ -140,26 +143,36 @@ execute params ctx = do
   -- 2. Build ignore globs
   let ignores = ignorePatterns <> fromMaybe [] params.ignore
   
-  -- 3. Find files using ripgrep
-  -- TODO: Call ripgrep to list files
-  let files = [] :: Array String
-  let truncated = Array.length files >= fileLimit
-  
-  -- 4. Build tree structure
-  let tree = buildTree files
-  
-  -- 5. Render output
-  let output = renderTree searchPath tree
-  
-  pure
-    { title: searchPath
-    , metadata: encodeJson
-        { count: Array.length files
-        , truncated
+  -- 3. List directory contents
+  listResult <- listDirectory searchPath
+  case listResult of
+    Left err -> pure $ mkErrorResult ("Failed to list directory: " <> err)
+    Right entries -> do
+      -- Filter ignored patterns and build file list
+      let allFiles = Array.mapMaybe (\e -> if e.isDirectory then Nothing else Just (searchPath <> "/" <> e.name)) entries
+      let allDirs = Array.mapMaybe (\e -> if e.isDirectory then Just (searchPath <> "/" <> e.name) else Nothing) entries
+      let filteredFiles = filterIgnored allFiles ignores
+      let filteredDirs = filterIgnored allDirs ignores
+      let files = Array.take fileLimit filteredFiles
+      let truncated = Array.length filteredFiles >= fileLimit
+      
+      -- 4. Build tree structure
+      let tree = buildTree files
+      
+      -- 5. Render output
+      let output = renderTree searchPath tree
+      
+      pure
+        { title: searchPath
+        , metadata: LsMetadata
+            { count: Array.length files
+            , totalFiles: Array.length filteredFiles
+            , totalDirs: Array.length filteredDirs
+            , truncated
+            }
+        , output
+        , attachments: Nothing
         }
-    , output
-    , attachments: Nothing
-    }
   where
     fromMaybe :: forall a. a -> Maybe a -> a
     fromMaybe def Nothing = def
@@ -182,18 +195,58 @@ lsTool =
 -- TREE BUILDING
 -- ============================================================================
 
+-- | Filter files/dirs by ignore patterns
+filterIgnored :: Array String -> Array String -> Array String
+filterIgnored paths ignores =
+  Array.filter (\path -> not (shouldIgnore path ignores)) paths
+  where
+    shouldIgnore :: String -> Array String -> Boolean
+    shouldIgnore path patterns =
+      Array.any (\pattern -> String.contains (String.Pattern pattern) path) patterns
+
 {-| Build directory tree from file list. -}
 buildTree :: Array String -> DirTree
 buildTree files =
-  { dirs: Set.empty  -- TODO: Extract directories from paths
-  , filesByDir: Map.empty  -- TODO: Group files by parent dir
-  }
+  let dirs = Array.foldMap extractDirs files # Set.fromFoldable
+      filesByDir = Array.foldl groupByDir Map.empty files
+  in { dirs, filesByDir }
+  where
+    extractDirs :: String -> Array String
+    extractDirs filePath =
+      let parts = String.split (String.Pattern "/") filePath
+          dirs = Array.take (Array.length parts - 1) parts
+      in Array.mapWithIndex (\idx _ -> String.joinWith "/" (Array.take (idx + 1) parts)) dirs
+    
+    groupByDir :: Map String (Array String) -> String -> Map String (Array String)
+    groupByDir acc filePath =
+      let parts = String.split (String.Pattern "/") filePath
+          dir = if Array.length parts > 1
+                then String.joinWith "/" (Array.take (Array.length parts - 1) parts)
+                else "."
+          fileName = Array.last parts # fromMaybe filePath
+      in Map.insertWith (<>) dir [fileName] acc
 
 {-| Render directory tree as string. -}
 renderTree :: String -> DirTree -> String
 renderTree rootPath tree =
-  rootPath <> "/\n"
-  -- TODO: Recursively render subdirectories and files
+  let rootDir = if String.null rootPath then "." else rootPath
+      dirList = Set.toUnfoldable tree.dirs # Array.sort
+      fileMap = tree.filesByDir
+      rootFiles = Map.lookup rootDir fileMap # fromMaybe []
+      subdirs = Array.filter (\d -> d /= rootDir) dirList
+  in rootDir <> "/\n" <>
+     String.joinWith "" (Array.map (\f -> "  " <> f <> "\n") rootFiles) <>
+     String.joinWith "" (Array.map (\d -> renderSubdir d fileMap 1) subdirs)
+  where
+    renderSubdir :: String -> Map String (Array String) -> Int -> String
+    renderSubdir dir fileMap indent =
+      let indentStr = String.joinWith "" (Array.replicate indent "  ")
+          files = Map.lookup dir fileMap # fromMaybe []
+          subdirs = Map.keys fileMap # Array.filter (\d -> String.startsWith (String.Pattern (dir <> "/")) d && d /= dir)
+          dirName = Array.last (String.split (String.Pattern "/") dir) # fromMaybe dir
+      in indentStr <> dirName <> "/\n" <>
+         String.joinWith "" (Array.map (\f -> indentStr <> "  " <> f <> "\n") files) <>
+         String.joinWith "" (Array.map (\d -> renderSubdir d fileMap (indent + 1)) subdirs)
 
 -- ============================================================================
 -- HELPERS
@@ -204,16 +257,26 @@ lsDescription =
   "Lists files and directories in a tree structure. " <>
   "Use this to understand project structure before making changes."
 
-lsSchema :: { type :: String }
-lsSchema = { type: "object" }
+lsSchema :: Json
+lsSchema = encodeJson
+  { type: "object"
+  , properties:
+      { path: { type: "string", description: "Directory path to list (defaults to current directory)" }
+      , ignore: { type: "array", items: { type: "string" }, description: "Additional ignore patterns" }
+      }
+  }
 
 decodeLsParams :: Json -> Either String LsParams
-decodeLsParams _ = notImplemented "decodeLsParams"
+decodeLsParams json = do
+  obj <- decodeJson json
+  path <- (obj .:? "path" >>= \mb -> pure (mb >>= decodeJson))
+  ignore <- (obj .:? "ignore" >>= \mb -> pure (mb >>= decodeJson))
+  pure { path, ignore }
 
 mkErrorResult :: String -> ToolResult
 mkErrorResult err =
   { title: "List Error"
-  , metadata: encodeJson { error: err }
+  , metadata: ErrorMetadata { error: err }
   , output: "Error: " <> err
   , attachments: Nothing
   }

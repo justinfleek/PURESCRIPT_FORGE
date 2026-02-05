@@ -1,19 +1,24 @@
 -- | Locale utilities
--- | TODO: Implement based on _OTHER/opencode-original/packages/opencode/src/util/locale.ts
 module Opencode.Util.Locale where
 
 import Prelude
 import Effect (Effect)
-import Opencode.Util.NotImplemented (notImplemented)
+import Data.String as String
 
 -- | Get current locale
 getLocale :: Effect String
-getLocale = notImplemented "Util.Locale.getLocale"
+getLocale = getSystemLocale
+  where
+    foreign import getSystemLocale :: Effect String
 
 -- | Format number for locale
 formatNumber :: Number -> String -> String
-formatNumber n locale = show n -- TODO: Implement proper formatting
+formatNumber n locale = formatNumberForLocale n locale
+  where
+    foreign import formatNumberForLocale :: Number -> String -> String
 
 -- | Format date for locale
 formatDate :: Number -> String -> String
-formatDate timestamp locale = "" -- TODO: Implement
+formatDate timestamp locale = formatDateForLocale timestamp locale
+  where
+    foreign import formatDateForLocale :: Number -> String -> String

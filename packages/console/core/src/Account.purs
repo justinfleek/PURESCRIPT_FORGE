@@ -43,7 +43,3 @@ fromID id =
   { table: "account"
   , id: id
   }
-
--- | Helper to create identifier from string
-fromString :: String -> Identifier.Identifier
-fromString s = Identifier.Identifier s

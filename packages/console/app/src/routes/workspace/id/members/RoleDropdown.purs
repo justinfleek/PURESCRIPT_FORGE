@@ -12,6 +12,8 @@ module Console.App.Routes.Workspace.Id.Members.RoleDropdown
 
 import Prelude
 
+import Data.Array (filter) as Array
+
 -- | Role option
 type RoleOption =
   { value :: String
@@ -60,17 +62,9 @@ isSelected currentValue optionValue = currentValue == optionValue
 -- | Get role description by value
 getRoleDescription :: String -> String
 getRoleDescription value =
-  case filter (\opt -> opt.value == value) roleOptions of
+  case Array.filter (\opt -> opt.value == value) roleOptions of
     [opt] -> opt.description
     _ -> ""
-  where
-    filter :: forall a. (a -> Boolean) -> Array a -> Array a
-    filter f arr = case arr of
-      [] -> []
-      (x : xs) ->
-        if f x
-          then [x] <> filter f xs
-          else filter f xs
 
 -- | Dropdown trigger display
 type TriggerDisplay =

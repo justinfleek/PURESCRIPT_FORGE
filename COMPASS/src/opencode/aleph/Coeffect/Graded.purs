@@ -1,9 +1,6 @@
 {-|
 Module      : Aleph.Coeffect.Graded
 Description : Graded monad for coeffect tracking
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Graded Monad
 
 Computations indexed by their resource requirements:

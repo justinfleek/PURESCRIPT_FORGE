@@ -1,9 +1,6 @@
 {-|
 Module      : Opencode.Server.Event
 Description : Server-Sent Events (SSE) implementation
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Server Events
 
 SSE event bus for real-time updates to connected clients.

@@ -1,9 +1,6 @@
 {-|
 Module      : Opencode.Session.Operations
 Description : Session CRUD operations with persistence
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Session Operations
 
 Full session CRUD matching OpenCode's session/index.ts architecture.
@@ -55,6 +52,7 @@ module Opencode.Session.Operations
 import Prelude
 
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
+import Data.Map as Map
 import Data.Either (Either(..))
 import Data.Map (Map)
 import Data.Map as Map
@@ -83,6 +81,7 @@ type SessionState =
   , parts :: Map MessageID (Map String MessageV2.Part)
   , projectID :: ProjectID
   , directory :: String
+  , abortFlags :: Map SessionID Boolean  -- Abort flags for session cancellation
   }
 
 -- | Initial state
@@ -93,6 +92,7 @@ initialState projectId dir =
   , parts: Map.empty
   , projectID: projectId
   , directory: dir
+  , abortFlags: Map.empty
   }
 
 -- ════════════════════════════════════════════════════════════════════════════
@@ -230,7 +230,27 @@ fork input stateRef = do
       let msgsToFork = case input.messageID of
             Nothing -> msgs
             Just mid -> Array.takeWhile (\m -> m.id /= mid) msgs
-      -- TODO: Actually copy messages
+      
+      -- Copy messages and parts to new session
+      state <- liftEffect $ Ref.read stateRef
+      let newMessages = Array.foldl (\acc msg -> 
+            Map.insert msg.id msg acc
+          ) Map.empty msgsToFork
+      
+      -- Copy parts for each message
+      let newParts = Array.foldl (\acc msg -> 
+            case Map.lookup msg.id state.parts of
+              Nothing -> acc
+              Just partsMap -> Map.insert msg.id partsMap acc
+          ) Map.empty msgsToFork
+      
+      -- Update state with copied messages and parts
+      liftEffect $ Ref.modify_ (\s -> 
+        s { messages = Map.insert newSession.id newMessages s.messages
+          , parts = Map.union newParts s.parts
+          }
+      ) stateRef
+      
       pure $ Right newSession
 
 -- | Get forked title
@@ -397,3 +417,20 @@ traverseArray f arr = case Array.uncons arr of
     b <- f head
     bs <- traverseArray f tail
     pure $ Array.cons b bs
+
+-- ════════════════════════════════════════════════════════════════════════════
+-- ABORT FLAGS
+-- ════════════════════════════════════════════════════════════════════════════
+
+-- | Check if session is aborted
+isAborted :: SessionID -> Ref SessionState -> Effect Boolean
+isAborted sessionId stateRef = do
+  state <- Ref.read stateRef
+  pure $ fromMaybe false $ Map.lookup sessionId state.abortFlags
+
+-- | Clear abort flag for session
+clearAbort :: SessionID -> Ref SessionState -> Effect Unit
+clearAbort sessionId stateRef = do
+  Ref.modify_ (\s -> 
+    s { abortFlags = Map.delete sessionId s.abortFlags }
+  ) stateRef

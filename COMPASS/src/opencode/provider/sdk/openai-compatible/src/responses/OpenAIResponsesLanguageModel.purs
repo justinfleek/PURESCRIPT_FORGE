@@ -1,9 +1,6 @@
 {-|
 Module      : Opencode.Provider.SDK.OpenAICompatible.Responses.OpenAIResponsesLanguageModel
 Description : OpenAI-compatible chat completion implementation
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = OpenAI Responses Language Model
 
 Implements OpenAI-compatible chat completions with streaming support.

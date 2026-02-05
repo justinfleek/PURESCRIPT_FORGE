@@ -14,10 +14,12 @@ import Data.Either (Either(..))
 import Data.Int (toNumber)
 import Data.DateTime (DateTime)
 import Control.Monad.Rec.Class (class MonadRec)
+import Math (pow, min)
+import Sidepanel.FFI.Math (random)
 import Sidepanel.FFI.WebSocket (WebSocketConnection, create, readyState, send, close, closeWith, onOpen, onClose, onError, onMessage, toReadyState, ReadyState(..))
 import Sidepanel.Api.Types (JsonRpcRequest, JsonRpcResponse, JsonRpcError, ServerMessage(..))
 import Argonaut.Decode.Error (JsonDecodeError)
-import Sidepanel.FFI.DateTime (getCurrentDateTime)
+import Sidepanel.FFI.DateTime (getCurrentDateTime, toTimestamp)
 import Argonaut.Core (Json)
 import Argonaut.Core as AC
 import Argonaut.Encode (class EncodeJson, encodeJson, (:=), (:=?))
@@ -318,7 +320,21 @@ startHeartbeat client = do
   -- This is a reasonable placeholder - server initiates heartbeat
   pure unit
 
--- | Attempt reconnection with exponential backoff
+-- | Attempt reconnection with exponential backoff and jitter
+-- |
+-- | **Purpose:** Attempts to reconnect to the WebSocket server using exponential backoff
+-- |             with jitter to prevent thundering herd problems. Implements the strategy
+-- |             from spec 31-WEBSOCKET-PROTOCOL.md.
+-- | **Parameters:**
+-- | - `client`: WebSocket client
+-- | **Side Effects:** Modifies connection state and schedules reconnection
+-- |
+-- | **Backoff Strategy:**
+-- | - Base delay: `reconnectInterval` (default 1000ms)
+-- | - Exponential: `baseDelay * 2^attempt`
+-- | - Jitter: Random value between 0 and 1000ms
+-- | - Max delay: 30 seconds
+-- | - Max attempts: `maxReconnectAttempts` (default 10)
 attemptReconnect :: WSClient -> Effect Unit
 attemptReconnect client = do
   attempt <- read client.reconnectAttempt
@@ -327,9 +343,21 @@ attemptReconnect client = do
   else do
     write (Reconnecting (attempt + 1)) client.state
     modify (_ + 1) client.reconnectAttempt
-    -- Schedule reconnect
+    
+    -- Calculate exponential backoff with jitter
     void $ launchAff_ do
-      delay $ Milliseconds $ toNumber (attempt + 1) * 1000.0
+      baseDelayMs <- liftEffect $ case client.config.reconnectInterval of
+        Milliseconds ms -> pure ms
+      -- Exponential: baseDelay * 2^attempt
+      let exponentialDelay = baseDelayMs * pow 2.0 (toNumber attempt)
+      -- Jitter: random between 0 and 1000ms
+      jitter <- liftEffect random
+      let jitterMs = jitter * 1000.0
+      -- Total delay with max cap of 30 seconds
+      let totalDelayMs = min (exponentialDelay + jitterMs) 30000.0
+      
+      -- Schedule reconnect
+      delay $ Milliseconds totalDelayMs
       connect client
 
 -- | Queue request for later sending

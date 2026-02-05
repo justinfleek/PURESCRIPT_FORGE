@@ -6,7 +6,7 @@
 -- | Source: _OTHER/opencode-original/packages/console/core/src/actor.ts
 module Forge.Console.Core.Actor
   ( ActorType(..)
-  , ActorInfo
+  , ActorInfo(..)
   , AccountActor
   , UserActor
   , SystemActor
@@ -22,6 +22,7 @@ module Forge.Console.Core.Actor
   , userID
   , userRole
   , createContext
+  , actorType
   ) where
 
 import Prelude
@@ -130,9 +131,8 @@ provide :: forall a. ActorContext -> ActorInfo -> Effect a -> Effect a
 provide ctx actor callback = do
   previous <- Ref.read ctx.ref
   Ref.write (Just actor) ctx.ref
-  logger <- Log.create
-  let taggedLogger = Log.tag "actor" (show actor) logger
-  Log.info "provided" taggedLogger
+  -- Log.create is pure, Log.info returns Logger (pure logging)
+  let _logger = Log.info "provided" $ Log.tag "actor" (show actor) Log.create
   result <- callback
   Ref.write previous ctx.ref
   pure result

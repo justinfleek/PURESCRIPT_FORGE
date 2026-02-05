@@ -1,9 +1,6 @@
 {-|
 Module      : Bridge.WebSocket.Handlers.Files
 Description : File context and terminal execution handlers
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = File Handlers
 
 JSON-RPC handlers for file operations including:

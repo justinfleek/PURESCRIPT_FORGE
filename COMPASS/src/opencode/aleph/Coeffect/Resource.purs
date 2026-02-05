@@ -1,9 +1,6 @@
 {-|
 Module      : Aleph.Coeffect.Resource
 Description : Resource algebra for coeffect tracking
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Resource Algebra
 
 Resources form a semilattice under combination (⊗):

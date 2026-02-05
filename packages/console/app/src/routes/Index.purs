@@ -23,7 +23,7 @@ module Console.App.Routes.Index
   , growthStats
   , faqItems
   , privacyContent
-  , zenCtaContent
+  , omegaCtaContent
   , desktopBanner
     -- Utilities
   , installCommandText
@@ -119,8 +119,8 @@ type PrivacyContent =
   , learnMoreUrl :: String
   }
 
--- | Zen CTA section content
-type ZenCtaContent =
+-- | Omega CTA section content
+type OmegaCtaContent =
   { headline :: String
   , description :: String
   , linkText :: String
@@ -259,9 +259,9 @@ faqItems =
     , links: [{ text: "intro", url: "/docs" }]
     }
   , { question: "Do I need extra AI subscriptions to use OpenCode?"
-    , answer: "Not necessarily, OpenCode comes with a set of free models that you can use without creating an account. Aside from these, you can use any of the popular coding models by creating a Zen account. While we encourage users to use Zen, OpenCode also works with all popular providers such as OpenAI, Anthropic, xAI etc. You can even connect your local models."
+    , answer: "Not necessarily, OpenCode comes with a set of free models that you can use without creating an account. Aside from these, you can use any of the popular coding models by creating a Omega account. While we encourage users to use Omega, OpenCode also works with all popular providers such as OpenAI, Anthropic, xAI etc. You can even connect your local models."
     , links: 
-        [ { text: "Zen", url: "/zen" }
+        [ { text: "Omega", url: "/omega" }
         , { text: "local models", url: "/docs/providers/#lm-studio" }
         ]
     }
@@ -283,7 +283,7 @@ faqItems =
   , { question: "What about data and privacy?"
     , answer: "Your data and information is only stored when you use our free models or create sharable links."
     , links: 
-        [ { text: "our models", url: "/docs/zen/#privacy" }
+        [ { text: "our models", url: "/docs/omega/#privacy" }
         , { text: "share pages", url: "/docs/share/#privacy" }
         ]
     }
@@ -296,13 +296,13 @@ faqItems =
     }
   ]
 
--- | Zen CTA section content
-zenCtaContent :: ZenCtaContent
-zenCtaContent =
+-- | Omega CTA section content
+omegaCtaContent :: OmegaCtaContent
+omegaCtaContent =
   { headline: "Access reliable optimized models for coding agents"
-  , description: "Zen gives you access to a handpicked set of AI models that OpenCode has tested and benchmarked specifically for coding agents. No need to worry about inconsistent performance and quality across providers, use validated models that work."
-  , linkText: "Learn about Zen"
-  , linkUrl: "/zen"
+  , description: "Omega gives you access to a handpicked set of AI models that OpenCode has tested and benchmarked specifically for coding agents. No need to worry about inconsistent performance and quality across providers, use validated models that work."
+  , linkText: "Learn about Omega"
+  , linkUrl: "/omega"
   }
 
 -- ═══════════════════════════════════════════════════════════════════════════════

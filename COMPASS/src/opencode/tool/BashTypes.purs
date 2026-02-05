@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.BashTypes
 Description : Type definitions for Bash tool
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Bash Types
 
 Extracted type definitions for the Bash tool.

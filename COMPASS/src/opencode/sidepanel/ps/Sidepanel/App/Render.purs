@@ -77,7 +77,7 @@ render state =
       HH.slot _sidebar unit Sidebar.component state.currentRoute HandleSidebarOutput
     , -- Main content
       HH.main
-        [ HP.class_ (H.ClassName "app__main") ]
+        [ HP.class_ (H.ClassName "app__main theme-grid") ]
         [ renderCurrentPanel state ]
     , -- Help overlay
       HH.slot _helpOverlay unit HelpOverlay.component { visible: state.helpOverlayVisible } HandleHelpOverlayOutput

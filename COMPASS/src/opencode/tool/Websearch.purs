@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Websearch
 Description : Web search via SearXNG metasearch engine
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Web Search Tool
 
 This module provides web search functionality through SearXNG,
@@ -56,9 +53,9 @@ module Tool.Websearch
 
 import Prelude
 
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe)
 import Data.Either (Either(..))
-import Data.Argonaut (Json, encodeJson, decodeJson)
+import Data.Argonaut (Json, encodeJson, decodeJson, (.:), (.:?))
 import Effect.Aff (Aff)
 
 import Opencode.Types.Tool (ToolContext, ToolResult, ToolInfo)
@@ -124,8 +121,8 @@ websearchTool =
   , description: "Privacy-respecting web search via SearXNG"
   , parameters: encodeJson websearchSchema
   , execute: \json ctx ->
-      case decodeJson json of
-        Left err -> pure $ mkErrorResult (show err)
+      case decodeWebsearchParams json of
+        Left err -> pure $ mkErrorResult err
         Right params -> executeWithContext params ctx
   , formatValidationError: Nothing
   }
@@ -166,15 +163,17 @@ websearchCoeffect = network ⊗ searchRes (SearXNG Search.defaultConfig.baseUrl)
 mkErrorResult :: String -> ToolResult
 mkErrorResult err =
   { title: "Search Error"
-  , metadata: encodeJson { error: err }
+  , metadata: ErrorMetadata { error: err }
   , output: "Error: " <> err
   , attachments: Nothing
   }
 
-websearchSchema :: { type :: String }
-websearchSchema = notImplemented "websearchSchema"
-
-notImplemented :: forall a. String -> a
-notImplemented name = unsafeCrashWith ("Not implemented: " <> name)
-
-foreign import unsafeCrashWith :: forall a. String -> a
+websearchSchema :: Json
+websearchSchema = encodeJson
+  { type: "object"
+  , properties:
+      { query: { type: "string", description: "Search query text" }
+      , limit: { type: "integer", description: "Maximum number of results (default: 10)", minimum: 1, maximum: 100 }
+      }
+  , required: ["query"]
+  }

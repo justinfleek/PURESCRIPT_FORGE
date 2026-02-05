@@ -44,6 +44,9 @@ foreign import getCurrentDateTime :: Effect DateTime
 -- | Convert timestamp (milliseconds) to DateTime
 foreign import fromTimestamp :: Number -> DateTime
 
+-- | Convert DateTime to timestamp (milliseconds)
+foreign import toTimestamp :: DateTime -> Number
+
 -- | Parse ISO 8601 DateTime string to DateTime
 -- | Handles formats like: "2026-01-30T12:34:56.789Z", "2026-01-30T12:34:56Z", etc.
 foreign import fromISOString :: String -> DateTime

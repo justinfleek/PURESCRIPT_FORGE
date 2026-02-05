@@ -1,9 +1,6 @@
 {-|
 Module      : Aleph.Coeffect
 Description : Re-exports for coeffect system
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Aleph Coeffect System
 
 Coeffects describe what a computation REQUIRES from its environment.

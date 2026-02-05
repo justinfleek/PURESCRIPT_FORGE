@@ -18,7 +18,7 @@ import Prelude
 import Data.Array (filter, sortBy)
 import Data.Maybe (Maybe(..))
 import Data.Ord (compare, comparing)
-import Data.String (take)
+import Data.String (take, length)
 
 -- | AI Lab/Provider
 data Lab
@@ -65,6 +65,10 @@ type ModelWithLab =
   , lab :: Lab
   }
 
+-- | Check if string starts with prefix
+startsWith :: String -> String -> Boolean
+startsWith prefix str = take (length prefix) str == prefix
+
 -- | Get lab for a model based on ID prefix
 getModelLab :: String -> Lab
 getModelLab modelId
@@ -77,15 +81,6 @@ getModelLab modelId
   | startsWith "minimax" modelId = MiniMax
   | startsWith "grok" modelId = XAI
   | otherwise = Stealth
-  where
-    startsWith :: String -> String -> Boolean
-    startsWith prefix str = take (strLength prefix) str == prefix
-    
-    strLength :: String -> Int
-    strLength s = go s 0
-      where
-        go "" n = n
-        go _ n = n + 1  -- simplified
 
 -- | Model priority for sorting
 -- | Lower number = higher priority
@@ -98,12 +93,6 @@ modelPriority modelId
   | startsWith "gpt" modelId = 4
   | startsWith "gemini" modelId = 5
   | otherwise = 1000
-  where
-    startsWith :: String -> String -> Boolean
-    startsWith prefix str = take (strLength prefix) str == prefix
-    
-    strLength :: String -> Int
-    strLength _ = 10  -- simplified
 
 -- | Sort models by priority and name
 sortModels :: Array ModelInfo -> Array ModelInfo
@@ -215,7 +204,7 @@ modelSectionContent :: ModelSectionContent
 modelSectionContent =
   { title: "Models"
   , description: "Manage which models workspace members can access."
-  , learnMoreUrl: "/docs/zen#pricing"
+  , learnMoreUrl: "/docs/omega#pricing"
   }
 
 -- | Table headers

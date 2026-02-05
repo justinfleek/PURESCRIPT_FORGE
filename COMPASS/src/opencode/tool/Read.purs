@@ -1,9 +1,6 @@
 {-|
 Module      : Tool.Read
 Description : File reading with line numbers and LSP warming
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Read Tool
 
 Read files with line numbers (cat -n format) and session tracking.

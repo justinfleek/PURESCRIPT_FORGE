@@ -1,9 +1,6 @@
 {-|
 Module      : Opencode.Server.Routes.Provider
 Description : Provider HTTP routes
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Provider Routes
 
 Full implementation of provider routes matching OpenCode's routes/provider.ts.
@@ -48,6 +45,7 @@ import Effect.Aff (Aff)
 
 import Opencode.Provider.Provider as Provider
 import Opencode.Provider.ModelsDev as ModelsDev
+import Opencode.Provider.Auth as Auth
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- TYPES
@@ -268,6 +266,39 @@ callback :: { providerID :: String, method :: Int, code :: Maybe String } -> Aff
 callback input = do
   case input.code of
     Nothing -> pure false
-    Just _code -> do
-      -- TODO: Exchange code for tokens and store
-      pure true
+    Just code -> do
+      -- Exchange authorization code for access token
+      tokenResult <- exchangeOAuthCode input.providerID code
+      case tokenResult of
+        Left err -> pure false
+        Right tokens -> do
+          -- Calculate expiration time
+          expiresAt <- case tokens.expiresIn of
+            Just expiresIn -> do
+              currentTime <- liftEffect getCurrentTimestamp
+              pure $ Just (currentTime + (Int.toNumber expiresIn * 1000.0))
+            Nothing -> pure Nothing
+          
+          -- Store tokens using Provider.Auth
+          let auth = 
+                { provider: input.providerID
+                , apiKey: Nothing
+                , token: Just tokens.accessToken
+                , expiresAt: expiresAt
+                }
+          authResult <- Auth.setAuth input.providerID auth
+          case authResult of
+            Left _err -> pure false
+            Right _ -> pure true
+  where
+    foreign import exchangeOAuthCode :: String -> String -> Aff (Either String OAuthTokens)
+    foreign import getCurrentTimestamp :: Effect Number
+    import Effect.Class (liftEffect)
+    import Data.Int as Int
+
+-- | OAuth token response
+type OAuthTokens =
+  { accessToken :: String
+  , refreshToken :: Maybe String
+  , expiresIn :: Maybe Int
+  }

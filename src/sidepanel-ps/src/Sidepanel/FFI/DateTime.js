@@ -80,3 +80,22 @@ exports.toISOString = function(dt) {
   // Format as ISO 8601 string
   return date.toISOString();
 };
+
+// | Convert DateTime to timestamp (milliseconds)
+// | Converts PureScript DateTime structure to JavaScript Date, then returns milliseconds
+exports.toTimestamp = function(dt) {
+  // Extract components from PureScript DateTime structure
+  const year = dt.date.year;
+  const month = dt.date.month - 1; // JavaScript months are 0-indexed
+  const day = dt.date.day;
+  const hour = dt.time.hour;
+  const minute = dt.time.minute;
+  const second = dt.time.second;
+  const millisecond = dt.time.millisecond;
+  
+  // Create JavaScript Date in UTC
+  const date = new Date(Date.UTC(year, month, day, hour, minute, second, millisecond));
+  
+  // Return milliseconds since epoch
+  return date.getTime();
+};

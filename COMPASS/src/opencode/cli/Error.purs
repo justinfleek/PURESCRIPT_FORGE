@@ -1,10 +1,10 @@
 -- | CLI Error handling
--- | TODO: Implement based on _OTHER/opencode-original/packages/opencode/src/cli/error.ts
 module Opencode.CLI.Error where
 
 import Prelude
 import Effect (Effect)
-import Opencode.Util.NotImplemented (notImplemented)
+import Effect.Console as Console
+import Opencode.CLI.UI as UI
 
 -- | Error types for CLI operations
 data CLIError
@@ -16,7 +16,9 @@ data CLIError
 
 -- | Display a CLI error to the user
 displayError :: CLIError -> Effect Unit
-displayError err = notImplemented "CLI.Error.displayError"
+displayError err = do
+  let formatted = formatError err
+  UI.error formatted
 
 -- | Format error for output
 formatError :: CLIError -> String

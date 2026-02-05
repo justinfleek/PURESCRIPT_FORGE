@@ -1,9 +1,6 @@
 {-|
 Module      : Bridge.WebSocket.Handlers.Lean
 Description : Lean4 proof assistant handlers
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Lean Handlers
 
 JSON-RPC handlers for Lean4 Language Server Protocol integration.

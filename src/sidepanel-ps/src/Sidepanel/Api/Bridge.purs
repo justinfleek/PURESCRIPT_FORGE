@@ -767,3 +767,245 @@ saveSettings client req = do
         Right result -> pure $ Right result
     printJsonDecodeError :: JsonDecodeError -> String
     printJsonDecodeError err = show err
+
+-- | State get request (empty params)
+type StateGetRequest = {}
+
+-- | Full state response
+type StateGetResponse =
+  { connected :: Boolean
+  , balance :: Maybe BalanceState
+  , session :: Maybe SessionState
+  , proof :: Maybe ProofState
+  , metrics :: Maybe UsageMetrics
+  , snapshots :: Array SnapshotSummary
+  , timestamp :: String  -- ISO 8601
+  }
+
+instance EncodeJson StateGetRequest where
+  encodeJson _ = AC.fromObject $ AC.fromFoldable []
+
+instance DecodeJson StateGetResponse where
+  decodeJson json = do
+    obj <- decodeJson json
+    connected <- obj .: "connected"
+    balance <- obj .:? "balance"
+    session <- obj .:? "session"
+    proof <- obj .:? "proof"
+    metrics <- obj .:? "metrics"
+    snapshots <- obj .:? "snapshots"
+    timestamp <- obj .: "timestamp"
+    pure
+      { connected
+      , balance
+      , session
+      , proof
+      , metrics
+      , snapshots: fromMaybe [] snapshots
+      , timestamp
+      }
+
+-- | Get full state from bridge server
+getState :: WSClient -> StateGetRequest -> Aff (Either JsonRpcError StateGetResponse)
+getState client req = do
+  result <- request client "state.get" (encodeJson req) decodeResponse
+  pure result
+  where
+    decodeResponse :: Json -> Aff (Either JsonRpcError StateGetResponse)
+    decodeResponse json = do
+      case decodeJson json of
+        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
+        Right result -> pure $ Right result
+    printJsonDecodeError :: JsonDecodeError -> String
+    printJsonDecodeError err = show err
+
+-- | State subscribe request
+type StateSubscribeRequest =
+  { paths :: Maybe (Array String)  -- Optional: subscribe to specific paths only
+  }
+
+-- | State subscribe response
+type StateSubscribeResponse =
+  { subscribed :: Boolean
+  , paths :: Array String  -- Confirmed subscribed paths
+  }
+
+instance EncodeJson StateSubscribeRequest where
+  encodeJson req = AC.fromObject $ AC.fromFoldable
+    [ "paths" :=? req.paths
+    ]
+
+instance DecodeJson StateSubscribeResponse where
+  decodeJson json = do
+    obj <- decodeJson json
+    subscribed <- obj .: "subscribed"
+    paths <- obj .: "paths"
+    pure { subscribed, paths }
+
+-- | Subscribe to state updates
+subscribeState :: WSClient -> StateSubscribeRequest -> Aff (Either JsonRpcError StateSubscribeResponse)
+subscribeState client req = do
+  result <- request client "state.subscribe" (encodeJson req) decodeResponse
+  pure result
+  where
+    decodeResponse :: Json -> Aff (Either JsonRpcError StateSubscribeResponse)
+    decodeResponse json = do
+      case decodeJson json of
+        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
+        Right result -> pure $ Right result
+    printJsonDecodeError :: JsonDecodeError -> String
+    printJsonDecodeError err = show err
+
+-- | Alerts configure request
+type AlertsConfigureRequest =
+  { diemWarningPercent :: Maybe Number
+  , diemCriticalPercent :: Maybe Number
+  , depletionWarningHours :: Maybe Number
+  }
+
+-- | Alerts configure response
+type AlertsConfigureResponse =
+  { success :: Boolean
+  }
+
+instance EncodeJson AlertsConfigureRequest where
+  encodeJson req = AC.fromObject $ AC.fromFoldable
+    [ "diemWarningPercent" :=? req.diemWarningPercent
+    , "diemCriticalPercent" :=? req.diemCriticalPercent
+    , "depletionWarningHours" :=? req.depletionWarningHours
+    ]
+
+instance DecodeJson AlertsConfigureResponse where
+  decodeJson json = do
+    obj <- decodeJson json
+    success <- obj .: "success"
+    pure { success }
+
+-- | Configure alert thresholds
+configureAlerts :: WSClient -> AlertsConfigureRequest -> Aff (Either JsonRpcError AlertsConfigureResponse)
+configureAlerts client req = do
+  result <- request client "alerts.configure" (encodeJson req) decodeResponse
+  pure result
+  where
+    decodeResponse :: Json -> Aff (Either JsonRpcError AlertsConfigureResponse)
+    decodeResponse json = do
+      case decodeJson json of
+        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
+        Right result -> pure $ Right result
+    printJsonDecodeError :: JsonDecodeError -> String
+    printJsonDecodeError err = show err
+
+-- | Session export request
+type SessionExportRequest =
+  { sessionId :: String
+  , format :: String  -- "json" | "markdown" | "html"
+  , includeTimeline :: Maybe Boolean
+  }
+
+-- | Session export response
+type SessionExportResponse =
+  { data :: String  -- Exported data (JSON string, Markdown, or HTML)
+  , filename :: String
+  }
+
+instance EncodeJson SessionExportRequest where
+  encodeJson req = AC.fromObject $ AC.fromFoldable
+    [ "sessionId" := req.sessionId
+    , "format" := req.format
+    , "includeTimeline" :=? req.includeTimeline
+    ]
+
+instance DecodeJson SessionExportResponse where
+  decodeJson json = do
+    obj <- decodeJson json
+    data_ <- obj .: "data"
+    filename <- obj .: "filename"
+    pure { data: data_, filename }
+
+-- | Export session data
+exportSession :: WSClient -> SessionExportRequest -> Aff (Either JsonRpcError SessionExportResponse)
+exportSession client req = do
+  result <- request client "session.export" (encodeJson req) decodeResponse
+  pure result
+  where
+    decodeResponse :: Json -> Aff (Either JsonRpcError SessionExportResponse)
+    decodeResponse json = do
+      case decodeJson json of
+        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
+        Right result -> pure $ Right result
+    printJsonDecodeError :: JsonDecodeError -> String
+    printJsonDecodeError err = show err
+
+-- | Search request
+type SearchRequest =
+  { query :: String
+  , types :: Maybe (Array String)  -- Optional: filter by result types
+  , dateRange :: Maybe { start :: Maybe String, end :: Maybe String }  -- ISO 8601 dates
+  , model :: Maybe String
+  , sessionId :: Maybe String  -- Search within specific session
+  , limit :: Maybe Int
+  , offset :: Maybe Int
+  }
+
+-- | Search result (simplified)
+type SearchResultBridge =
+  { id :: String
+  , type_ :: String  -- "session" | "message" | "file" | "proof" | "recording"
+  , title :: String
+  , preview :: String
+  , score :: Number
+  , timestamp :: String  -- ISO 8601
+  , metadata :: Json  -- Type-specific metadata
+  }
+
+-- | Search response
+type SearchResponse =
+  { results :: Array SearchResultBridge
+  , totalCount :: Int
+  , searchTimeMs :: Number
+  }
+
+instance EncodeJson SearchRequest where
+  encodeJson req = AC.fromObject $ AC.fromFoldable
+    [ "query" := req.query
+    , "types" :=? req.types
+    , "dateRange" :=? req.dateRange
+    , "model" :=? req.model
+    , "sessionId" :=? req.sessionId
+    , "limit" :=? req.limit
+    , "offset" :=? req.offset
+    ]
+
+instance DecodeJson SearchResultBridge where
+  decodeJson json = do
+    obj <- decodeJson json
+    id <- obj .: "id"
+    type_ <- obj .: "type"
+    title <- obj .: "title"
+    preview <- obj .: "preview"
+    score <- obj .: "score"
+    timestamp <- obj .: "timestamp"
+    metadata <- obj .: "metadata"
+    pure { id, type_, title, preview, score, timestamp, metadata }
+
+instance DecodeJson SearchResponse where
+  decodeJson json = do
+    obj <- decodeJson json
+    results <- obj .: "results"
+    totalCount <- obj .: "totalCount"
+    searchTimeMs <- obj .: "searchTimeMs"
+    pure { results, totalCount, searchTimeMs }
+
+-- | Perform search
+performSearch :: WSClient -> SearchRequest -> Aff (Either JsonRpcError SearchResponse)
+performSearch client req = do
+  result <- request client "search.perform" (encodeJson req) decodeResponse
+  pure result
+  where
+    decodeResponse :: Json -> Aff (Either JsonRpcError SearchResponse)
+    decodeResponse json = do
+      case decodeJson json of
+        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
+        Right result -> pure $ Right result
+    printJsonDecodeError :: JsonDecodeError -> String
+    printJsonDecodeError err = show err

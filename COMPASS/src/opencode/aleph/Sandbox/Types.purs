@@ -1,9 +1,6 @@
 {-|
 Module      : Aleph.Sandbox.Types
 Description : Type definitions for gVisor sandbox
-Copyright   : (c) Anomaly 2025
-License     : AGPL-3.0
-
 = Sandbox Types
 
 Core type definitions for the gVisor container isolation layer.
