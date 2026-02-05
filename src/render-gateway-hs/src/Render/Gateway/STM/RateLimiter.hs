@@ -33,16 +33,21 @@ createRateLimiter capacity refillRate now = do
     }
 
 -- | Refill tokens based on elapsed time
+-- | Guards against clock jumps backward (negative elapsed time)
 refillTokens :: RateLimiter -> UTCTime -> STM ()
 refillTokens RateLimiter {..} now = do
   lastTime <- readTVar rlLastRefill
   let elapsed = realToFrac (diffUTCTime now lastTime)
-  let tokensToAdd = elapsed * rlRefillRate
+  -- Guard against clock jumps backward (system clock adjusted, NTP sync, VM snapshots)
+  -- If elapsed is negative, don't refill tokens (clock jumped backward)
+  let tokensToAdd = if elapsed < 0 then 0 else elapsed * rlRefillRate
   
   currentTokens <- readTVar rlTokens
   let newTokens = min rlCapacity (currentTokens + tokensToAdd)
   
   writeTVar rlTokens newTokens
+  -- Always update lastRefill to current time, even if elapsed was negative
+  -- This prevents repeated negative calculations if clock stays wrong
   writeTVar rlLastRefill now
 
 -- | Try to acquire token (non-blocking)

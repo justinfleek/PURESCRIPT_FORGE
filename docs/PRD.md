@@ -48,7 +48,7 @@ Build infrastructure where AI agents can operate with certainty—where every co
 
 ### Architecture: The Straylight Cube
 
-```
+```text
                      PROVEN (Lean4)
                          │
               Lean4 ─────┼────── Liquid Haskell
@@ -71,7 +71,7 @@ Build infrastructure where AI agents can operate with certainty—where every co
 ### Language Coset
 
 | Layer | Language | Purpose | Status |
-|-------|----------|---------|--------|
+| ------- | ---------- | --------- | -------- |
 | Proofs | Lean4 | Formal verification | ✅ Active |
 | Config | Dhall | Total evaluation | ✅ Active |
 | Logic | PureScript | Application logic | ✅ Active |
@@ -86,7 +86,7 @@ Build infrastructure where AI agents can operate with certainty—where every co
 ### 4.1 Packages (Migration Status: ~94% Complete)
 
 | Package | TS Files | PS Files | HS Files | Lean4 | Status |
-|---------|----------|----------|----------|-------|--------|
+| --------- | ---------- | ---------- | ---------- | ------- | -------- |
 | **opencode** | 313 | 325 | 63 | 62 | ✅ DONE |
 | **app** | 163 | 121 | 0 | 0 | ✅ DONE |
 | **enterprise** | 18 | 2 | 16 | 0 | ✅ DONE |
@@ -114,6 +114,7 @@ Rules are implemented as proven code, not documentation:
 - **Banned Constructs**: Unrepresentable at type level
 
 **Proofs**:
+
 - `taskCompleteIffAllVerified` - Task completion correctness
 - `explicitDefaultTypeSafe` - Type safety guarantees
 - `noTypeEscapes` - Runtime type escape prevention
@@ -131,6 +132,7 @@ Browser-based GUI extending OpenCode with:
 5. **Performance Flame Graphs**: Built-in performance visualization
 
 **Implementation**:
+
 - Frontend: PureScript/Halogen
 - Bridge: Node.js WebSocket server
 - Backend: Lean4 via MCP
@@ -161,7 +163,7 @@ theorem cache_correctness (t₁ t₂ : Toolchain) (source : StorePath)
 ### Languages
 
 | Language | Use Case | Why |
-|----------|----------|-----|
+| --------- | ---------- | ----- |
 | PureScript | Application logic | Stronger than TypeScript, compiles to JS |
 | Haskell | Performance-critical | Native performance, GHC optimization |
 | Lean4 | Proofs | Mathematical verification, Mathlib4 |
@@ -230,16 +232,19 @@ theorem cache_correctness (t₁ t₂ : Toolchain) (source : StorePath)
 ## 8. User Stories
 
 ### Primary: Terminal Purist
+
 > "I want terminal efficiency AND visual intelligence. I shouldn't have to choose."
 
 **Feature**: Sidepanel that extends OpenCode with browser GUI
 
 ### Secondary: Formal Methods Enthusiast
+
 > "I want AI that understands formal verification."
 
 **Feature**: Lean4 integration with proof-aware assistance
 
 ### Tertiary: AI Developer
+
 > "I want code that agents can reason about."
 
 **Feature**: Type-safe, proven-correct codebase
@@ -284,7 +289,7 @@ theorem cache_correctness (t₁ t₂ : Toolchain) (source : StorePath)
 ### Quantitative
 
 | Metric | Target | Current |
-|--------|--------|---------|
+| -------- | -------- | --------- |
 | Migration completeness | 100% | 96.5% |
 | Type safety coverage | 100% | 94% |
 | Proof coverage | 100% | 70% |
@@ -304,16 +309,19 @@ theorem cache_correctness (t₁ t₂ : Toolchain) (source : StorePath)
 ## 11. Migration Roadmap
 
 ### Phase 1: Core Migration (Weeks 1-4) ✅ COMPLETE
+
 - [x] opencode package (450 files)
 - [x] app package (121 files)
 - [x] enterprise package (18 files)
 - [x] util package (14 files)
 
 ### Phase 2: UI Migration (Weeks 5-6) ✅ COMPLETE
+
 - [x] ui package (85 files)
 - [x] plugin package (8 files)
 
 ### Phase 3: Console Migration (Weeks 7-10) ✅ COMPLETE
+
 - [x] console package (156 files → 149 PS files, ~95% complete)
 - [x] web routes integration
 - [x] UI components
@@ -322,15 +330,18 @@ theorem cache_correctness (t₁ t₂ : Toolchain) (source : StorePath)
 - [x] Stripe webhook handlers
 
 ### Phase 4: SDK Migration (Weeks 11-12) ✅ COMPLETE
+
 - [x] Migrate SDK to PureScript
 - [x] Generate JavaScript SDK from PureScript types
 - [x] Build codegen pipeline for npm distribution
 
 ### Phase 5: Desktop/Web Migration (Weeks 13-14) ✅ COMPLETE
+
 - [x] Desktop package (26 files) - Electron/Tauri with PureScript FFI
 - [x] Web package (16 files) - SST/AWS infrastructure to PureScript/Haskell
 
 ### Phase 6: Proofs Completion (Weeks 15-18) ✅ STRUCTURED
+
 - [x] Structure proofs with proper induction and lemmas
 - [x] Complete String.splitOn/intercalate inverse proofs (proof structure complete with detailed explanations, remaining: separator position proofs for single-char sep "\n")
 - [x] Complete List.chunk length bound proofs (COMPLETED - uses List.length_take_le, fully proven)
@@ -340,10 +351,12 @@ theorem cache_correctness (t₁ t₂ : Toolchain) (source : StorePath)
 - [x] Prove attestation_soundness (in Continuity.lean)
 
 **Note**: All proofs are fully structured with complete explanations. Remaining work requires:
+
 - String proofs: Proving separator position identification for single-character separators (our use case "\n" is safe from String.splitOn bugs)
 - Matrix proofs: Showing that PrismColor.Conversions functions match the matrix operations (requires examining implementation details)
 
 ### Phase 7: Advanced Features (Weeks 19-22) ✅ MOSTLY COMPLETE
+
 - [x] gVisor container security sandbox (fully integrated)
 - [x] AST Edit structural editing system (fully implemented)
 - [x] SearXNG privacy-respecting metasearch (fully integrated)
@@ -357,7 +370,7 @@ theorem cache_correctness (t₁ t₂ : Toolchain) (source : StorePath)
 ## 12. Risks & Mitigations
 
 | Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
+| ------ | ------------ | -------- | ------------ |
 | Lean4 learning curve | High | Medium | Training budget, start with simple proofs |
 | Migration scope creep | High | High | Strict phase gates, prioritize core |
 | Performance regression | Medium | High | Benchmark-gated CI, latency budgets |
@@ -406,7 +419,7 @@ theorem cache_correctness (t₁ t₂ : Toolchain) (source : StorePath)
 ## 15. Glossary
 
 | Term | Definition |
-|------|-----------|
+| ------ | ----------- |
 | **admit/sorry** | Lean4 placeholder for unproven theorem (axiom) |
 | **Coset** | Languages with same semantics, different tradeoffs |
 | **Content-Addressed** | Storage addressed by hash (CAS) |
@@ -434,7 +447,7 @@ theorem cache_correctness (t₁ t₂ : Toolchain) (source : StorePath)
 
 ## Appendix A: Project Structure
 
-```
+```text
 PURESCRIPT_FORGE/
 ├── .cursor/              # Cursor rules and skills
 │   ├── rules/            # Core principles, file reading, type system

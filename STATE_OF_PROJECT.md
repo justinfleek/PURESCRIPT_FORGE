@@ -281,7 +281,7 @@ This project is migrating a TypeScript codebase (OpenCode) to PureScript/Haskell
    - ✅ Provider implementations - **COMPLETE** (verified in codebase)
    - Migrate remaining route components (~15 files)
    - Migrate API route handlers (~10 files)
-   - Fix directory naming: `zen/` → `omega/` (code is correct, directory name inconsistent)
+   - ✅ Fix directory naming: `zen/` → `omega/` (COMPLETE - directories renamed, Lean4 namespace updated)
 
 2. **Wire Up Existing Components**
    - CodeReview, CostManagement, ErrorAnalysis

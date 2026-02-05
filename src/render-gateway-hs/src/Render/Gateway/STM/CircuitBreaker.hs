@@ -54,8 +54,23 @@ createCircuitBreaker initialTime config = do
     }
 
 -- | Record success
-recordSuccess :: CircuitBreaker -> STM ()
-recordSuccess CircuitBreaker {..} = do
+-- | Implements rolling window: resets statistics when window expires
+recordSuccess :: CircuitBreaker -> UTCTime -> STM ()
+recordSuccess CircuitBreaker {..} now = do
+  -- Check if window expired and reset if needed
+  lastReset <- readTVar cbLastReset
+  let elapsed = realToFrac (diffUTCTime now lastReset)
+  let windowSeconds = fromIntegral (cbcWindowSize cbConfig)
+  
+  -- Reset statistics if window expired (rolling window)
+  if elapsed >= windowSeconds then do
+    writeTVar cbFailures 0
+    writeTVar cbSuccesses 0
+    writeTVar cbTotalRequests 0
+    writeTVar cbLastReset now
+  else
+    pure ()
+  
   currentState <- readTVar cbState
   modifyTVar' cbSuccesses (+ 1)
   modifyTVar' cbTotalRequests (+ 1)
@@ -67,13 +82,30 @@ recordSuccess CircuitBreaker {..} = do
         writeTVar cbState CircuitClosed
         writeTVar cbFailures 0
         writeTVar cbSuccesses 0
+        writeTVar cbTotalRequests 0
+        writeTVar cbLastReset now
       else
         pure ()
     _ -> pure ()
 
 -- | Record failure
+-- | Implements rolling window: resets statistics when window expires
 recordFailure :: CircuitBreaker -> UTCTime -> STM ()
 recordFailure CircuitBreaker {..} now = do
+  -- Check if window expired and reset if needed
+  lastReset <- readTVar cbLastReset
+  let elapsed = realToFrac (diffUTCTime now lastReset)
+  let windowSeconds = fromIntegral (cbcWindowSize cbConfig)
+  
+  -- Reset statistics if window expired (rolling window)
+  if elapsed >= windowSeconds then do
+    writeTVar cbFailures 0
+    writeTVar cbSuccesses 0
+    writeTVar cbTotalRequests 0
+    writeTVar cbLastReset now
+  else
+    pure ()
+  
   modifyTVar' cbFailures (+ 1)
   modifyTVar' cbTotalRequests (+ 1)
   

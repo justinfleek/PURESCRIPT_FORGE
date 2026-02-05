@@ -78,9 +78,9 @@ releaseBackend Backend {..} = do
   modifyTVar' beInFlight (\n -> max 0 (n - 1))
 
 -- | Record backend success
-recordBackendSuccess :: Backend -> STM ()
-recordBackendSuccess backend@Backend {..} = do
-  recordSuccess beCircuit
+recordBackendSuccess :: Backend -> UTCTime -> STM ()
+recordBackendSuccess backend@Backend {..} now = do
+  recordSuccess beCircuit now
   releaseBackend backend
 
 -- | Record backend failure

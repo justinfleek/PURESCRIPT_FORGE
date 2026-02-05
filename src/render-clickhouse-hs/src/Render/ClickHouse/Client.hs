@@ -19,7 +19,10 @@ import Data.Time.Format (formatTime, defaultTimeLocale)
 import Network.HTTP.Client (Manager, newManager, defaultManagerSettings, httpLbs, parseRequest, RequestBody(..), responseBody, responseStatus)
 import qualified Network.HTTP.Client as HTTP
 import Network.HTTP.Types.Status (statusCode)
-import Data.Aeson (ToJSON(..), FromJSON(..), encode, decode, object, (.=))
+import Data.Aeson (ToJSON(..), FromJSON(..), encode, decode, object, (.=), Value(..))
+import qualified Data.Aeson as Aeson
+import qualified Data.Aeson.KeyMap as KM
+import Data.Aeson.Key (fromText)
 import GHC.Generics (Generic)
 
 -- | ClickHouse client handle
@@ -142,12 +145,18 @@ queryCustomerGpuSeconds client customerId startTime endTime = do
   case result of
     Left err -> pure (Left err)
     Right body ->
-      case decode (BSL.fromStrict body) of
-        Nothing -> pure (Right 0.0)  -- No results means 0 GPU seconds
-        Just (obj :: [(Text, Double)]) ->
-          case lookup "total_gpu_seconds" obj of
-            Just v -> pure (Right v)
-            Nothing -> pure (Right 0.0)
+      -- JSONEachRow format returns one JSON object per line
+      -- Parse first line (should be only one result from SUM query)
+      let lines' = filter (not . Text.null) $ Text.lines (Text.decodeUtf8 body)
+      in case lines' of
+        [] -> pure (Right 0.0)  -- No results means 0 GPU seconds
+        (firstLine:_) ->
+          case decode (BSL.fromStrict (Text.encodeUtf8 firstLine)) of
+            Nothing -> pure (Right 0.0)  -- Failed to decode, return 0
+            Just (obj :: Aeson.Object) ->
+              case KM.lookup (fromText "total_gpu_seconds") obj of
+                Just (Aeson.Number n) -> pure (Right (realToFrac n :: Double))
+                _ -> pure (Right 0.0)  -- Missing field or wrong type, return 0
 
 -- | Build INSERT statement
 buildInsertStatement :: InferenceEvent -> Text
@@ -207,7 +216,7 @@ executeQueryWithResponse ClickHouseClient {..} sql = do
     Left (e :: SomeException) -> pure (Left $ "ClickHouse query error: " <> show e)
     Right r -> pure r
 
--- | Decode metrics aggregates from JSON lines
+-- | Decode metrics aggregates from JSON lines (exported for testing)
 decodeMetricsAggregates :: ByteString -> Maybe [MetricsAggregate]
 decodeMetricsAggregates body =
   let lines' = filter (not . Text.null) $ Text.lines (Text.decodeUtf8 body)

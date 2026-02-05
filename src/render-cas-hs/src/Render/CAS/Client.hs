@@ -6,7 +6,37 @@
 -- | Render Gateway Nexus CAS Client
 -- | Cold-path audit trail with coeffect tracking per render_specs.pdf §8
 -- | Implements actual BLAKE3 hashing and Ed25519 signing
-module Render.CAS.Client where
+module Render.CAS.Client
+  ( -- CAS Client
+    CASClient(..)
+  , createCASClient
+  , getPublicKey
+  , exportPublicKey
+    -- Upload/Fetch
+  , uploadToCAS
+  , fetchFromCAS
+  , writeAuditBatch
+  , getAuditBatch
+  , writeGPUAttestation
+    -- Signature verification
+  , verifyBatchSignature
+    -- Reconciliation
+  , reconcileMetrics
+  , TimeRange(..)
+  , ReconciliationReport(..)
+  , ReconciliationStatus(..)
+    -- Types
+  , AuditRecord(..)
+  , GPUAttestation(..)
+  , Coeffect(..)
+  , DischargeProof(..)
+    -- Internal functions exported for testing
+    , computeContentHash
+    , signBatch
+    , computeDeltas
+    , serializeBatch
+    , deserializeBatch
+    ) where
 
 import Prelude hiding (head, tail)
 import Control.Exception (try, SomeException)
@@ -17,15 +47,20 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Base16 as Base16
 import Data.Time (UTCTime, getCurrentTime)
-import Data.Aeson (encode, decode, ToJSON(..), FromJSON(..), object, (.=))
+import Data.Time.Format (formatTime, defaultTimeLocale)
+import Data.Aeson (encode, decode, ToJSON(..), FromJSON(..), object, (.=), Value(..))
 import qualified Data.Aeson as Aeson
+import qualified Data.Aeson.KeyMap as KM
 import qualified Data.ByteString.Lazy as BSL
 import GHC.Generics (Generic)
 import qualified Data.Map.Strict as Map
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, mapMaybe, catMaybes)
+import Data.List (toList)
+import Control.Applicative ((<|>))
 import Network.HTTP.Client (Manager, newManager, defaultManagerSettings, httpLbs, parseRequest, RequestBody(..), responseBody, responseStatus)
 import qualified Network.HTTP.Client as HTTP
 import Network.HTTP.Types.Status (statusCode)
+import Data.Aeson.Key (fromText)
 
 -- Crypto imports
 import Crypto.Hash (hash, Digest, SHA256, BLAKE2b_256)
@@ -119,6 +154,7 @@ instance FromJSON AuditRecord
 -- | GPU attestation record
 data GPUAttestation = GPUAttestation
   { gpuRequestId :: Text
+  , gpuCustomerId :: Maybe Text -- Customer ID (extracted from request context)
   , gpuSeconds :: Double
   , gpuDeviceUuid :: Text
   , gpuModelName :: Text
@@ -129,6 +165,7 @@ data GPUAttestation = GPUAttestation
 instance ToJSON GPUAttestation where
   toJSON GPUAttestation {..} = object
     [ "request_id" .= gpuRequestId
+    , "customer_id" .= gpuCustomerId
     , "gpu_seconds" .= gpuSeconds
     , "device_uuid" .= gpuDeviceUuid
     , "model_name" .= gpuModelName
@@ -357,18 +394,157 @@ attestationToRecord client attestation = do
     }
 
 -- | Query ClickHouse metrics
+-- | Note: This function queries ClickHouse directly via HTTP
+-- | In production, prefer using Render.ClickHouse.Client.queryMetricsAggregates
 queryClickHouseMetrics :: TimeRange -> IO [(Text, Int)]
 queryClickHouseMetrics TimeRange {..} = do
-  -- In production, this would query ClickHouse
-  -- For now, return empty (to be implemented with actual ClickHouse client)
-  pure []
+  -- Query ClickHouse HTTP interface for metrics
+  -- This is a simplified implementation - in production, use ClickHouse client
+  manager <- newManager defaultManagerSettings
+  result <- try $ do
+    -- Build query to count requests by customer_id
+    let query = Text.unlines
+          [ "SELECT customer_id, count() as cnt"
+          , "FROM inference_events"
+          , "WHERE timestamp >= " <> formatTimeRange trStart
+          , "  AND timestamp < " <> formatTimeRange trEnd
+          , "  AND status = 'success'"
+          , "GROUP BY customer_id"
+          , "FORMAT JSONEachRow"
+          ]
+    
+    -- Query ClickHouse (default: localhost:8123)
+    let url = "http://localhost:8123/?database=default"
+    initialRequest <- parseRequest url
+    let request = initialRequest
+          { HTTP.method = "POST"
+          , HTTP.requestBody = RequestBodyBS (Text.encodeUtf8 query)
+          , HTTP.requestHeaders = [("Content-Type", "text/plain; charset=utf-8")]
+          }
+    
+    response <- httpLbs request manager
+    
+    case statusCode (responseStatus response) of
+      200 -> do
+        let body = BSL.toStrict (responseBody response)
+        -- Parse JSON lines response
+        let lines' = filter (not . Text.null) $ Text.lines (Text.decodeUtf8 body)
+        let metrics = mapMaybe parseMetricLine lines'
+        pure metrics
+      _ -> pure []
+  
+  case result of
+    Left (_ :: SomeException) -> pure [] -- On error, return empty
+    Right metrics -> pure metrics
+  where
+    formatTimeRange :: UTCTime -> Text
+    formatTimeRange = Text.pack . formatTime defaultTimeLocale "'%Y-%m-%d %H:%M:%S'"
+    
+    parseMetricLine :: Text -> Maybe (Text, Int)
+    parseMetricLine line = case Aeson.decode (BSL.fromStrict (Text.encodeUtf8 line)) of
+      Just (Aeson.Object obj) -> do
+        customerIdVal <- KM.lookup (fromText "customer_id") obj
+        cntVal <- KM.lookup (fromText "cnt") obj
+        case (customerIdVal, cntVal) of
+          (Just (Aeson.String cid), Just (Aeson.Number n)) -> 
+            Just (cid, truncate (realToFrac n :: Double))
+          _ -> Nothing
+      _ -> Nothing
 
--- | Query CAS metrics via DuckDB passthrough
+-- | Query CAS metrics by scanning CAS objects
+-- | 
+-- | Implementation: Lists CAS objects and fetches audit records
+-- | This is inefficient for large datasets - prefer DuckDB metadata index
+-- | For production, use queryCASAggregates in compliance module with DuckDB
 queryCASMetrics :: CASClient -> TimeRange -> IO [(Text, Int)]
-queryCASMetrics _client TimeRange {..} = do
-  -- In production, this would scan CAS and aggregate via DuckDB
-  -- For now, return empty (to be implemented)
-  pure []
+queryCASMetrics client TimeRange {..} = do
+  -- List CAS objects in bucket (if CAS API supports listing)
+  -- For now, we attempt to query CAS list endpoint
+  result <- try $ listCASObjects client
+  
+  case result of
+    Left (_ :: SomeException) -> pure [] -- CAS listing not available
+    Right objectHashes -> do
+      -- Fetch and parse each audit record
+      records <- mapM (fetchAndParseRecord client) objectHashes
+      
+      -- Filter by time range and extract customer IDs
+      let filteredRecords = filter (isInTimeRange trStart trEnd) (catMaybes records)
+      let customerCounts = aggregateByCustomer filteredRecords
+      
+      pure customerCounts
+  where
+    -- List CAS objects (attempts CAS list API)
+    listCASObjects :: CASClient -> IO [Text]
+    listCASObjects CASClient {..} = do
+      result <- try $ do
+        let url = Text.unpack casEndpoint <> "/v1/objects?bucket=" <> Text.unpack casBucket
+        initialRequest <- parseRequest url
+        let request = initialRequest
+              { HTTP.method = "GET"
+              , HTTP.requestHeaders = [("X-Bucket", Text.encodeUtf8 casBucket)]
+              }
+        
+        response <- httpLbs request casManager
+        
+        case statusCode (responseStatus response) of
+          200 -> do
+            let body = BSL.toStrict (responseBody response)
+            -- Parse JSON array of object hashes
+            case decode (BSL.fromStrict body) of
+              Just (Aeson.Array arr) -> pure $ mapMaybe extractHash (toList arr)
+              _ -> pure []
+          _ -> pure []
+      
+      case result of
+        Left (_ :: SomeException) -> pure [] -- List API not available
+        Right hashes -> pure hashes
+    
+    -- Extract hash from JSON value
+    extractHash :: Aeson.Value -> Maybe Text
+    extractHash (Aeson.String s) = Just s
+    extractHash (Aeson.Object obj) = do
+      hashVal <- KM.lookup (fromText "hash") obj <|> KM.lookup (fromText "object_hash") obj
+      case hashVal of
+        Aeson.String s -> Just s
+        _ -> Nothing
+    extractHash _ = Nothing
+    
+    -- Fetch CAS object and parse as audit record
+    fetchAndParseRecord :: CASClient -> Text -> IO (Maybe AuditRecord)
+    fetchAndParseRecord casClient hashText = do
+      result <- fetchFromCAS casClient hashText
+      case result of
+        Left _ -> pure Nothing
+        Right (content, _sig) -> do
+          -- Parse as audit record batch (CAS stores batches)
+          -- deserializeBatch handles both single records and batches
+          let records = deserializeBatch content
+          case records of
+            (first:_) -> pure (Just first) -- Take first record from batch
+            [] -> pure Nothing
+    
+    -- Check if record is in time range
+    isInTimeRange :: UTCTime -> UTCTime -> AuditRecord -> Bool
+    isInTimeRange start end record =
+      dischargeTimestamp (arDischarge record) >= start &&
+      dischargeTimestamp (arDischarge record) < end
+    
+    -- Aggregate records by customer ID
+    aggregateByCustomer :: [AuditRecord] -> [(Text, Int)]
+    aggregateByCustomer records = do
+      -- Extract customer_id from GPUAttestation in arContent
+      let customerIds = mapMaybe extractCustomerId records
+      let counts = Map.fromListWith (+) $ map (\cid -> (cid, 1)) customerIds
+      Map.toList counts
+    
+    -- Extract customer_id from GPUAttestation JSON in arContent
+    extractCustomerId :: AuditRecord -> Maybe Text
+    extractCustomerId record = do
+      -- Parse arContent as GPUAttestation
+      attestation <- decode (BSL.fromStrict (arContent record)) :: Maybe GPUAttestation
+      -- Extract customer_id from attestation
+      gpuCustomerId attestation
 
 -- | Compute percentage deltas between metrics
 computeDeltas :: [(Text, Int)] -> [(Text, Int)] -> [(Text, Double)]

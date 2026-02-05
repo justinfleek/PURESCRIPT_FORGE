@@ -48,6 +48,7 @@ data QueuedJob = QueuedJob
   , qjRequest :: Value        -- Full JSON request body
   , qjOutput :: Maybe Text    -- Output URL when complete
   , qjError :: Maybe Text     -- Error message if failed
+  , qjRetryCount :: Int       -- Number of retry attempts (for retriable failures)
   }
 
 -- | Request queue with three priority lanes
