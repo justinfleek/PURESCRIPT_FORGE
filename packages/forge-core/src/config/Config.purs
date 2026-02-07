@@ -29,7 +29,7 @@
 -- |
 -- | **Usage Example:**
 -- | ```purescript
--- | import Bridge.Config as Config
+-- | import Forge.Config as Config
 -- |
 -- | -- Load configuration
 -- | config <- Config.loadConfig
@@ -38,14 +38,14 @@
 -- | port = config.port
 -- | veniceApiKey = config.venice.apiKey
 -- | ```
-module Bridge.Config where
+module Forge.Config where
 
 import Prelude
 import Effect (Effect)
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Bridge.FFI.Node.Process (getEnv)
-import Bridge.Utils.Validation (validateNonNegative, validatePositive, validateNonEmpty, validateRange)
+import Forge.Bridge.FFI.Node.Process (getEnv)
+import Forge.Bridge.Utils.Validation (validateNonNegative, validatePositive, validateNonEmpty, validateRange)
 
 -- | Configuration type
 type Config =

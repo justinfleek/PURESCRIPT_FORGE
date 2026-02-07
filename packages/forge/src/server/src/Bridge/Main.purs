@@ -10,7 +10,7 @@ import Bridge.FFI.Node.Express as Express
 import Bridge.FFI.Node.WebSocket as WS
 import Bridge.FFI.Node.Pino as Pino
 import Bridge.State.Store as Store
-import Bridge.Config (loadConfig)
+import Forge.Config (loadConfig)
 import Bridge.Server (startServer)
 
 -- | Main entry point

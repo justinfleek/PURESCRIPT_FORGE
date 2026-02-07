@@ -1,4 +1,4 @@
-module Render.Types where
+module Forge.Enterprise.Types where
 
 import Prelude
 

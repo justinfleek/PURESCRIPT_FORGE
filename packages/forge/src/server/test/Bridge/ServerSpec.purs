@@ -3,16 +3,12 @@
 module Test.Bridge.ServerSpec where
 
 import Prelude
-import Test.Spec (describe, it)
+import Test.Spec (describe, it, pending)
 import Test.Spec.Assertions (shouldEqual, shouldBeTrue)
-import Test.QuickCheck (quickCheck, (<?>))
-import Effect (Effect)
 import Effect.Class (liftEffect)
-import Effect.Aff (Aff, delay, Milliseconds(..))
-import Bridge.Server (startServer)
-import Bridge.Config (loadConfig, Config)
-import Bridge.State.Store (createStore, StateStore)
-import Bridge.FFI.Node.Pino (create, Logger)
+import Forge.Config (loadConfig)
+import Bridge.State.Store (createStore)
+import Bridge.FFI.Node.Pino (create)
 
 -- | Test server initialization
 testServerInitialization :: forall m. Monad m => m Unit
@@ -20,40 +16,26 @@ testServerInitialization = do
   describe "Server Initialization" do
     it "loads configuration successfully" do
       config <- liftEffect loadConfig
-      config.port `shouldEqual` 8765 -- Default port
-    
+      config.port `shouldEqual` 8765
+
     it "creates state store successfully" do
-      store <- liftEffect createStore
-      true `shouldBeTrue` -- Store created
-    
+      _store <- liftEffect createStore
+      true `shouldBeTrue`
+
     it "creates logger successfully" do
-      logger <- liftEffect $ create { name: "test", level: "info" }
-      true `shouldBeTrue` -- Logger created
+      _logger <- liftEffect $ create { name: "test", level: "info" }
+      true `shouldBeTrue`
 
 -- | Test server startup
 testServerStartup :: forall m. Monad m => m Unit
 testServerStartup = do
   describe "Server Startup" do
-    it "initializes all components" do
-      -- Would test that all components are initialized
-      -- HTTP server, WebSocket manager, database, etc.
-      true `shouldBeTrue` -- Placeholder
-    
-    it "sets up health check endpoint" do
-      -- Would test health check endpoint
-      true `shouldBeTrue` -- Placeholder
-    
-    it "sets up static file serving" do
-      -- Would test static file serving
-      true `shouldBeTrue` -- Placeholder
-
--- | Property: Server always initializes with valid config
-prop_serverInitializesWithValidConfig :: Config -> Boolean
-prop_serverInitializesWithValidConfig config = true -- Placeholder
+    pending "initializes all components (requires mock HttpServer)"
+    pending "sets up health check endpoint (requires running server)"
+    pending "sets up static file serving (requires running server)"
 
 -- | Property tests
 testProperties :: forall m. Monad m => m Unit
 testProperties = do
   describe "Property Tests" do
-    it "server always initializes with valid config" do
-      quickCheck prop_serverInitializesWithValidConfig
+    pending "server always initializes with valid config (requires Arbitrary Config)"

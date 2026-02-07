@@ -76,7 +76,7 @@ import Bridge.Notifications.Service (NotificationService)
 import Bridge.Forge.Events (handleForgeEvent)
 import Bridge.FFI.Node.Terminal as Terminal
 import Bridge.FFI.Node.FileContext as FileContext
-import Bridge.FFI.Node.Process as Process
+import Forge.Bridge.FFI.Node.Process as Process
 import Bridge.FFI.Node.Handlers as Handlers
 import Bridge.State.Store (AlertConfig)
 import Data.DateTime (DateTime)

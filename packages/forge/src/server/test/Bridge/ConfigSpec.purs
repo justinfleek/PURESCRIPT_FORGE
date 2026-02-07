@@ -7,8 +7,8 @@ import Test.Spec (describe, it)
 import Test.Spec.Assertions (shouldEqual, shouldBeTrue)
 import Effect (Effect)
 import Effect.Class (liftEffect)
-import Bridge.Config (loadConfig, Config)
-import Bridge.Utils.Validation (validateRange, validateNonEmpty, validatePositive)
+import Forge.Config (loadConfig, Config)
+import Forge.Bridge.Utils.Validation (validateRange, validateNonEmpty, validatePositive)
 
 -- | Test default configuration
 testDefaultConfig :: forall m. Monad m => m Unit

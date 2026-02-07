@@ -9,7 +9,7 @@ import Test.QuickCheck (quickCheck, (<?>))
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen (Gen, chooseInt, chooseFloat, arrayOf, elements, suchThat)
 import Effect (Effect)
-import Bridge.Utils.Validation
+import Forge.Bridge.Utils.Validation
   ( validateNonNegative
   , validatePositive
   , validateRange

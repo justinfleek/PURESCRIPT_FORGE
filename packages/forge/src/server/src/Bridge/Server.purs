@@ -29,7 +29,7 @@
 -- | **Usage Example:**
 -- | ```purescript
 -- | import Bridge.Server as Server
--- | import Bridge.Config as Config
+-- | import Forge.Config as Config
 -- | import Bridge.State.Store as Store
 -- | import Bridge.FFI.Node.Pino as Pino
 -- |
@@ -47,7 +47,7 @@ import Effect.Aff (Aff, launchAff_, delay, Milliseconds(..))
 import Effect.Class (liftEffect)
 import Effect.Ref (Ref, new, read, write)
 import Data.Maybe (Maybe(..))
-import Bridge.Config (Config)
+import Forge.Config (Config)
 import Bridge.State.Store (StateStore, createStore, setConnected)
 import Bridge.FFI.Node.Express as Express
 import Bridge.FFI.Node.WebSocket as WS

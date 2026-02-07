@@ -1,4 +1,4 @@
-module Render.Client where
+module Forge.Enterprise.Client where
 
 import Prelude
 
@@ -9,7 +9,7 @@ import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.Argonaut (encodeJson, decodeJson, stringify, jsonParser)
 import Data.Argonaut.Core as AC
-import Render.Types
+import Forge.Enterprise.Types
 import Render.FFI (RenderClient, createRenderClientImpl, getApiKey, makeRequest, getHeader, getBody, isOk, parseInt)
 
 -- | Create Render client
