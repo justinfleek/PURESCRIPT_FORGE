@@ -1,12 +1,10 @@
 {-# LANGUAGE StrictData #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 
 -- | Verification protocol - ensures all checks pass
 module Rules.Verification where
 
-import Prelude hiding (undefined, error, head, tail, fromJust)
-import Rules.Core (TaskCompletion(..), verifyCompletion)
-import Data.Bool (Bool(..))
+import Prelude hiding (undefined, error, head, tail)
+import qualified Rules.Core as Core
 
 -- | Verification checklist
 data VerificationChecklist = VerificationChecklist
@@ -30,19 +28,19 @@ verifyChecklist (VerificationChecklist f d a b t tc ts p doc w) =
 
 -- | Convert TaskCompletion to VerificationChecklist
 -- | For compatibility with existing code
-toChecklist :: TaskCompletion -> VerificationChecklist
-toChecklist (TaskCompletion compiles typeChecks tests doc clean debt) =
+toChecklist :: Core.TaskCompletion -> VerificationChecklist
+toChecklist tc =
   VerificationChecklist
     { filesReadCompletely = True  -- Assumed if we got here
     , dependencyGraphTraced = True
     , allInstancesFixed = True
     , noBannedConstructs = True
     , typesExplicit = True
-    , typeChecksPass = typeChecks
-    , testsPass = tests
-    , proofsCheck = compiles  -- Proofs check if code compiles
-    , documentationUpdated = doc
-    , workspaceClean = clean
+    , typeChecksPass = Core.typeChecks tc
+    , testsPass = Core.testsPass tc
+    , proofsCheck = Core.codeCompiles tc  -- Proofs check if code compiles
+    , documentationUpdated = Core.documentationUpdated tc
+    , workspaceClean = Core.workspaceClean tc
     }
 
 -- | All verification must pass

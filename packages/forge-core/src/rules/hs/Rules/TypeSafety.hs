@@ -1,12 +1,9 @@
 {-# LANGUAGE StrictData #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 
 -- | Type safety rules - no banned constructs
 module Rules.TypeSafety where
 
-import Prelude hiding (undefined, error, head, tail, fromJust)
-import Data.Maybe (Maybe(..))
-import Data.Either (Either(..))
+import Prelude hiding (undefined, error, head, tail)
 
 -- | BANNED: undefined, error, head, tail, fromJust
 -- | These are unrepresentable - compiler will reject if imported
@@ -22,14 +19,14 @@ type Result e a = Either e a
 -- | Explicit null check
 -- | Replaces ?? (nullish coalescing) and ! (non-null assertion)
 explicitDefault :: Maybe a -> a -> a
-explicitDefault Nothing default = default
+explicitDefault Nothing def = def
 explicitDefault (Just value) _ = value
 
 -- | Explicit conditional
 -- | Replaces || for defaults
 explicitConditional :: Bool -> a -> a -> a
 explicitConditional True value _ = value
-explicitConditional False _ default = default
+explicitConditional False _ def = def
 
 -- | Type guard for narrowing
 -- | Replaces type assertions (as Type)

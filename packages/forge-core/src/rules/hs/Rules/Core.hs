@@ -1,11 +1,9 @@
 {-# LANGUAGE StrictData #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 
 -- | Core development principles as proven types
 module Rules.Core where
 
-import Prelude hiding (undefined, error, head, tail, fromJust)
-import Data.Bool (Bool(..))
+import Prelude hiding (undefined, error, head, tail)
 
 -- | ACCURACY > SPEED
 -- | COMPLETENESS > CONVENIENCE
