@@ -1,0 +1,28 @@
+package:
+  name: forge-console-app
+  dependencies:
+    - prelude
+    - effect
+    - aff
+    - maybe
+    - either
+    - arrays
+    - strings
+    - tuples
+    - ordered-collections
+    - foldable-traversable
+    - foreign
+    - foreign-object
+    - halogen
+    - web-html
+    - web-dom
+    - web-events
+    - datetime
+    - integers
+    - numbers
+    - refs
+    - transformers
+    - control
+    - exceptions
+  build:
+    strict: true

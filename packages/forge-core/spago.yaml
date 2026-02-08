@@ -70,11 +70,6 @@ workspace:
   # Source paths for all PureScript modules
   sources:
     - "src/**/*.purs"
-    - "src/types/ps/**/*.purs"
-    - "src/bridge/ps/**/*.purs"
-    - "src/sidepanel/ps/**/*.purs"
-    - "src/plugin/ps/**/*.purs"
-    - "src/rules/ps/**/*.purs"
 
 # Test configuration
 test:

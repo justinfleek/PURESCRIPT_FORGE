@@ -1,0 +1,16 @@
+package:
+  name: forge-console-core
+  dependencies:
+    - prelude
+    - effect
+    - aff
+    - maybe
+    - either
+    - arrays
+    - strings
+    - ordered-collections
+    - foldable-traversable
+    - foreign
+    - foreign-object
+  build:
+    strict: true

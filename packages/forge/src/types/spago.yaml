@@ -1,0 +1,14 @@
+package:
+  name: forge-types
+  dependencies:
+    - prelude
+    - effect
+    - aff
+    - argonaut
+    - argonaut-codecs
+    - maybe
+    - either
+    - arrays
+    - strings
+  build:
+    strict: true

@@ -1,1 +1,20 @@
-packages/console/app/.spago/
+# PureScript
+.spago/
+output/
+.psci_modules/
+
+# Haskell
+dist-newstyle/
+.stack-work/
+
+# Lean4
+.lake/build/
+
+# Node
+node_modules/
+
+# Nix
+result
+
+# Build artifacts
+dist/

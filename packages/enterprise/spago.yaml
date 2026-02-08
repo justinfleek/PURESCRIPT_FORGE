@@ -1,0 +1,14 @@
+package:
+  name: forge-enterprise
+  dependencies:
+    - prelude
+    - effect
+    - aff
+    - either
+    - maybe
+    - argonaut
+    - argonaut-codecs
+    - arrays
+    - strings
+  build:
+    strict: true
