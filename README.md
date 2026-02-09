@@ -132,3 +132,4 @@ It's very similar to Claude Code in terms of capability. Here are the key differ
 ---
 
 **Join our community** [Discord](https://discord.gg/forge) | [X.com](https://x.com/forge)
+# PURESCRIPT_FORGE
