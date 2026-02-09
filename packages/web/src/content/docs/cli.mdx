@@ -1,0 +1,597 @@
+---
+title: CLI
+description: Forge CLI options and commands.
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components"
+
+The Forge CLI by default starts the [TUI](/docs/tui) when run without any arguments.
+
+```bash
+forge
+```
+
+But it also accepts commands as documented on this page. This allows you to interact with Forge programmatically.
+
+```bash
+forge run "Explain how closures work in JavaScript"
+```
+
+---
+
+### tui
+
+Start the Forge terminal user interface.
+
+```bash
+forge [project]
+```
+
+#### Flags
+
+| Flag         | Short | Description                                |
+| ------------ | ----- | ------------------------------------------ |
+| `--continue` | `-c`  | Continue the last session                  |
+| `--session`  | `-s`  | Session ID to continue                     |
+| `--prompt`   |       | Prompt to use                              |
+| `--model`    | `-m`  | Model to use in the form of provider/model |
+| `--agent`    |       | Agent to use                               |
+| `--port`     |       | Port to listen on                          |
+| `--hostname` |       | Hostname to listen on                      |
+
+---
+
+## Commands
+
+The Forge CLI also has the following commands.
+
+---
+
+### agent
+
+Manage agents for Forge.
+
+```bash
+forge agent [command]
+```
+
+---
+
+### attach
+
+Attach a terminal to an already running Forge backend server started via `serve` or `web` commands.
+
+```bash
+forge attach [url]
+```
+
+This allows using the TUI with a remote Forge backend. For example:
+
+```bash
+# Start the backend server for web/mobile access
+forge web --port 4096 --hostname 0.0.0.0
+
+# In another terminal, attach the TUI to the running backend
+forge attach http://10.20.30.40:4096
+```
+
+#### Flags
+
+| Flag        | Short | Description                       |
+| ----------- | ----- | --------------------------------- |
+| `--dir`     |       | Working directory to start TUI in |
+| `--session` | `-s`  | Session ID to continue            |
+
+---
+
+#### create
+
+Create a new agent with custom configuration.
+
+```bash
+forge agent create
+```
+
+This command will guide you through creating a new agent with a custom system prompt and tool configuration.
+
+---
+
+#### list
+
+List all available agents.
+
+```bash
+forge agent list
+```
+
+---
+
+### auth
+
+Command to manage credentials and login for providers.
+
+```bash
+forge auth [command]
+```
+
+---
+
+#### login
+
+Forge is powered by the provider list at [Models.dev](https://models.dev), so you can use `forge auth login` to configure API keys for any provider you'd like to use. This is stored in `~/.local/share/forge/auth.json`.
+
+```bash
+forge auth login
+```
+
+When Forge starts up it loads the providers from the credentials file. And if there are any keys defined in your environments or a `.env` file in your project.
+
+---
+
+#### list
+
+Lists all the authenticated providers as stored in the credentials file.
+
+```bash
+forge auth list
+```
+
+Or the short version.
+
+```bash
+forge auth ls
+```
+
+---
+
+#### logout
+
+Logs you out of a provider by clearing it from the credentials file.
+
+```bash
+forge auth logout
+```
+
+---
+
+### github
+
+Manage the GitHub agent for repository automation.
+
+```bash
+forge github [command]
+```
+
+---
+
+#### install
+
+Install the GitHub agent in your repository.
+
+```bash
+forge github install
+```
+
+This sets up the necessary GitHub Actions workflow and guides you through the configuration process. [Learn more](/docs/github).
+
+---
+
+#### run
+
+Run the GitHub agent. This is typically used in GitHub Actions.
+
+```bash
+forge github run
+```
+
+##### Flags
+
+| Flag      | Description                            |
+| --------- | -------------------------------------- |
+| `--event` | GitHub mock event to run the agent for |
+| `--token` | GitHub personal access token           |
+
+---
+
+### mcp
+
+Manage Model Context Protocol servers.
+
+```bash
+forge mcp [command]
+```
+
+---
+
+#### add
+
+Add an MCP server to your configuration.
+
+```bash
+forge mcp add
+```
+
+This command will guide you through adding either a local or remote MCP server.
+
+---
+
+#### list
+
+List all configured MCP servers and their connection status.
+
+```bash
+forge mcp list
+```
+
+Or use the short version.
+
+```bash
+forge mcp ls
+```
+
+---
+
+#### auth
+
+Authenticate with an OAuth-enabled MCP server.
+
+```bash
+forge mcp auth [name]
+```
+
+If you don't provide a server name, you'll be prompted to select from available OAuth-capable servers.
+
+You can also list OAuth-capable servers and their authentication status.
+
+```bash
+forge mcp auth list
+```
+
+Or use the short version.
+
+```bash
+forge mcp auth ls
+```
+
+---
+
+#### logout
+
+Remove OAuth credentials for an MCP server.
+
+```bash
+forge mcp logout [name]
+```
+
+---
+
+#### debug
+
+Debug OAuth connection issues for an MCP server.
+
+```bash
+forge mcp debug <name>
+```
+
+---
+
+### models
+
+List all available models from configured providers.
+
+```bash
+forge models [provider]
+```
+
+This command displays all models available across your configured providers in the format `provider/model`.
+
+This is useful for figuring out the exact model name to use in [your config](/docs/config/).
+
+You can optionally pass a provider ID to filter models by that provider.
+
+```bash
+forge models anthropic
+```
+
+#### Flags
+
+| Flag        | Description                                                  |
+| ----------- | ------------------------------------------------------------ |
+| `--refresh` | Refresh the models cache from models.dev                     |
+| `--verbose` | Use more verbose model output (includes metadata like costs) |
+
+Use the `--refresh` flag to update the cached model list. This is useful when new models have been added to a provider and you want to see them in Forge.
+
+```bash
+forge models --refresh
+```
+
+---
+
+### run
+
+Run forge in non-interactive mode by passing a prompt directly.
+
+```bash
+forge run [message..]
+```
+
+This is useful for scripting, automation, or when you want a quick answer without launching the full TUI. For example.
+
+```bash "forge run"
+forge run Explain the use of context in Go
+```
+
+You can also attach to a running `forge serve` instance to avoid MCP server cold boot times on every run:
+
+```bash
+# Start a headless server in one terminal
+forge serve
+
+# In another terminal, run commands that attach to it
+forge run --attach http://localhost:4096 "Explain async/await in JavaScript"
+```
+
+#### Flags
+
+| Flag         | Short | Description                                                        |
+| ------------ | ----- | ------------------------------------------------------------------ |
+| `--command`  |       | The command to run, use message for args                           |
+| `--continue` | `-c`  | Continue the last session                                          |
+| `--session`  | `-s`  | Session ID to continue                                             |
+| `--share`    |       | Share the session                                                  |
+| `--model`    | `-m`  | Model to use in the form of provider/model                         |
+| `--agent`    |       | Agent to use                                                       |
+| `--file`     | `-f`  | File(s) to attach to message                                       |
+| `--format`   |       | Format: default (formatted) or json (raw JSON events)              |
+| `--title`    |       | Title for the session (uses truncated prompt if no value provided) |
+| `--attach`   |       | Attach to a running forge server (e.g., http://localhost:4096)  |
+| `--port`     |       | Port for the local server (defaults to random port)                |
+
+---
+
+### serve
+
+Start a headless Forge server for API access. Check out the [server docs](/docs/server) for the full HTTP interface.
+
+```bash
+forge serve
+```
+
+This starts an HTTP server that provides API access to forge functionality without the TUI interface. Set `FORGE_SERVER_PASSWORD` to enable HTTP basic auth (username defaults to `forge`).
+
+#### Flags
+
+| Flag         | Description                                |
+| ------------ | ------------------------------------------ |
+| `--port`     | Port to listen on                          |
+| `--hostname` | Hostname to listen on                      |
+| `--mdns`     | Enable mDNS discovery                      |
+| `--cors`     | Additional browser origin(s) to allow CORS |
+
+---
+
+### session
+
+Manage Forge sessions.
+
+```bash
+forge session [command]
+```
+
+---
+
+#### list
+
+List all Forge sessions.
+
+```bash
+forge session list
+```
+
+##### Flags
+
+| Flag          | Short | Description                          |
+| ------------- | ----- | ------------------------------------ |
+| `--max-count` | `-n`  | Limit to N most recent sessions      |
+| `--format`    |       | Output format: table or json (table) |
+
+---
+
+### stats
+
+Show token usage and cost statistics for your Forge sessions.
+
+```bash
+forge stats
+```
+
+#### Flags
+
+| Flag        | Description                                                                 |
+| ----------- | --------------------------------------------------------------------------- |
+| `--days`    | Show stats for the last N days (all time)                                   |
+| `--tools`   | Number of tools to show (all)                                               |
+| `--models`  | Show model usage breakdown (hidden by default). Pass a number to show top N |
+| `--project` | Filter by project (all projects, empty string: current project)             |
+
+---
+
+### export
+
+Export session data as JSON.
+
+```bash
+forge export [sessionID]
+```
+
+If you don't provide a session ID, you'll be prompted to select from available sessions.
+
+---
+
+### import
+
+Import session data from a JSON file or Forge share URL.
+
+```bash
+forge import <file>
+```
+
+You can import from a local file or a Forge share URL.
+
+```bash
+forge import session.json
+forge import https://opncd.ai/s/abc123
+```
+
+---
+
+### web
+
+Start a headless Forge server with a web interface.
+
+```bash
+forge web
+```
+
+This starts an HTTP server and opens a web browser to access Forge through a web interface. Set `FORGE_SERVER_PASSWORD` to enable HTTP basic auth (username defaults to `forge`).
+
+#### Flags
+
+| Flag         | Description                                |
+| ------------ | ------------------------------------------ |
+| `--port`     | Port to listen on                          |
+| `--hostname` | Hostname to listen on                      |
+| `--mdns`     | Enable mDNS discovery                      |
+| `--cors`     | Additional browser origin(s) to allow CORS |
+
+---
+
+### acp
+
+Start an ACP (Agent Client Protocol) server.
+
+```bash
+forge acp
+```
+
+This command starts an ACP server that communicates via stdin/stdout using nd-JSON.
+
+#### Flags
+
+| Flag         | Description           |
+| ------------ | --------------------- |
+| `--cwd`      | Working directory     |
+| `--port`     | Port to listen on     |
+| `--hostname` | Hostname to listen on |
+
+---
+
+### uninstall
+
+Uninstall Forge and remove all related files.
+
+```bash
+forge uninstall
+```
+
+#### Flags
+
+| Flag            | Short | Description                                 |
+| --------------- | ----- | ------------------------------------------- |
+| `--keep-config` | `-c`  | Keep configuration files                    |
+| `--keep-data`   | `-d`  | Keep session data and snapshots             |
+| `--dry-run`     |       | Show what would be removed without removing |
+| `--force`       | `-f`  | Skip confirmation prompts                   |
+
+---
+
+### upgrade
+
+Updates forge to the latest version or a specific version.
+
+```bash
+forge upgrade [target]
+```
+
+To upgrade to the latest version.
+
+```bash
+forge upgrade
+```
+
+To upgrade to a specific version.
+
+```bash
+forge upgrade v0.1.48
+```
+
+#### Flags
+
+| Flag       | Short | Description                                                       |
+| ---------- | ----- | ----------------------------------------------------------------- |
+| `--method` | `-m`  | The installation method that was used; curl, npm, pnpm, bun, brew |
+
+---
+
+## Global Flags
+
+The forge CLI takes the following global flags.
+
+| Flag           | Short | Description                          |
+| -------------- | ----- | ------------------------------------ |
+| `--help`       | `-h`  | Display help                         |
+| `--version`    | `-v`  | Print version number                 |
+| `--print-logs` |       | Print logs to stderr                 |
+| `--log-level`  |       | Log level (DEBUG, INFO, WARN, ERROR) |
+
+---
+
+## Environment variables
+
+Forge can be configured using environment variables.
+
+| Variable                              | Type    | Description                                       |
+| ------------------------------------- | ------- | ------------------------------------------------- |
+| `FORGE_AUTO_SHARE`                 | boolean | Automatically share sessions                      |
+| `FORGE_GIT_BASH_PATH`              | string  | Path to Git Bash executable on Windows            |
+| `FORGE_CONFIG`                     | string  | Path to config file                               |
+| `FORGE_CONFIG_DIR`                 | string  | Path to config directory                          |
+| `FORGE_CONFIG_CONTENT`             | string  | Inline json config content                        |
+| `FORGE_DISABLE_AUTOUPDATE`         | boolean | Disable automatic update checks                   |
+| `FORGE_DISABLE_PRUNE`              | boolean | Disable pruning of old data                       |
+| `FORGE_DISABLE_TERMINAL_TITLE`     | boolean | Disable automatic terminal title updates          |
+| `FORGE_PERMISSION`                 | string  | Inlined json permissions config                   |
+| `FORGE_DISABLE_DEFAULT_PLUGINS`    | boolean | Disable default plugins                           |
+| `FORGE_DISABLE_LSP_DOWNLOAD`       | boolean | Disable automatic LSP server downloads            |
+| `FORGE_ENABLE_EXPERIMENTAL_MODELS` | boolean | Enable experimental models                        |
+| `FORGE_DISABLE_AUTOCOMPACT`        | boolean | Disable automatic context compaction              |
+| `FORGE_DISABLE_CLAUDE_CODE`        | boolean | Disable reading from `.claude` (prompt + skills)  |
+| `FORGE_DISABLE_CLAUDE_CODE_PROMPT` | boolean | Disable reading `~/.claude/CLAUDE.md`             |
+| `FORGE_DISABLE_CLAUDE_CODE_SKILLS` | boolean | Disable loading `.claude/skills`                  |
+| `FORGE_CLIENT`                     | string  | Client identifier (defaults to `cli`)             |
+| `FORGE_ENABLE_EXA`                 | boolean | Enable Exa web search tools                       |
+| `FORGE_SERVER_PASSWORD`            | string  | Enable basic auth for `serve`/`web`               |
+| `FORGE_SERVER_USERNAME`            | string  | Override basic auth username (default `forge`) |
+
+---
+
+### Experimental
+
+These environment variables enable experimental features that may change or be removed.
+
+| Variable                                        | Type    | Description                             |
+| ----------------------------------------------- | ------- | --------------------------------------- |
+| `FORGE_EXPERIMENTAL`                         | boolean | Enable all experimental features        |
+| `FORGE_EXPERIMENTAL_ICON_DISCOVERY`          | boolean | Enable icon discovery                   |
+| `FORGE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT`  | boolean | Disable copy on select in TUI           |
+| `FORGE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS` | number  | Default timeout for bash commands in ms |
+| `FORGE_EXPERIMENTAL_OUTPUT_TOKEN_MAX`        | number  | Max output tokens for LLM responses     |
+| `FORGE_EXPERIMENTAL_FILEWATCHER`             | boolean | Enable file watcher for entire dir      |
+| `FORGE_EXPERIMENTAL_OXFMT`                   | boolean | Enable oxfmt formatter                  |
+| `FORGE_EXPERIMENTAL_LSP_TOOL`                | boolean | Enable experimental LSP tool            |
+| `FORGE_EXPERIMENTAL_DISABLE_FILEWATCHER`     | boolean | Disable file watcher                    |
+| `FORGE_EXPERIMENTAL_EXA`                     | boolean | Enable experimental Exa features        |
+| `FORGE_EXPERIMENTAL_LSP_TY`                  | boolean | Enable experimental LSP type checking   |
+| `FORGE_EXPERIMENTAL_MARKDOWN`                | boolean | Enable experimental markdown features   |
+| `FORGE_EXPERIMENTAL_PLAN_MODE`               | boolean | Enable plan mode                        |

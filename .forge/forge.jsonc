@@ -1,0 +1,22 @@
+{
+  "$schema": "https://forge.ai/config.json",
+  // "plugin": ["forge-openai-codex-auth"],
+  // "enterprise": {
+  //   "url": "https://enterprise.dev.forge.ai",
+  // },
+  "provider": {
+    "forge": {
+      "options": {},
+    },
+  },
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+    },
+  },
+  "tools": {
+    "github-triage": false,
+    "github-pr-search": false,
+  },
+}
