@@ -59,7 +59,8 @@
       "Bash(bun:*)",
       "Bash(1)",
       "Bash(npx spago:*)",
-      "Bash(sort echo \"=== Still missing from ours ===\" comm -23 /tmp/ref_final.txt /tmp/our_final2.txt)"
+      "Bash(sort echo \"=== Still missing from ours ===\" comm -23 /tmp/ref_final.txt /tmp/our_final2.txt)",
+      "Bash(for:*)"
     ]
   }
 }
