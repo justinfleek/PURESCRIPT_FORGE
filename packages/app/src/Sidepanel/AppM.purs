@@ -4,6 +4,7 @@ module Sidepanel.AppM where
 
 import Prelude
 import Control.Monad.Reader (class MonadAsk, ReaderT, asks, runReaderT)
+import Data.Maybe (Maybe(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect)

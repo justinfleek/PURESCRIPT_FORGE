@@ -11,7 +11,11 @@ module Sidepanel.Components.EasterEggs.Tetris.TetrisRenderer where
 import Prelude
 
 import Data.Array as Array
+import Data.Foldable (for_, traverse_)
 import Data.Maybe (Maybe(..))
+import Data.Traversable (traverse)
+import Data.Functor (void)
+import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Sidepanel.Components.EasterEggs.Tetris.TetrisTypes
   ( GameState
@@ -76,19 +80,21 @@ drawGrid ctx cellSize padding = do
   drawRect ctx (padding - 1) (padding - 1) (gridWidthPx + 2) (gridHeightPx + 2) "#1a1a1a"
   
   -- Draw grid lines
-  Array.range 0 gridWidth \x -> do
+  void $ traverse (\x -> do
     let xPos = padding + (x * cellSize)
     drawRectOutline ctx xPos padding 1 gridHeightPx "#333"
-  
-  Array.range 0 gridHeight \y -> do
+  ) (Array.range 0 gridWidth)
+
+  void $ traverse (\y -> do
     let yPos = padding + (y * cellSize)
     drawRectOutline ctx padding yPos gridWidthPx 1 "#333"
+  ) (Array.range 0 gridHeight)
 
 -- | Draw pieces locked on grid
 drawGridPieces :: CanvasContext -> Array (Array CellState) -> Int -> Int -> Effect Unit
 drawGridPieces ctx grid cellSize padding = do
-  Array.mapWithIndex grid \y row ->
-    Array.mapWithIndex row \x cell ->
+  for_ (Array.mapWithIndex Tuple grid) \(Tuple y row) ->
+    for_ (Array.mapWithIndex Tuple row) \(Tuple x cell) ->
       case cell of
         Empty -> pure unit
         Filled pieceType -> do
@@ -104,14 +110,16 @@ drawPiece ctx piece cellSize padding = do
   let shape = piece.shape
   let pos = piece.position
   let color = getPieceColor piece.type_
-  
-  Array.mapWithIndex shape \rowIdx row ->
-    Array.mapWithIndex row \colIdx cell ->
+
+  for_ (Array.mapWithIndex Tuple shape) \(Tuple rowIdx row) ->
+    for_ (Array.mapWithIndex Tuple row) \(Tuple colIdx cell) ->
       if cell == 1 then do
         let xPos = padding + ((pos.x + colIdx) * cellSize)
         let yPos = padding + ((pos.y + rowIdx) * cellSize)
         drawRect ctx xPos yPos cellSize cellSize color
         drawRectOutline ctx xPos yPos cellSize cellSize "#fff"
+      else
+        pure unit
 
 -- | Draw ghost piece (where piece will land)
 drawGhostPiece :: CanvasContext -> Piece -> Array (Array CellState) -> Int -> Int -> Effect Unit
@@ -121,14 +129,16 @@ drawGhostPiece ctx piece grid cellSize padding = do
   let shape = droppedPiece.shape
   let pos = droppedPiece.position
   
-  Array.mapWithIndex shape \rowIdx row ->
-    Array.mapWithIndex row \colIdx cell ->
+  for_ (Array.mapWithIndex Tuple shape) \(Tuple rowIdx row) ->
+    for_ (Array.mapWithIndex Tuple row) \(Tuple colIdx cell) ->
       if cell == 1 then do
         let xPos = padding + ((pos.x + colIdx) * cellSize)
         let yPos = padding + ((pos.y + rowIdx) * cellSize)
         -- Draw outline only
         drawRectOutline ctx xPos yPos cellSize cellSize "#888"
         drawRectOutline ctx (xPos + 1) (yPos + 1) (cellSize - 2) (cellSize - 2) "#888"
+      else
+        pure unit
 
 -- | Drop piece to bottom (simplified - would use logic from TetrisLogic)
 dropToBottom :: Array (Array CellState) -> Piece -> Piece
@@ -176,11 +186,13 @@ drawNextPiece ctx pieceType x y cellSize = do
   drawRectOutline ctx x y previewSize previewSize "#333"
   
   -- Draw piece
-  Array.mapWithIndex shape \rowIdx row ->
-    Array.mapWithIndex row \colIdx cell ->
+  for_ (Array.mapWithIndex Tuple shape) \(Tuple rowIdx row) ->
+    for_ (Array.mapWithIndex Tuple row) \(Tuple colIdx cell) ->
       if cell == 1 then do
         let xPos = x + (colIdx * cellSize)
         let yPos = y + (rowIdx * cellSize)
         drawRect ctx xPos yPos cellSize cellSize color
         drawRectOutline ctx xPos yPos cellSize cellSize "#000"
+      else
+        pure unit
 

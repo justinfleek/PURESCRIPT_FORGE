@@ -1,9 +1,8 @@
 // | LocalStorage FFI Implementation
 // | Provides type-safe access to browser localStorage
-"use strict";
 
 // | Get value from localStorage
-exports.getItem = function(key) {
+export const getItem = function(key) {
   return function() {
     try {
       const value = localStorage.getItem(key);
@@ -15,7 +14,7 @@ exports.getItem = function(key) {
 };
 
 // | Set value in localStorage
-exports.setItem = function(key) {
+export const setItem = function(key) {
   return function(value) {
     return function() {
       try {
@@ -29,7 +28,7 @@ exports.setItem = function(key) {
 };
 
 // | Remove value from localStorage
-exports.removeItem = function(key) {
+export const removeItem = function(key) {
   return function() {
     try {
       localStorage.removeItem(key);
@@ -40,7 +39,7 @@ exports.removeItem = function(key) {
 };
 
 // | Clear all localStorage
-exports.clear = function() {
+export const clear = function() {
   return function() {
     try {
       localStorage.clear();
@@ -51,7 +50,7 @@ exports.clear = function() {
 };
 
 // | Get all keys from localStorage
-exports.getAllKeys = function() {
+export const getAllKeys = function() {
   return function() {
     try {
       const keys = [];

@@ -36,9 +36,7 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Halogen.HTML.Events as HE
-import Effect.Class (liftEffect)
 import Effect.Aff.Class (class MonadAff)
-import Web.Event.Event (preventDefault, stopPropagation)
 import Sidepanel.State.Sessions (SessionTab, SessionTabsState)
 
 -- | Component input
@@ -95,7 +93,7 @@ render state =
         [ HP.class_ (H.ClassName "session-tabs__list")
         , HP.attr (H.AttrName "role") "tablist"
         ]
-        (Array.map (renderTab state) state.tabs <> [renderNewTabButton])
+        (map (renderTab state) state.tabs <> [renderNewTabButton])
     ]
 
 -- | Render a single tab
@@ -113,9 +111,7 @@ renderTab state tab =
       , HP.draggable true
       , HE.onClick \_ -> SelectTab tab.sessionId
       , HE.onDragStart \_ -> StartDrag tab.sessionId
-      , HE.onDragOver \e -> do
-          liftEffect $ preventDefault e
-          DragOver tab.sessionId
+      , HE.onDragOver \_ -> DragOver tab.sessionId
       , HE.onDrop \_ -> Drop
       , HE.onDragEnd \_ -> DragEnd
       ]
@@ -135,9 +131,7 @@ renderTab state tab =
       , if not tab.isPinned then
           HH.button
             [ HP.class_ (H.ClassName "tab__close")
-            , HE.onClick \e -> do
-                liftEffect $ stopPropagation e
-                CloseTab tab.sessionId
+            , HE.onClick \_ -> CloseTab tab.sessionId
             ]
             [ HH.text "✕" ]
         else
@@ -192,7 +186,7 @@ handleAction = case _ of
         if draggedId /= dropTargetId then
           -- Reorder tabs
           let
-            currentOrder = Array.map _.sessionId state.tabs
+            currentOrder = map _.sessionId state.tabs
             draggedIndex = Array.findIndex (_ == draggedId) currentOrder
             dropIndex = Array.findIndex (_ == dropTargetId) currentOrder
             newOrder = case draggedIndex, dropIndex of
@@ -201,7 +195,7 @@ handleAction = case _ of
                   withoutDragged = Array.deleteAt di currentOrder
                   inserted = case withoutDragged of
                     Just arr -> Array.insertAt dti draggedId arr
-                    Nothing -> currentOrder
+                    Nothing -> Just currentOrder
                 in
                   case inserted of
                     Just ord -> ord

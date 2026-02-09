@@ -9,6 +9,8 @@ Core types for Pong game logic.
 module Sidepanel.Components.EasterEggs.Pong.PongTypes where
 
 import Prelude
+import Data.Int (toNumber)
+import Data.Maybe (Maybe(..))
 
 -- | Game dimensions
 gameWidth :: Int
@@ -78,21 +80,21 @@ initialGameState :: GameMode -> GameState
 initialGameState mode =
   { leftPaddle:
       { x: 20.0
-      , y: Number.fromInt (gameHeight / 2 - 50)
+      , y: toNumber (gameHeight / 2 - 50)
       , width: 10.0
       , height: 100.0
       , speed: 5.0
       }
   , rightPaddle:
-      { x: Number.fromInt (gameWidth - 30)
-      , y: Number.fromInt (gameHeight / 2 - 50)
+      { x: toNumber (gameWidth - 30)
+      , y: toNumber (gameHeight / 2 - 50)
       , width: 10.0
       , height: 100.0
       , speed: 5.0
       }
   , ball:
-      { x: Number.fromInt (gameWidth / 2)
-      , y: Number.fromInt (gameHeight / 2)
+      { x: toNumber (gameWidth / 2)
+      , y: toNumber (gameHeight / 2)
       , radius: 10.0
       , velocityX: 3.0
       , velocityY: 3.0

@@ -1,6 +1,6 @@
 -- | File context - manages file loading and tree navigation
 -- | Migrated from: forge-dev/packages/app/src/context/file.tsx
-module App.Context.File
+module Sidepanel.Context.File
   ( FileSelection
   , SelectedLineRange
   , FileViewState
@@ -28,7 +28,6 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (Pattern(..), drop, indexOf, take, trim)
 import Data.String as String
-import Data.Int (fromString)
 
 -- | File selection (character-level)
 type FileSelection =
@@ -157,7 +156,7 @@ normalizePath root input =
       # stripQueryAndHash
       # unquoteGitPath
     
-    prefix = if String.takeRight 1 root == "/" then root else root <> "/"
+    prefix = if takeRight 1 root == "/" then root else root <> "/"
     
     stripped =
       if String.take (String.length prefix) path == prefix

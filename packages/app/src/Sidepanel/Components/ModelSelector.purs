@@ -37,7 +37,7 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
-import Sidepanel.Model (Model, allModels, findById, getRecommended)
+import Sidepanel.Model (Model, ModelSize(..), allModels, findById, getRecommended)
 import Sidepanel.Utils.Currency (formatDiem)
 
 -- | Component input

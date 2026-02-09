@@ -10,6 +10,11 @@ module Sidepanel.Components.EasterEggs.Pong.PongRenderer where
 
 import Prelude
 
+import Data.Array as Array
+import Data.Maybe (Maybe(..))
+import Data.Traversable (traverse)
+import Data.Functor (void)
+import Data.Int (floor)
 import Effect (Effect)
 import Sidepanel.Components.EasterEggs.Pong.PongTypes
   ( GameState
@@ -71,12 +76,13 @@ drawCenterLine ctx = do
   let gap = 10
   let numDashes = gameHeight / (dashHeight + gap)
   
-  Array.range 0 (floor numDashes) \i -> do
+  void $ traverse (\i -> do
     let y = i * (dashHeight + gap)
     if y < gameHeight then
       drawRect ctx centerX y 2 dashHeight "#666"
     else
       pure unit
+  ) (Array.range 0 numDashes)
 
 -- | Draw paddle
 drawPaddle :: CanvasContext -> Paddle -> String -> Effect Unit
@@ -104,9 +110,9 @@ drawScore ctx leftScore rightScore = do
 drawGameOver :: CanvasContext -> Maybe Player -> Effect Unit
 drawGameOver ctx winner = do
   let message = case winner of
-    Just LeftPlayer -> "LEFT PLAYER WINS!"
-    Just RightPlayer -> "RIGHT PLAYER WINS!"
-    Nothing -> "GAME OVER"
+        Just LeftPlayer -> "LEFT PLAYER WINS!"
+        Just RightPlayer -> "RIGHT PLAYER WINS!"
+        Nothing -> "GAME OVER"
   drawText ctx message (gameWidth / 2 - 150) (gameHeight / 2) "32px monospace" "#ff0"
 
 -- | Draw paused message
@@ -114,6 +120,3 @@ drawPaused :: CanvasContext -> Effect Unit
 drawPaused ctx = do
   drawText ctx "PAUSED" (gameWidth / 2 - 80) (gameHeight / 2) "32px monospace" "#ff0"
 
--- | Import utilities
-import Data.Array as Array
-import Math (floor)

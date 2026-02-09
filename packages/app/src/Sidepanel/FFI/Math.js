@@ -1,6 +1,4 @@
-"use strict";
-
-exports.random = function() {
+export const random = function() {
   return function() {
     return Math.random();
   };

@@ -36,56 +36,31 @@
 -- | ```
 -- |
 -- | Based on spec 41-STATE-MANAGEMENT.md and audit requirements
-module Sidepanel.State.UndoRedo where
+module Sidepanel.State.UndoRedo
+  ( module Sidepanel.State.AppState
+  , defaultMaxHistory
+  , canUndo
+  , canRedo
+  , getCurrentState
+  , pushState
+  , undo
+  , redo
+  , getState
+  ) where
 
 import Prelude
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
-import Sidepanel.State.AppState (AppState)
-
--- | Undo/Redo state tracking - History state container
--- |
--- | **Purpose:** Maintains the undo/redo history with current position.
--- | **Fields:**
--- | - `history`: Array of application states (history)
--- | - `currentIndex`: Current position in history (0-based)
--- | - `maxHistory`: Maximum number of states to keep (default 50)
--- |
--- | **Invariants:**
--- | - `0 <= currentIndex < length history` (index always valid)
--- | - `length history <= maxHistory` (history bounded)
--- | - `length history > 0` (always at least one state)
--- |
--- | **Example:**
--- | ```purescript
--- | undoRedoState :: UndoRedoState
--- | undoRedoState = {
--- |   history: [state1, state2, state3]
--- |   , currentIndex: 1
--- |   , maxHistory: 50
--- | }
--- | ```
-type UndoRedoState =
-  { history :: Array AppState
-  , currentIndex :: Int
-  , maxHistory :: Int
-  }
+import Data.Newtype (unwrap)
+import Sidepanel.State.AppState (AppState, UndoRedoState(..), initialUndoRedoState)
 
 -- | Default maximum history size
 defaultMaxHistory :: Int
 defaultMaxHistory = 50
 
--- | Initial undo/redo state
-initialUndoRedoState :: AppState -> UndoRedoState
-initialUndoRedoState initialState =
-  { history: [ initialState ]
-  , currentIndex: 0
-  , maxHistory: defaultMaxHistory
-  }
-
 -- | Check if undo is possible
 canUndo :: UndoRedoState -> Boolean
-canUndo state = state.currentIndex > 0
+canUndo state = let s = unwrap state in s.currentIndex > 0
 
 -- | Check if redo is possible - Can move forward in history
 -- |
@@ -95,7 +70,7 @@ canUndo state = state.currentIndex > 0
 -- | **Returns:** True if redo is possible, false otherwise
 -- | **Side Effects:** None (pure function)
 canRedo :: UndoRedoState -> Boolean
-canRedo state = state.currentIndex < Array.length state.history - 1
+canRedo state = let s = unwrap state in s.currentIndex < Array.length s.history - 1
 
 -- | Get current state from history
 -- | Alias for getState
@@ -125,22 +100,24 @@ getCurrentState = getState
 pushState :: AppState -> UndoRedoState -> UndoRedoState
 pushState newState undoState =
   let
+    s = unwrap undoState
     -- Remove any states after current index
     -- We are branching history
-    historyBefore = Array.take (undoState.currentIndex + 1) undoState.history
+    historyBefore = Array.take (s.currentIndex + 1) s.history
     -- Add new state
     newHistory = Array.snoc historyBefore newState
     -- Trim history if it exceeds maxHistory
-    trimmedHistory = if Array.length newHistory > undoState.maxHistory then
-        Array.drop (Array.length newHistory - undoState.maxHistory) newHistory
+    trimmedHistory = if Array.length newHistory > s.maxHistory then
+        Array.drop (Array.length newHistory - s.maxHistory) newHistory
       else
         newHistory
     -- Update index to point to new state
     newIndex = Array.length trimmedHistory - 1
   in
-    undoState
-      { history = trimmedHistory
-      , currentIndex = newIndex
+    UndoRedoState
+      { history: trimmedHistory
+      , currentIndex: newIndex
+      , maxHistory: s.maxHistory
       }
 
 -- | Undo: move back in history - Decrease current index
@@ -164,7 +141,8 @@ pushState newState undoState =
 undo :: UndoRedoState -> Maybe UndoRedoState
 undo state =
   if canUndo state then
-    Just state { currentIndex = state.currentIndex - 1 }
+    let s = unwrap state
+    in Just $ UndoRedoState (s { currentIndex = s.currentIndex - 1 })
   else
     Nothing
 
@@ -189,7 +167,8 @@ undo state =
 redo :: UndoRedoState -> Maybe UndoRedoState
 redo state =
   if canRedo state then
-    Just state { currentIndex = state.currentIndex + 1 }
+    let s = unwrap state
+    in Just $ UndoRedoState (s { currentIndex = s.currentIndex + 1 })
   else
     Nothing
 
@@ -211,4 +190,4 @@ redo state =
 -- |   Nothing -> -- Should not happen
 -- | ```
 getState :: UndoRedoState -> Maybe AppState
-getState state = Array.index state.history state.currentIndex
+getState state = let s = unwrap state in Array.index s.history s.currentIndex

@@ -39,6 +39,8 @@ import Halogen.HTML.Events as HE
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect.Aff (Aff, delay, Milliseconds(..))
+import Data.Int as Int
+import Data.Int (round)
 import Data.Maybe (Maybe(..))
 import Sidepanel.State.RateLimit (RateLimitState, getTimeUntilReset, isRateLimited)
 import Sidepanel.Utils.Time (formatDuration)
@@ -135,7 +137,7 @@ renderGauge label remaining total resetMs resetTime =
           ]
       , HH.div
           [ HP.class_ (H.ClassName "rate-gauge__value") ]
-          [ HH.text $ formatNumber remaining <> "/" <> formatNumber total ]
+          [ HH.text $ formatNumber (Int.toNumber remaining) <> "/" <> formatNumber (Int.toNumber total) ]
       , HH.div
           [ HP.class_ (H.ClassName "rate-gauge__reset") ]
           [ HH.text $ "(" <> resetText <> ")" ]
@@ -192,6 +194,6 @@ handleAction = case _ of
 -- | Start ticker - Update current time every second
 startTicker :: forall m. MonadAff m => H.HalogenM State Action () Output m Unit
 startTicker = do
-  delay (Milliseconds 1000.0)
+  H.liftAff $ delay (Milliseconds 1000.0)
   handleAction Tick
   startTicker  -- Recursive - keep ticking

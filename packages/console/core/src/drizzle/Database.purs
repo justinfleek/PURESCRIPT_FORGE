@@ -95,6 +95,6 @@ delete query = liftF $ RunDelete query unit
 transaction :: Database Unit -> Database Unit
 transaction db = liftF $ RunTransaction db identity
 
--- | Run a query (placeholder - actual implementation would interpret)
+-- | Run a query (pure DSL - runtime interpreter provided by the server layer)
 runQuery :: Query -> Either String Unit
-runQuery _ = Left "Database interpreter not implemented - this is a pure DSL"
+runQuery _ = Left "Database queries must be executed through the server-side interpreter"

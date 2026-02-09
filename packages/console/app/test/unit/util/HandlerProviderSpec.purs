@@ -27,7 +27,7 @@ import Console.App.Routes.Omega.Util.Handler.Types
   )
 import Console.App.Routes.Omega.Util.Error (OmegaError(..), ModelError)
 import Console.App.Routes.Omega.Util.Provider.Provider (UsageInfo)
-import Console.Core.Util.Price (MicroCents)
+import Forge.Console.Core.Util.Price (MicroCents)
 import Data.Tuple (Tuple(..))
 
 -- | Create mock ProviderData

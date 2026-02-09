@@ -1,6 +1,6 @@
 -- | Local context - manages local session state (agent, model selection)
 -- | Migrated from: forge-dev/packages/app/src/context/local.tsx
-module App.Context.Local
+module Sidepanel.Context.Local
   ( ModelKey
   , LocalState
   , AgentState
@@ -12,11 +12,13 @@ module App.Context.Local
   , setModel
   , cycleModel
   , isModelValid
+  , AgentInfo
   ) where
 
 import Prelude
 
 import Data.Array (elem, filter, findIndex, head, length, (!!))
+import Data.Array as Array
 import Data.Maybe (Maybe(..), fromMaybe)
 
 -- | Model key
@@ -66,9 +68,9 @@ getCurrentAgent state =
     case state.agent.current of
       Nothing -> head available
       Just name ->
-        case filter (\a -> a.name == name) available of
-          [] -> head available
-          (a : _) -> Just a
+        case Array.uncons (filter (\a -> a.name == name) available) of
+          Nothing -> head available
+          Just { head: a } -> Just a
 
 -- | Set current agent
 setAgent :: String -> LocalState -> LocalState

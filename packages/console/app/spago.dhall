@@ -1,0 +1,32 @@
+{ name = "console-app"
+, dependencies =
+  [ "prelude"
+  , "effect"
+  , "aff"
+  , "maybe"
+  , "either"
+  , "arrays"
+  , "strings"
+  , "tuples"
+  , "ordered-collections"
+  , "foldable-traversable"
+  , "foreign"
+  , "foreign-object"
+  , "halogen"
+  , "web-html"
+  , "web-dom"
+  , "web-events"
+  , "datetime"
+  , "integers"
+  , "numbers"
+  , "refs"
+  , "transformers"
+  , "control"
+  , "exceptions"
+  , "spec"
+  , "quickcheck"
+  , "console"
+  ]
+, packages = ./packages.dhall
+, sources = [ "src/**/*.purs", "../core/src/**/*.purs", "test/**/*.purs" ]
+}

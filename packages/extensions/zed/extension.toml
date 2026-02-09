@@ -1,0 +1,36 @@
+id = "forge"
+name = "Forge"
+description = "The open source coding agent."
+version = "1.1.45"
+schema_version = 1
+authors = ["Forge"]
+repository = "https://github.com/forge-ai/forge"
+
+[agent_servers.forge]
+name = "Forge"
+icon = "./icons/forge.svg"
+
+[agent_servers.forge.targets.darwin-aarch64]
+archive = "https://github.com/forge-ai/forge/releases/download/v1.1.45/forge-darwin-arm64.zip"
+cmd = "./forge"
+args = ["acp"]
+
+[agent_servers.forge.targets.darwin-x86_64]
+archive = "https://github.com/forge-ai/forge/releases/download/v1.1.45/forge-darwin-x64.zip"
+cmd = "./forge"
+args = ["acp"]
+
+[agent_servers.forge.targets.linux-aarch64]
+archive = "https://github.com/forge-ai/forge/releases/download/v1.1.45/forge-linux-arm64.tar.gz"
+cmd = "./forge"
+args = ["acp"]
+
+[agent_servers.forge.targets.linux-x86_64]
+archive = "https://github.com/forge-ai/forge/releases/download/v1.1.45/forge-linux-x64.tar.gz"
+cmd = "./forge"
+args = ["acp"]
+
+[agent_servers.forge.targets.windows-x86_64]
+archive = "https://github.com/forge-ai/forge/releases/download/v1.1.45/forge-windows-x64.zip"
+cmd = "./forge.exe"
+args = ["acp"]

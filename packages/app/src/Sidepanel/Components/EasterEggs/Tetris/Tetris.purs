@@ -18,13 +18,10 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Halogen.HTML.Events as HE
+import Data.Int as Int
 import Effect (Effect)
-import Sidepanel.Components.EasterEggs.Tetris.TetrisTypes
-  ( GameState
-  , GameAction(..)
-  , initialGameState
-  , PieceType(..)
-  )
+import Sidepanel.Components.EasterEggs.Tetris.TetrisTypes (GameState, initialGameState, PieceType(..))
+import Sidepanel.Components.EasterEggs.Tetris.TetrisTypes as TT
 import Sidepanel.Components.EasterEggs.Tetris.TetrisLogic
   ( applyAction
   , updateGame
@@ -123,27 +120,27 @@ handleAction = case _ of
     
     -- Spawn initial piece
     state <- H.get
-    let newPiece = spawnPiece I
+    let newPiece = spawnPiece I 0
     H.modify_ \s -> s
       { gameState = s.gameState
           { currentPiece = newPiece.currentPiece
           , nextPiece = newPiece.nextPiece
           }
       }
-    
+
     -- Start game loop
     startGameLoop
   
   HandleKeyPress key -> do
     state <- H.get
     case key of
-      "ArrowLeft" -> updateGameState (applyAction state.gameState MoveLeft)
-      "ArrowRight" -> updateGameState (applyAction state.gameState MoveRight)
-      "ArrowDown" -> updateGameState (applyAction state.gameState MoveDown)
-      "ArrowUp" -> updateGameState (applyAction state.gameState Rotate)
-      " " -> updateGameState (applyAction state.gameState HardDrop)
-      "p" -> updateGameState (applyAction state.gameState Pause)
-      "P" -> updateGameState (applyAction state.gameState Pause)
+      "ArrowLeft" -> updateGameState (applyAction state.gameState TT.MoveLeft)
+      "ArrowRight" -> updateGameState (applyAction state.gameState TT.MoveRight)
+      "ArrowDown" -> updateGameState (applyAction state.gameState TT.MoveDown)
+      "ArrowUp" -> updateGameState (applyAction state.gameState TT.Rotate)
+      " " -> updateGameState (applyAction state.gameState TT.HardDrop)
+      "p" -> updateGameState (applyAction state.gameState TT.Pause)
+      "P" -> updateGameState (applyAction state.gameState TT.Pause)
       _ -> pure unit
     
     renderCurrentState
@@ -154,7 +151,7 @@ handleAction = case _ of
       pure unit
     else do
       currentTime <- liftEffect FFI.getCurrentTime
-      let updatedState = updateGame (Number.fromInt currentTime) state.gameState
+      let updatedState = updateGame currentTime state.gameState
       H.modify_ _ { gameState = updatedState }
       
       if updatedState.isGameOver then
@@ -164,17 +161,17 @@ handleAction = case _ of
       
       renderCurrentState
       -- Continue loop
-      delay (Milliseconds 16.0)  -- ~60 FPS
+      H.liftAff $ delay (Milliseconds 16.0)  -- ~60 FPS
       handleAction GameLoop
   
   Pause -> do
     state <- H.get
-    updateGameState (applyAction state.gameState Pause)
+    updateGameState (applyAction state.gameState TT.Pause)
     H.raise GamePaused
-  
+
   Resume -> do
     state <- H.get
-    updateGameState (applyAction state.gameState Resume)
+    updateGameState (applyAction state.gameState TT.Resume)
     H.raise GameResumed
     startGameLoop
   
@@ -182,7 +179,7 @@ handleAction = case _ of
     H.modify_ _ { gameState = initialGameState }
     -- Spawn initial piece
     state <- H.get
-    let newPiece = spawnPiece I
+    let newPiece = spawnPiece I 0
     H.modify_ \s -> s
       { gameState = s.gameState
           { currentPiece = newPiece.currentPiece

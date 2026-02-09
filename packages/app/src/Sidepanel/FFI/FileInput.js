@@ -1,7 +1,5 @@
-"use strict";
-
 // | Read a File object as text, returning a Promise
-exports.readFileAsTextImpl = function(file) {
+export const readFileAsTextImpl = function(file) {
   return function() {
     return new Promise(function(resolve, reject) {
       if (!(file instanceof File)) {
@@ -23,7 +21,7 @@ exports.readFileAsTextImpl = function(file) {
 // | Trigger native file picker and return selected file content as text
 // | Returns a Promise that resolves with the file content string
 // | or rejects if no file selected or reading fails
-exports.triggerFilePickerImpl = function() {
+export const triggerFilePickerImpl = function() {
   return new Promise(function(resolve, reject) {
     var input = document.createElement("input");
     input.type = "file";
@@ -62,7 +60,7 @@ exports.triggerFilePickerImpl = function() {
 
 // | Fetch content from a URL as text
 // | Returns a Promise that resolves with the response text
-exports.fetchURLContentImpl = function(url) {
+export const fetchURLContentImpl = function(url) {
   return function() {
     return fetch(url)
       .then(function(response) {

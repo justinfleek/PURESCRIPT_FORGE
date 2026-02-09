@@ -13,8 +13,10 @@ import Prelude
 
 import Data.BigInt (BigInt)
 import Data.BigInt as BigInt
-import Data.Maybe (Maybe(..))
+import Data.Int as DInt
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String as String
+import Data.String.CodeUnits as SCU
 import Effect (Effect)
 import Effect.Ref (Ref)
 import Effect.Ref as Ref
@@ -92,7 +94,7 @@ create prefix isDescending = do
          else do
            Ref.modify (_ + 1) counter
   
-  let timeValue = BigInt.fromNumber timestamp * BigInt.fromInt 0x1000 + BigInt.fromInt cnt
+  let timeValue = fromMaybe (BigInt.fromInt 0) (BigInt.fromNumber timestamp) * BigInt.fromInt 0x1000 + BigInt.fromInt cnt
       finalValue = if isDescending then BigInt.not timeValue else timeValue
       timeBytes = encodeTimeBytes finalValue
       randomPart = randomBase62 (idLength - 12)
@@ -102,7 +104,7 @@ create prefix isDescending = do
 -- | Encode timestamp to 6 bytes
 encodeTimeBytes :: BigInt -> Array Int
 encodeTimeBytes value =
-  map (\i -> BigInt.toInt ((BigInt.shr value (40 - 8 * i)) `BigInt.and` BigInt.fromInt 0xff)) [0, 1, 2, 3, 4, 5]
+  map (\i -> fromMaybe 0 (BigInt.toInt ((BigInt.shr value (DInt.toNumber (40 - 8 * i))) `BigInt.and` BigInt.fromInt 0xff))) [0, 1, 2, 3, 4, 5]
 
 -- | Convert bytes to hex string
 bytesToHex :: Array Int -> String
@@ -112,8 +114,8 @@ bytesToHex bytes = String.joinWith "" $ map toHex bytes
       let hex = toHexDigit (n / 16) <> toHexDigit (n `mod` 16)
       in hex
     toHexDigit d
-      | d < 10 = String.singleton (toEnum (d + 48))  -- '0' = 48
-      | otherwise = String.singleton (toEnum (d + 87)) -- 'a' - 10 = 87
+      | d < 10 = SCU.singleton (toEnum (d + 48))  -- '0' = 48
+      | otherwise = SCU.singleton (toEnum (d + 87)) -- 'a' - 10 = 87
 
 -- | Generate random base62 string
 foreign import randomBase62 :: Int -> String

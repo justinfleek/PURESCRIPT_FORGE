@@ -13,8 +13,8 @@ import Prelude
 import Effect.Aff (Aff)
 import Data.Either (Either(..))
 import Console.App.Routes.Stripe.Webhook.Types (ChargeData)
-import Console.Core.Identifier (WorkspaceId)
-import Console.Core.Util.Price (MicroCents)
+import Forge.Console.Core.Identifier (WorkspaceId)
+import Forge.Console.Core.Util.Price (MicroCents)
 
 -- | Validation error
 type ValidationError = String

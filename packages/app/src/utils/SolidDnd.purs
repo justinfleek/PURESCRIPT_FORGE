@@ -4,6 +4,7 @@ module Sidepanel.Utils.SolidDnd
   ( getDraggableId
   , ConstrainDragXAxis
   , ConstrainDragYAxis
+  , Transform
   , Transformer
   ) where
 

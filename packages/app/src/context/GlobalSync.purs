@@ -1,6 +1,6 @@
 -- | Global sync context - manages global state synchronization
 -- | Migrated from: forge-dev/packages/app/src/context/global-sync.tsx
-module App.Context.GlobalSync
+module Sidepanel.Context.GlobalSync
   ( GlobalState
   , SyncStatus(..)
   , Project
@@ -19,11 +19,22 @@ module App.Context.GlobalSync
   , compareSessionRecent
   , takeRecentSessions
   , trimSessions
+  , ModelInfo
+  , Session
+  , SessionStatus
+  , FileDiff
+  , Todo
+  , PermissionRequest
+  , QuestionRequest
+  , McpStatus
+  , LspStatus
+  , VcsInfo
+  , SessionTime
   ) where
 
 import Prelude
 
-import Data.Array (filter, length, slice, sortBy, take, (:))
+import Data.Array (filter, length, slice, sortBy, take)
 import Data.Array as Array
 import Data.Map (Map)
 import Data.Map as Map
@@ -280,11 +291,12 @@ takeRecentSessions sessions limit cutoff =
     dedupe :: Array Session -> Array Session
     dedupe arr = go [] Set.empty arr
       where
-        go acc _ [] = acc
-        go acc seen (s : rest) =
-          if Set.member s.id seen
-          then go acc seen rest
-          else go (Array.snoc acc s) (Set.insert s.id seen) rest
+        go acc seen remaining = case Array.uncons remaining of
+          Nothing -> acc
+          Just { head: s, tail: rest } ->
+            if Set.member s.id seen
+            then go acc seen rest
+            else go (Array.snoc acc s) (Set.insert s.id seen) rest
 
 -- | Trim sessions to limit, keeping recent ones
 trimSessions :: Array Session -> { limit :: Int, permission :: Map String (Array PermissionRequest) } -> Array Session

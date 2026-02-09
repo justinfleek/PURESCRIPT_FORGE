@@ -45,7 +45,7 @@ module Sidepanel.Components.Timeline.TimelineView where
 import Prelude
 import Data.Array as Array
 import Data.Array.NonEmpty as NEA
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.DateTime (DateTime)
 import Halogen as H
 import Halogen.HTML as HH
@@ -53,16 +53,23 @@ import Halogen.HTML.Properties as HP
 import Halogen.HTML.Events as HE
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
-import Sidepanel.State.AppState (AppState, BalanceState, SessionState, ProofState, SnapshotSummary)
+import Sidepanel.State.AppState (AppState, SessionState, ProofState, SnapshotSummary)
+import Sidepanel.State.Balance (BalanceState)
 import Sidepanel.Utils.Currency (formatDiem, formatUSD)
 import Sidepanel.Utils.Time (formatTime)
 import Sidepanel.WebSocket.Client as WS
 import Sidepanel.Api.Bridge as Bridge
-import Sidepanel.FFI.DateTime (fromISOString, getCurrentDateTime, toTimestamp)
+import Sidepanel.FFI.DateTime (fromISOString, getCurrentDateTime)
 import Data.Int (toNumber)
+import Data.Int as Data.Int
 import Data.String as String
+import Data.Either (Either(..))
+import Data.Number (abs)
 import Math (max, min, floor)
-import Effect.Class (liftEffect)
+import Web.UIEvent.MouseEvent (MouseEvent, clientX, toEvent)
+import Web.Event.Event (currentTarget) as Event
+import Web.DOM.Element (fromEventTarget, getBoundingClientRect) as Element
+import Effect (Effect)
 
 -- | Full snapshot with state data
 type Snapshot =
@@ -127,8 +134,8 @@ data Action
   | CreateManualSnapshot String
   | RestoreSnapshot String
   | SetTimeRange TimeRange
-  | HandleScrubStart
-  | HandleScrubMove Number
+  | HandleScrubStart MouseEvent
+  | HandleScrubMove MouseEvent
   | HandleScrubEnd
   | ViewDiff
 
@@ -191,8 +198,8 @@ renderScrubber state =
   HH.div
     [ HP.class_ (H.ClassName "timeline-scrubber")
     , HP.ref scrubberRef
-    , HE.onMouseDown handleScrubMouseDown
-    , HE.onMouseMove handleScrubMouseMove
+    , HE.onMouseDown HandleScrubStart
+    , HE.onMouseMove HandleScrubMove
     , HE.onMouseUp \_ -> HandleScrubEnd
     , HE.onMouseLeave \_ -> HandleScrubEnd
     ]
@@ -210,21 +217,6 @@ renderScrubber state =
         (renderTimeLabels state.timeRange)
     ]
   where
-    handleScrubMouseDown :: forall m2. MouseEvent -> H.HalogenM State Action () Output m2 Unit
-    handleScrubMouseDown event = do
-      H.modify_ _ { isDragging = true }
-      handleScrubMouseMove event
-    
-    handleScrubMouseMove :: forall m2. MouseEvent -> H.HalogenM State Action () Output m2 Unit
-    handleScrubMouseMove event = do
-      state <- H.get
-      if state.isDragging then do
-        -- Calculate position from mouse X relative to scrubber
-        position <- liftEffect $ calculateScrubPositionFromEvent event
-        handleAction (HandleScrubMove position)
-      else
-        pure unit
-    
     scrubberRef = H.RefLabel "scrubber"
 
 renderMarker :: forall m. State -> SnapshotSummary -> Int -> H.ComponentHTML Action () m
@@ -299,7 +291,7 @@ playheadPosition state =
 
 formatSnapshotTooltip :: SnapshotSummary -> String
 formatSnapshotTooltip snapshot =
-  formatTime (fromISOString snapshot.timestamp) <> " - " <> fromMaybe "No description" snapshot.description
+  formatTime snapshot.timestamp <> " - " <> snapshot.description
 
 renderTimeLabels :: forall m. TimeRange -> Array (H.ComponentHTML Action () m)
 renderTimeLabels range =
@@ -362,7 +354,10 @@ renderComparisonCard title content =
 
 renderBalanceComparison :: forall m. BalanceSnapshot -> BalanceState -> H.ComponentHTML Action () m
 renderBalanceComparison snapshot current =
-  let diff = snapshot.diem - current.diem
+  let currentDiem = case current.venice of
+        Just v -> v.diem
+        Nothing -> 0.0
+      diff = snapshot.diem - currentDiem
   in
     HH.div_
       [ HH.div
@@ -370,7 +365,7 @@ renderBalanceComparison snapshot current =
           [ HH.text $ "◉ " <> formatDiem snapshot.diem <> " Diem" ]
       , HH.div
           [ HP.class_ (H.ClassName "comparison-current") ]
-          [ HH.text $ "(vs " <> formatDiem current.diem <> " now)" ]
+          [ HH.text $ "(vs " <> formatDiem currentDiem <> " now)" ]
       , HH.div
           [ HP.classes $ diffClasses diff ]
           [ HH.text $ formatDiff diff ]
@@ -421,11 +416,26 @@ formatDiff diff
   | diff < 0.0 = formatDiem (abs diff) <> " lower"
   | otherwise = "unchanged"
 
+-- | Calculate scrub position as a percentage (0-100) from a mouse event
+-- | Uses the event's currentTarget to get the scrubber element's bounding rect
+calculateScrubPositionFromEvent :: MouseEvent -> Effect Number
+calculateScrubPositionFromEvent event =
+  case Event.currentTarget (toEvent event) of
+    Just target -> case Element.fromEventTarget target of
+      Just element -> do
+        rect <- Element.getBoundingClientRect element
+        let mouseX = toNumber (clientX event)
+        let relativeX = mouseX - rect.left
+        let percentage = (relativeX / rect.width) * 100.0
+        pure (max 0.0 (min 100.0 percentage))
+      Nothing -> pure 0.0
+    Nothing -> pure 0.0
+
 handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Output m Unit
 handleAction = case _ of
   Initialize -> do
     H.modify_ _ { snapshots = [] }
-    LoadSnapshots
+    handleAction LoadSnapshots
 
   LoadSnapshots -> do
     state <- H.get
@@ -475,7 +485,9 @@ handleAction = case _ of
         , state:
             { balance: case response.state.balance of
                 Just bal -> { diem: bal.venice.diem, usd: bal.venice.usd, effective: bal.venice.effective }
-                Nothing -> { diem: currentState.balance.diem, usd: currentState.balance.usd, effective: currentState.balance.effective }
+                Nothing -> case currentState.balance.venice of
+                  Just v -> { diem: v.diem, usd: v.usd, effective: v.effective }
+                  Nothing -> { diem: 0.0, usd: 0.0, effective: 0.0 }
             , session: case response.state.session of
                 Just sess -> Just { messageCount: sess.messageCount, promptTokens: sess.promptTokens, completionTokens: sess.completionTokens, cost: sess.cost }
                 Nothing -> map (\s -> { messageCount: s.messageCount, promptTokens: s.promptTokens, completionTokens: s.completionTokens, cost: s.cost }) currentState.session
@@ -488,7 +500,9 @@ handleAction = case _ of
       
       buildSnapshotState :: AppState -> SnapshotState
       buildSnapshotState appState =
-        { balance: { diem: appState.balance.diem, usd: appState.balance.usd, effective: appState.balance.effective }
+        { balance: case appState.balance.venice of
+            Just v -> { diem: v.diem, usd: v.usd, effective: v.effective }
+            Nothing -> { diem: 0.0, usd: 0.0, effective: 0.0 }
         , session: map (\s -> { messageCount: s.messageCount, promptTokens: s.promptTokens, completionTokens: s.completionTokens, cost: s.cost }) appState.session
         , proof: { goalCount: Array.length appState.proof.goals, diagnosticCount: Array.length appState.proof.diagnostics, hasErrors: Array.length (Array.filter (\d -> d.severity == "error") appState.proof.diagnostics) > 0 }
         , files: []  -- Fallback: empty if can't load
@@ -506,7 +520,7 @@ handleAction = case _ of
           Right response -> do
             H.raise (SnapshotCreated response.id)
             -- Reload snapshots
-            LoadSnapshots
+            handleAction LoadSnapshots
           Left err -> pure unit  -- Handle error
       Nothing -> pure unit
 
@@ -527,18 +541,24 @@ handleAction = case _ of
   SetTimeRange range ->
     H.modify_ _ { timeRange = range }
 
-  HandleScrubStart ->
+  HandleScrubStart event -> do
     H.modify_ _ { isDragging = true }
+    handleAction (HandleScrubMove event)
 
-  HandleScrubMove position -> do
+  HandleScrubMove event -> do
     state <- H.get
-    -- Calculate which snapshot is closest to the scrub position
-    let total = Array.length state.snapshots
-    let index = floor ((position / 100.0) * toNumber total)
-    let clampedIndex = max 0 (min index (total - 1))
-    case Array.index state.snapshots clampedIndex of
-      Just snapshot -> SelectSnapshot snapshot.id
-      Nothing -> pure unit
+    if state.isDragging then do
+      -- Calculate position from mouse X relative to scrubber element
+      position <- liftEffect $ calculateScrubPositionFromEvent event
+      -- Calculate which snapshot is closest to the scrub position
+      let total = toNumber (Array.length state.snapshots)
+      let index = floor ((position / 100.0) * total)
+      let clampedIndex = max 0.0 (min index (total - 1.0))
+      case Array.index state.snapshots (Data.Int.floor clampedIndex) of
+        Just snapshot -> handleAction (SelectSnapshot snapshot.id)
+        Nothing -> pure unit
+    else
+      pure unit
 
   HandleScrubEnd ->
     H.modify_ _ { isDragging = false }

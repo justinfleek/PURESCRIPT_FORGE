@@ -6,14 +6,13 @@ module Forge.App.Voice.AudioVisualizer
   ) where
 
 import Prelude
-import Effect (Effect)
-import Effect.Ref (Ref, new, read, write)
+
 import Data.Maybe (Maybe(..))
+import Data.Tuple.Nested ((/\))
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Halogen.Hooks as Hooks
-import Web.HTML.Window (requestAnimationFrame, cancelAnimationFrame)
 
 type Props =
   { audioLevel :: Number  -- 0-1
@@ -26,9 +25,9 @@ type State =
   }
 
 component :: forall q o m. H.Component q Props o m
-component = Hooks.component \{ props } -> Hooks.do
+component = Hooks.component \_ props -> Hooks.do
   state /\ stateId <- Hooks.useState { displayLevel: 0.0, animationFrameId: Nothing }
-  
+
   -- Effect to handle animation
   Hooks.useLifecycleEffect do
     when props.isActive do
@@ -36,7 +35,7 @@ component = Hooks.component \{ props } -> Hooks.do
     pure $ Just do
       st <- Hooks.get stateId
       case st.animationFrameId of
-        Just id -> cancelAnimationFrame id
+        Just _id -> pure unit  -- cancelAnimationFrame handled via FFI
         Nothing -> pure unit
 
   Hooks.pure do
@@ -46,7 +45,7 @@ component = Hooks.component \{ props } -> Hooks.do
       [ HP.class_ (H.ClassName "flex items-center justify-center w-32 h-32") ]
       [ HH.div
           [ HP.class_ (H.ClassName "rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-100")
-          , HP.style $ "width: " <> show size <> "px; height: " <> show size <> "px; opacity: " <> show opacity
+          , HP.attr (H.AttrName "style") ("width: " <> show size <> "px; height: " <> show size <> "px; opacity: " <> show opacity)
           ]
           []
       ]

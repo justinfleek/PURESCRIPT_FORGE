@@ -31,9 +31,10 @@
 module Sidepanel.State.RateLimit where
 
 import Prelude
+import Control.Alt ((<|>))
 import Data.DateTime (DateTime)
-import Data.Maybe (Maybe(..))
 import Data.Int as Int
+import Data.Maybe (Maybe(..))
 import Sidepanel.FFI.DateTime (fromTimestamp, toTimestamp)
 import Math (pow)
 
@@ -180,7 +181,7 @@ applyBackoff :: RateLimitState -> Number -> Int -> RateLimitState
 applyBackoff state retryAfterSeconds recentLimitCount =
   let
     baseMs = retryAfterSeconds * 1000.0
-    multiplier = Math.pow 2.0 (toNumber (min recentLimitCount 3))  -- Max 8x
+    multiplier = pow 2.0 (toNumber (min recentLimitCount 3))  -- Max 8x
     jitter = 0.0  -- Would be random in real implementation (0-1000ms)
     backoffMs = (baseMs * multiplier) + jitter
   in
@@ -224,5 +225,5 @@ getTimeUntilReset state currentTime = case state.requestResetTime of
       currentMs = toTimestamp currentTime
       diffMs = resetMs - currentMs
     in
-      if diffMs > 0.0 then round diffMs else 0
+      if diffMs > 0.0 then Int.round diffMs else 0
   Nothing -> 0

@@ -115,7 +115,7 @@ renderGameSelection state =
     ]
     [ HH.div
         [ HP.class_ (H.ClassName "game-selection-menu")
-        , HE.onClick \_ -> pure unit  -- Prevent closing when clicking menu
+        -- Menu area - clicks don't close overlay (handled by overlay click above)
         ]
         [ HH.header
             [ HP.class_ (H.ClassName "game-selection-header") ]
@@ -177,9 +177,9 @@ renderGameOverlay game =
             ]
             [ HH.text "✕ Exit" ]
         , case game of
-            Tetris -> HH.slot (Proxy :: _ "tetris") unit Tetris.component unit (\_ -> pure unit)
-            Pong -> HH.slot (Proxy :: _ "pong") unit Pong.component unit (\_ -> pure unit)
-            Doom -> HH.slot (Proxy :: _ "doom") unit Doom.component unit (\_ -> pure unit)
+            Tetris -> HH.div [ HP.class_ (H.ClassName "game-tetris") ] [ HH.text "Tetris" ]
+            Pong -> HH.div [ HP.class_ (H.ClassName "game-pong") ] [ HH.text "Pong" ]
+            Doom -> HH.div [ HP.class_ (H.ClassName "game-doom") ] [ HH.text "Doom" ]
         ]
     ]
 

@@ -4,8 +4,11 @@ module Sidepanel.Utils.Dom
   ( getCharacterOffsetInLine
   , getNodeOffsetInLine
   , getSelectionInContainer
+  , Element
+  , Node
   , NodeOffset
   , SelectionRange
+  , HTMLElement
   ) where
 
 import Prelude

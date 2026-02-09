@@ -1,71 +1,82 @@
-# Agent Configuration
+- To regenerate the JavaScript SDK, run `./packages/sdk/js/script/build.ts`.
+- ALWAYS USE PARALLEL TOOLS WHEN APPLICABLE.
+- The default branch in this repo is `dev`.
+- Prefer automation: execute requested actions without confirmation unless blocked by missing info or safety/irreversibility.
 
-This file configures agent behavior for the PURESCRIPT_FORGE workspace.
+## Style Guide
 
-## Skills
+- Keep things in one function unless composable or reusable
+- Avoid unnecessary destructuring. Instead of `const { a, b } = obj`, use `obj.a` and `obj.b` to preserve context
+- Avoid `try`/`catch` where possible
+- Avoid using the `any` type
+- Prefer single word variable names where possible
+- Use Bun APIs when possible, like `Bun.file()`
+- Rely on type inference when possible; avoid explicit type annotations or interfaces unless necessary for exports or clarity
 
-### Required Skills
+### Avoid let statements
 
-Before performing tasks, agents MUST load appropriate skills:
+We don't like `let` statements, especially combined with if/else statements.
+Prefer `const`.
 
-- **deterministic-coder**: MANDATORY for ALL code modifications
-- **exploratory-architect**: MANDATORY for ALL architecture design tasks
-- **expert-researcher**: Use for research and analysis tasks
+Good:
 
-## Rules
-
-All rules in `.cursor/rules/` apply. Key rules:
-
-- **core-principles.mdc**: Accuracy > Speed, Code is Truth
-- **file-reading-protocol.mdc**: Complete reads only, no grep
-- **banned-constructs.mdc**: No type escapes, no shortcuts
-- **type-system.mdc**: Types describe, code is truth
-- **error-accountability.mdc**: Root cause analysis required
-- **execution-standards.mdc**: Correct and slow > fast and wrong
-- **documentation-protocol.mdc**: Every operation updates docs
-- **continuity-protocol.mdc**: Session/build/type/documentation continuity
-- **build-verification.mdc**: Nix-based builds, post-build validation
-- **ci-cd-patterns.mdc**: Reproducible builds, validation gates
-- **testing-standards.mdc**: Property tests, deterministic tests
-- **haskell-standards.mdc**: Strict compiler flags, property tests (Haskell files)
-- **nix-standards.mdc**: Reproducible builds, flake structure (Nix files)
-
-## Project Structure
-
-```
-PURESCRIPT_FORGE/
-├── .cursor/
-│   ├── rules/          # Project rules
-│   └── skills/         # Project skills
-├── docs/               # Documentation
-│   ├── MASTER.md       # System overview
-│   ├── architecture/   # Component docs
-│   ├── decisions/      # ADRs
-│   └── changelog/      # Change log
-├── opencode-dev/       # TypeScript/Bun project (migration target)
-└── trtllm-serve-main/  # Nix/Haskell reference standard
+```ts
+const foo = condition ? 1 : 2
 ```
 
-## Migration Goals
+Bad:
 
-The `opencode-dev` project will be migrated to match `trtllm-serve-main` standards:
+```ts
+let foo
 
-- Type safety (PureScript/Haskell/Lean4 where applicable)
-- Nix-based reproducible builds
-- Strict type checking
-- Complete file reading protocol
-- No banned constructs
-- Comprehensive documentation
+if (condition) foo = 1
+else foo = 2
+```
 
-## Verification
+### Avoid else statements
 
-Before any task completion:
-- [ ] All files read completely
-- [ ] Dependency graph traced
-- [ ] All instances fixed across codebase
-- [ ] No banned constructs
-- [ ] Types explicit
-- [ ] Type checks pass
-- [ ] Tests pass
-- [ ] Documentation updated
-- [ ] Workspace clean
+Prefer early returns or using an `iife` to avoid else statements.
+
+Good:
+
+```ts
+function foo() {
+  if (condition) return 1
+  return 2
+}
+```
+
+Bad:
+
+```ts
+function foo() {
+  if (condition) return 1
+  else return 2
+}
+```
+
+### Prefer single word naming
+
+Try your best to find a single word name for your variables, functions, etc.
+Only use multiple words if you cannot.
+
+Good:
+
+```ts
+const foo = 1
+const bar = 2
+const baz = 3
+```
+
+Bad:
+
+```ts
+const fooBar = 1
+const barBaz = 2
+const bazFoo = 3
+```
+
+## Testing
+
+You MUST avoid using `mocks` as much as possible.
+Tests MUST test actual implementation, do not duplicate logic into a test.

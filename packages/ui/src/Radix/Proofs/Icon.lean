@@ -155,8 +155,8 @@ def getIconPath : IconName → String
   | .help => "M7.91683 7.91927V6.2526H12.0835V8.7526L10.0002 10.0026V12.0859M10.0002 13.7526V13.7609M17.9168 10.0026C17.9168 14.3749 14.3724 17.9193 10.0002 17.9193C5.62791 17.9193 2.0835 14.3749 2.0835 10.0026C2.0835 5.63035 5.62791 2.08594 10.0002 2.08594C14.3724 2.08594 17.9168 5.63035 17.9168 10.0026Z"
   | .menu => "M2.5 5H17.5M2.5 10H17.5M2.5 15H17.5"
   | .download => "M13.9583 10.6257L10 14.584L6.04167 10.6257M10 2.08398V13.959M16.25 17.9173H3.75"
-  | .stop => ""  -- Uses rect, not path
-  | .unknown => ""  -- Placeholder
+  | .stop => ""  -- Uses rect element, not SVG path
+  | .unknown => ""  -- No icon for unknown type
 
 /-- Theorem: known icons have non-empty paths (except rect-based icons) -/
 theorem knownIcons_havePath (n : IconName) 

@@ -1,27 +1,24 @@
-"use strict";
-
 /**
  * Canvas rendering FFI for Pong game (reuses Tetris FFI functions)
  */
-
-const tetrisFFI = require("../Tetris/TetrisFFI.js");
+import { getCanvasContext as _getCanvasContext, clearCanvas as _clearCanvas, drawRect as _drawRect, drawText as _drawText } from "../Tetris/TetrisFFI.js";
 
 /**
  * Get canvas 2D context
  */
-exports.getCanvasContext = tetrisFFI.getCanvasContext;
+export const getCanvasContext = _getCanvasContext;
 
 /**
  * Clear canvas
  */
-exports.clearCanvas = tetrisFFI.clearCanvas;
+export const clearCanvas = _clearCanvas;
 
 /**
  * Draw filled rectangle
  */
-exports.drawRect = tetrisFFI.drawRect;
+export const drawRect = _drawRect;
 
 /**
  * Draw text
  */
-exports.drawText = tetrisFFI.drawText;
+export const drawText = _drawText;

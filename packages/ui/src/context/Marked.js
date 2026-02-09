@@ -191,5 +191,5 @@ export const parseMarkdownImpl = (markdown) => async () => {
   return jsParser.parse(markdown);
 };
 
-// Context reference placeholder
+// Context reference for markdown parser instance
 export const markedContextRef = { current: null };

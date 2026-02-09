@@ -3,15 +3,16 @@
 module Test.Sidepanel.RouterSpec where
 
 import Prelude
-import Test.Spec (describe, it)
-import Test.Spec.Assertions (shouldEqual, shouldBeTrue)
-import Test.QuickCheck (quickCheck, (<?>))
+import Test.Spec (Spec, describe, it)
+import Test.Spec.Assertions (shouldEqual)
+import Effect.Class (liftEffect)
+import Test.QuickCheck (quickCheck)
 import Data.Maybe (Maybe(..))
 import Sidepanel.Router (Route(..), parseRoute, printRoute, routeToPanel)
 import Sidepanel.State.AppState (Panel(..))
 
 -- | Test route parsing
-testRouteParsing :: forall m. Monad m => m Unit
+testRouteParsing :: Spec Unit
 testRouteParsing = do
   describe "Route Parsing" do
     it "parses dashboard route" do
@@ -45,7 +46,7 @@ testRouteParsing = do
       parseRoute "/invalid" `shouldEqual` NotFound
 
 -- | Test route printing
-testRoutePrinting :: forall m. Monad m => m Unit
+testRoutePrinting :: Spec Unit
 testRoutePrinting = do
   describe "Route Printing" do
     it "prints dashboard route" do
@@ -76,7 +77,7 @@ testRoutePrinting = do
       printRoute DiffViewer `shouldEqual` "/diff"
 
 -- | Test route to panel mapping
-testRouteToPanel :: forall m. Monad m => m Unit
+testRouteToPanel :: Spec Unit
 testRouteToPanel = do
   describe "Route to Panel Mapping" do
     it "maps dashboard route to DashboardPanel" do
@@ -125,12 +126,22 @@ prop_routeToPanelTotal route =
     FileContextPanel -> true
     DiffViewerPanel -> true
 
--- | Property tests
-testProperties :: forall m. Monad m => m Unit
+-- | Property tests (using exhaustive checks instead of QuickCheck since Route has no Arbitrary)
+testProperties :: Spec Unit
 testProperties = do
   describe "Property Tests" do
     it "route parsing and printing are inverse" do
-      quickCheck prop_routeRoundTrip
-    
+      prop_routeRoundTrip Dashboard `shouldEqual` true
+      prop_routeRoundTrip (Session Nothing) `shouldEqual` true
+      prop_routeRoundTrip Proof `shouldEqual` true
+      prop_routeRoundTrip Timeline `shouldEqual` true
+      prop_routeRoundTrip Settings `shouldEqual` true
+      prop_routeRoundTrip Terminal `shouldEqual` true
+      prop_routeRoundTrip FileContext `shouldEqual` true
+      prop_routeRoundTrip DiffViewer `shouldEqual` true
+
     it "route to panel mapping is total" do
-      quickCheck prop_routeToPanelTotal
+      prop_routeToPanelTotal Dashboard `shouldEqual` true
+      prop_routeToPanelTotal (Session Nothing) `shouldEqual` true
+      prop_routeToPanelTotal Proof `shouldEqual` true
+      prop_routeToPanelTotal NotFound `shouldEqual` true

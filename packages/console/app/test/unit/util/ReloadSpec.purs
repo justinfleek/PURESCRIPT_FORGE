@@ -15,7 +15,7 @@ import Console.App.Routes.Omega.Util.Handler.Types
   ( AuthInfo
   , CostInfo
   )
-import Console.Core.Util.Price (MicroCents, centsToMicroCents)
+import Forge.Console.Core.Util.Price (MicroCents, centsToMicroCents)
 
 -- | Mock Date type for testing (FFI functions need integration tests)
 foreign import data MockDate :: Type

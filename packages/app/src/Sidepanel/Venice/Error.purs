@@ -32,7 +32,10 @@
 module Sidepanel.Venice.Error where
 
 import Prelude
+import Data.Int as Int
 import Data.Maybe (Maybe(..))
+import Data.Number (pow)
+import Data.String as String
 import Sidepanel.Api.Types (JsonRpcError)
 
 -- | Venice error types - Categories of Venice API errors
@@ -163,7 +166,7 @@ isRetryable = case _ of
 getErrorMessage :: VeniceError -> String
 getErrorMessage = case _ of
   RateLimitError retryAfter ->
-    "Rate limit exceeded. Retrying in " <> show (round retryAfter) <> " seconds..."
+    "Rate limit exceeded. Retrying in " <> show (Int.round retryAfter) <> " seconds..."
   
   NetworkError msg ->
     "Network error: " <> msg <> ". Retrying..."
@@ -193,4 +196,4 @@ getErrorMessage = case _ of
 -- | **Formula:** `delay = baseDelay * (2 ^ attempt)`
 calculateRetryDelay :: Int -> Number -> Number
 calculateRetryDelay attempt baseDelaySeconds =
-  baseDelaySeconds * Math.pow 2.0 (Int.toNumber attempt)
+  baseDelaySeconds * pow 2.0 (Int.toNumber attempt)

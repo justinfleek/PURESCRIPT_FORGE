@@ -1,0 +1,19 @@
+{
+  "name": "forge-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "spago build",
+    "test": "spago test",
+    "bundle": "spago bundle --bundle-type module --outfile dist/forge.js"
+  },
+  "devDependencies": {
+    "purescript": "^0.15.15",
+    "spago": "^0.93.40",
+    "esbuild": "^0.20.0"
+  },
+  "dependencies": {
+    "ulid": "^2.3.0"
+  }
+}

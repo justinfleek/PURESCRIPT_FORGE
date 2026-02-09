@@ -1,6 +1,6 @@
 -- | Settings context - manages user preferences
 -- | Migrated from: forge-dev/packages/app/src/context/settings.tsx
-module App.Context.Settings
+module Sidepanel.Context.Settings
   ( Settings
   , NotificationSettings
   , SoundSettings
@@ -17,6 +17,7 @@ import Prelude
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Tuple.Nested ((/\))
 
 -- | Notification settings
 type NotificationSettings =

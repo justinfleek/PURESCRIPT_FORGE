@@ -44,11 +44,11 @@ import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect.Aff (Aff)
 import Data.Array (slice, length, mapWithIndex)
+import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (joinWith)
 import Sidepanel.FFI.Clipboard as Clipboard
 import Web.UIEvent.KeyboardEvent (KeyboardEvent, key, ctrlKey, metaKey)
-import Effect.Class (liftEffect)
 import Effect (Effect)
 import Data.String (toLower)
 
@@ -79,16 +79,17 @@ type State =
 -- | Component actions
 data Action
   = Initialize
-  = MouseDown Int  -- Line number
-  = MouseMove Int  -- Line number
-  = MouseUp Int    -- Line number
-  = ClearSelection
-  = CopySelection
-  = AddToChat
-  = HandleCopyResult (Either String Unit)
-  = HandleAddToChatResult (Either String Unit)
-  = Finalize
-  = HandleKeyDown KeyboardEvent
+  | MouseDown Int  -- Line number
+  | MouseMove Int  -- Line number
+  | MouseUp Int    -- Line number
+  | ClearSelection
+  | CopySelection
+  | AddToChat
+  | HandleCopyResult (Either String Unit)
+  | HandleAddToChatResult (Either String Unit)
+  | Finalize
+  | HandleKeyDown KeyboardEvent
+  | Receive Input
 
 -- | Component output
 data Output
@@ -116,17 +117,14 @@ data Query a = Query
 -- | Slot type for parent components
 type Slot label = H.Slot Query Output label
 
--- | Receive new input
-data Receive = Receive Input
-
-handleReceive :: forall m. MonadAff m => Receive -> H.HalogenM State Action () Output m Unit
-handleReceive (Receive input) = do
+-- | Handle receiving new input
+handleReceive :: forall m. MonadAff m => Input -> H.HalogenM State Action () Output m Unit
+handleReceive input = do
   H.modify_ \s ->
-    { s
-    | codeLines = input.codeLines
-    , filePath = input.filePath
-    , language = input.language
-    }
+    s { codeLines = input.codeLines
+      , filePath = input.filePath
+      , language = input.language
+      }
 
 initialState :: Input -> State
 initialState input =
@@ -230,11 +228,10 @@ handleAction = case _ of
   
   MouseDown line -> do
     H.modify_ \s ->
-      { s
-      | dragStart = Just line
-      , selectedRange = Just { start: line, end: line }
-      , isSelecting = true
-      }
+      s { dragStart = Just line
+        , selectedRange = Just { start: line, end: line }
+        , isSelecting = true
+        }
     H.raise $ SelectionChanged (Just { start: line, end: line })
   
   MouseMove line -> do
@@ -257,22 +254,20 @@ handleAction = case _ of
         in
           do
             H.modify_ \s ->
-              { s
-              | selectedRange = Just range
-              , dragStart = Nothing
-              , isSelecting = false
-              }
+              s { selectedRange = Just range
+                , dragStart = Nothing
+                , isSelecting = false
+                }
             H.raise $ SelectionChanged (Just range)
       Nothing ->
         pure unit
   
   ClearSelection -> do
     H.modify_ \s ->
-      { s
-      | selectedRange = Nothing
-      , dragStart = Nothing
-      , isSelecting = false
-      }
+      s { selectedRange = Nothing
+        , dragStart = Nothing
+        , isSelecting = false
+        }
     H.raise $ SelectionChanged Nothing
   
   CopySelection -> do
@@ -316,11 +311,7 @@ handleAction = case _ of
   
   Receive input ->
     handleReceive input
-  
-  Finalize -> do
-    -- Cleanup if needed
-    pure unit
-  
+
   HandleKeyDown event -> do
     state <- H.get
     case state.selectedRange of

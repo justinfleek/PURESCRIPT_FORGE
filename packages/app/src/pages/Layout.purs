@@ -15,12 +15,25 @@ module Sidepanel.Pages.Layout
   ( LayoutPage
   , LayoutPageProps
   , LayoutPageState
+  , PersistedState
+  , RuntimeState
+  , EditorState
   , ProjectIcon
   , SessionItem
   , SortableProject
   , SortableWorkspace
   , SidebarContent
   , SidebarPanel
+  , HTMLElement
+  , ColorScheme(..)
+  , ProjectIconProps
+  , SessionItemProps
+  , SortableProjectProps
+  , SortableWorkspaceProps
+  , SidebarPanelProps
+  , SidebarContentProps
+  , Session
+  , ThemeEntry
   ) where
 
 import Prelude
@@ -37,16 +50,16 @@ import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff (Aff)
 
-import Sidepanel.Context.Layout (LayoutContext, LocalProject)
-import Sidepanel.Context.GlobalSync (GlobalSyncContext, GlobalSyncData)
+import Sidepanel.Context.Layout (LayoutStore, LocalProject)
+import Sidepanel.Context.GlobalSync (GlobalState)
 import Sidepanel.Context.GlobalSDK (GlobalSDKContext)
-import Sidepanel.Context.Platform (PlatformContext)
-import Sidepanel.Context.Settings (SettingsContext)
-import Sidepanel.Context.Server (ServerContext)
-import Sidepanel.Context.Notification (NotificationContext)
-import Sidepanel.Context.Permission (PermissionContext)
-import Sidepanel.Context.Command (CommandContext, CommandOption)
-import Sidepanel.Context.Language (LanguageContext, Locale)
+import Sidepanel.Context.Platform (Platform)
+import Sidepanel.Context.Settings (Settings)
+import Sidepanel.Context.Server (ServerState)
+import Sidepanel.Context.Notification (NotificationStore)
+import Sidepanel.Context.Permission (PermissionStore)
+import Sidepanel.Context.Command (CommandOption)
+import Sidepanel.Context.Language (Locale)
 import Sidepanel.Utils.Encode (base64Encode)
 import Sidepanel.Utils.Base64 (decode64)
 import Sidepanel.Utils.Path (getFilename)
@@ -92,6 +105,8 @@ type LayoutPageProps =
 
 -- | Color scheme options
 data ColorScheme = System | Light | Dark
+
+derive instance eqColorScheme :: Eq ColorScheme
 
 -- | Theme entry type
 type ThemeEntry = Tuple String { name :: String }
@@ -148,11 +163,12 @@ initialEditorState =
 
 -- | Get workspace key (normalized directory path)
 workspaceKey :: String -> String
-workspaceKey directory = 
+workspaceKey directory =
   String.replaceAll (String.Pattern "\\") (String.Replacement "/") directory
-    # \s -> if String.takeRight 1 s == "/" 
-            then String.dropRight 1 s 
-            else s
+    # \s -> let len = String.length s
+            in if String.drop (len - 1) s == "/"
+               then String.take (len - 1) s
+               else s
 
 -- | Get workspace name (custom or branch name or filename)
 workspaceName :: String -> Maybe String -> Maybe String -> PersistedState -> Maybe String
@@ -230,21 +246,21 @@ navigateToSession session = do
   pure unit
 
 -- | Open project
-openProject :: LayoutContext -> String -> Boolean -> Effect Unit
+openProject :: LayoutStore -> String -> Boolean -> Effect Unit
 openProject layout directory shouldNavigate = do
   -- layout.projects.open(directory)
   -- if shouldNavigate then navigateToProject(directory)
   pure unit
 
 -- | Close project
-closeProject :: LayoutContext -> String -> Effect Unit
+closeProject :: LayoutStore -> String -> Effect Unit
 closeProject layout directory = do
   -- layout.projects.close(directory)
   -- navigate to next project or home
   pure unit
 
 -- | Archive session
-archiveSession :: GlobalSDKContext -> GlobalSyncContext -> Session -> Aff Unit
+archiveSession :: GlobalSDKContext -> GlobalState -> Session -> Aff Unit
 archiveSession sdk sync session = do
   -- Update session with archived timestamp
   -- Remove from local store
@@ -252,7 +268,7 @@ archiveSession sdk sync session = do
   pure unit
 
 -- | Delete session
-deleteSession :: GlobalSDKContext -> GlobalSyncContext -> Session -> LanguageContext -> Aff Unit
+deleteSession :: GlobalSDKContext -> GlobalState -> Session -> Locale -> Aff Unit
 deleteSession sdk sync session language = do
   -- Call SDK to delete
   -- Remove from local store (including children)
@@ -275,7 +291,7 @@ deleteWorkspace sdk root directory = do
   pure unit
 
 -- | Reset workspace
-resetWorkspace :: GlobalSDKContext -> String -> String -> LanguageContext -> Effect Unit
+resetWorkspace :: GlobalSDKContext -> String -> String -> Locale -> Effect Unit
 resetWorkspace sdk root directory language = do
   -- Show progress toast
   -- Archive all sessions
@@ -285,7 +301,7 @@ resetWorkspace sdk root directory language = do
   pure unit
 
 -- | Rename project
-renameProject :: GlobalSDKContext -> GlobalSyncContext -> LocalProject -> String -> Aff Unit
+renameProject :: GlobalSDKContext -> GlobalState -> LocalProject -> String -> Aff Unit
 renameProject sdk sync project newName = do
   -- If project has ID: call SDK project.update
   -- Otherwise: update local meta
@@ -310,7 +326,7 @@ renameWorkspace directory newName projectId branch state =
        _, _ -> withDirect
 
 -- | Handle deep link
-handleDeepLink :: String -> ServerContext -> LayoutContext -> Effect Unit
+handleDeepLink :: String -> ServerState -> LayoutStore -> Effect Unit
 handleDeepLink url server layout = do
   -- Parse forge:// URL
   -- Extract directory from query params
@@ -318,7 +334,7 @@ handleDeepLink url server layout = do
   pure unit
 
 -- | Prefetch session messages
-prefetchSession :: GlobalSDKContext -> GlobalSyncContext -> Session -> String -> Aff Unit
+prefetchSession :: GlobalSDKContext -> GlobalState -> Session -> String -> Aff Unit
 prefetchSession sdk sync session priority = do
   -- Check if already cached
   -- Add to prefetch queue based on priority
@@ -326,74 +342,30 @@ prefetchSession sdk sync session priority = do
   pure unit
 
 -- | Register layout commands
-registerCommands :: CommandContext -> LanguageContext -> LayoutContext -> Array CommandOption
+registerCommands :: Array CommandOption -> Locale -> LayoutStore -> Array CommandOption
 registerCommands command language layout =
-  [ { id: "sidebar.toggle"
-    , title: "Toggle Sidebar"  -- language.t("command.sidebar.toggle")
-    , category: "View"
-    , keybind: Just "mod+b"
-    , onSelect: pure unit
-    }
-  , { id: "project.open"
-    , title: "Open Project"
-    , category: "Project"
-    , keybind: Just "mod+o"
-    , onSelect: pure unit
-    }
-  , { id: "provider.connect"
-    , title: "Connect Provider"
-    , category: "Provider"
-    , keybind: Nothing
-    , onSelect: pure unit
-    }
-  , { id: "server.switch"
-    , title: "Switch Server"
-    , category: "Server"
-    , keybind: Nothing
-    , onSelect: pure unit
-    }
-  , { id: "settings.open"
-    , title: "Settings"
-    , category: "Settings"
-    , keybind: Just "mod+comma"
-    , onSelect: pure unit
-    }
-  , { id: "session.previous"
-    , title: "Previous Session"
-    , category: "Session"
-    , keybind: Just "alt+arrowup"
-    , onSelect: pure unit
-    }
-  , { id: "session.next"
-    , title: "Next Session"
-    , category: "Session"
-    , keybind: Just "alt+arrowdown"
-    , onSelect: pure unit
-    }
-  , { id: "session.archive"
-    , title: "Archive Session"
-    , category: "Session"
-    , keybind: Just "mod+shift+backspace"
-    , onSelect: pure unit
-    }
-  , { id: "theme.cycle"
-    , title: "Cycle Theme"
-    , category: "Theme"
-    , keybind: Just "mod+shift+t"
-    , onSelect: pure unit
-    }
-  , { id: "theme.scheme.cycle"
-    , title: "Cycle Color Scheme"
-    , category: "Theme"
-    , keybind: Just "mod+shift+s"
-    , onSelect: pure unit
-    }
-  , { id: "language.cycle"
-    , title: "Cycle Language"
-    , category: "Language"
-    , keybind: Nothing
-    , onSelect: pure unit
-    }
+  let mkCmd id title cat kb =
+        { id: id
+        , title: title
+        , description: Nothing
+        , category: Just cat
+        , keybind: kb
+        , slash: Nothing
+        , suggested: Nothing
+        , disabled: Nothing
+        }
+  in
+  [ mkCmd "sidebar.toggle" "Toggle Sidebar" "View" (Just "mod+b")
+  , mkCmd "project.open" "Open Project" "Project" (Just "mod+o")
+  , mkCmd "provider.connect" "Connect Provider" "Provider" Nothing
+  , mkCmd "server.switch" "Switch Server" "Server" Nothing
+  , mkCmd "settings.open" "Settings" "Settings" (Just "mod+comma")
+  , mkCmd "session.previous" "Previous Session" "Session" (Just "alt+arrowup")
+  , mkCmd "session.next" "Next Session" "Session" (Just "alt+arrowdown")
+  , mkCmd "session.archive" "Archive Session" "Session" (Just "mod+shift+backspace")
+  , mkCmd "theme.cycle" "Cycle Theme" "Theme" (Just "mod+shift+t")
+  , mkCmd "theme.scheme.cycle" "Cycle Color Scheme" "Theme" (Just "mod+shift+s")
+  , mkCmd "language.cycle" "Cycle Language" "Language" Nothing
   ]
 
 -- | Project icon component props

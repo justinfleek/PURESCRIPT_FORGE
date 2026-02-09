@@ -9,10 +9,11 @@ import Prelude
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldEqual, shouldSatisfy)
 import Test.Spec.QuickCheck (quickCheck)
-import Test.QuickCheck (class Arbitrary, arbitrary, (===), (==>))
-import Test.QuickCheck.Gen (Gen, chooseInt, chooseFloat, arrayOf, elements)
+import Test.QuickCheck (class Arbitrary, arbitrary, (===))
+import Test.QuickCheck.Gen (Gen, chooseInt, choose, arrayOf, elements)
 import Data.Array as Array
 import Data.DateTime (DateTime)
+import Data.Maybe (Maybe(..))
 import Sidepanel.Utils.TokenUsage as TokenUsage
 import Sidepanel.State.AppState (SessionSummary)
 import Sidepanel.FFI.DateTime (fromTimestamp, toTimestamp)

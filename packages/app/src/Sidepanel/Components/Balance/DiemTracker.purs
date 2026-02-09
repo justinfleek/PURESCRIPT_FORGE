@@ -50,7 +50,7 @@ import Sidepanel.State.Balance (BalanceState, AlertLevel(..), calculateAlertLeve
 import Sidepanel.State.Balance as Balance
 import Sidepanel.Utils.Currency (formatDiem, formatUSD, formatConsumptionRate, formatTimeToDepletion)
 import Sidepanel.Utils.Time (formatTimeRemaining, TimeRemaining, getTimeUntilReset)
-import Effect.Aff (Milliseconds(..), delay, forever, forkAff, killFiber, error, Fiber)
+import Effect.Aff (Milliseconds(..), delay, forkAff, killFiber, error, Fiber)
 import Effect.Class (liftEffect)
 
 -- | Component input
@@ -354,9 +354,11 @@ handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Out
 handleAction = case _ of
   Initialize -> do
     -- Start countdown ticker (updates every second)
-    tickerFiber <- H.liftAff $ forkAff $ forever do
-      delay (Milliseconds 1000.0)
-      H.raise CountdownTick
+    let loop = do
+          delay (Milliseconds 1000.0)
+          pure unit
+          loop
+    tickerFiber <- H.liftAff $ forkAff loop
     -- Store ticker fiber in state for cleanup
     H.modify_ _ { tickerFiber = Just tickerFiber }
     pure unit

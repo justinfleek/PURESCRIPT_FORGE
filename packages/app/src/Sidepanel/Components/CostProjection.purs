@@ -46,8 +46,9 @@ import Data.Tuple (Tuple(..))
 import Data.Int as Int
 import Data.DateTime (DateTime(..))
 import Data.Date (canonicalDate)
-import Data.Time (midnight)
-import Data.Date.Component (Year(..), Month(..), Day(..))
+import Data.Bounded (bottom)
+import Data.Enum (toEnum)
+import Data.Int (round)
 import Sidepanel.Projection (DepletionPrediction, Scenario, calculateTimeToDepletion, generateScenarios)
 import Sidepanel.State.Balance (BalanceState)
 import Sidepanel.Utils.Currency (formatDiem, formatNumber)
@@ -64,7 +65,7 @@ type ChartPoint =
 -- | Component input
 type Input =
   { balanceState :: BalanceState
-  , resetTime :: DateTime  -- UTC midnight reset time
+  , resetTime :: DateTime  -- UTC bottom reset time
   }
 
 -- | Component state
@@ -93,8 +94,10 @@ component :: forall q m. MonadAff m => H.Component q Input Output m
 component = H.mkComponent
   { initialState: \input ->
       let
-        currentTime = input.balanceState.lastUpdated # fromMaybe (DateTime (canonicalDate (Year 2026) (Month 1) (Day 1)) midnight)
-        currentDiem = input.balanceState.venice.diem # fromMaybe 0.0
+        currentTime = input.balanceState.lastUpdated # fromMaybe (DateTime (canonicalDate (fromMaybe bottom (toEnum 2026)) (fromMaybe bottom (toEnum 1)) (fromMaybe bottom (toEnum 1))) bottom)
+        currentDiem = case input.balanceState.venice of
+          Just v -> v.diem
+          Nothing -> 0.0
         consumptionRate = input.balanceState.consumptionRate
         prediction = calculateTimeToDepletion currentDiem consumptionRate input.resetTime currentTime
         scenarios = generateScenarios currentDiem consumptionRate input.resetTime currentTime
@@ -146,7 +149,7 @@ renderChart points =
         [ HH.text "Chart visualization (would use Recharts)" ]
     , HH.div
         [ HP.class_ (H.ClassName "chart-data") ]
-        (Array.map renderChartPoint points)
+        (map renderChartPoint points)
     ]
 
 renderChartPoint :: forall m. ChartPoint -> H.ComponentHTML Action () m
@@ -162,7 +165,7 @@ renderScenarios scenarios =
     [ HH.h4 [ HP.class_ (H.ClassName "scenarios-title") ] [ HH.text "Scenarios" ]
     , HH.div
         [ HP.class_ (H.ClassName "scenarios-list") ]
-        (Array.map renderScenario scenarios)
+        (map renderScenario scenarios)
     ]
 
 renderScenario :: forall m. Scenario -> H.ComponentHTML Action () m
@@ -236,7 +239,7 @@ generateChartData currentBalance rate resetTime currentTime =
     intervals = Array.range 0 (round maxHours)
     warningThreshold = 2.0  -- Hours before reset to show warning
   in
-    Array.map (\hour ->
+    map (\hour ->
       let
         hourNumber = Int.toNumber hour
         projected = max 0.0 (currentBalance - (rate * hourNumber))
@@ -254,7 +257,9 @@ handleAction = case _ of
   
   Receive input -> do
     currentTime <- liftEffect getCurrentDateTime
-    let currentDiem = input.balanceState.venice.diem # fromMaybe 0.0
+    let currentDiem = case input.balanceState.venice of
+          Just v -> v.diem
+          Nothing -> 0.0
     let consumptionRate = input.balanceState.consumptionRate
     let prediction = calculateTimeToDepletion currentDiem consumptionRate input.resetTime currentTime
     let scenarios = generateScenarios currentDiem consumptionRate input.resetTime currentTime
@@ -262,35 +267,37 @@ handleAction = case _ of
     H.modify_ _
       { balanceState = input.balanceState
       , resetTime = input.resetTime
-      , currentTime
-      , prediction
-      , scenarios
-      , chartData
+      , currentTime = currentTime
+      , prediction = prediction
+      , scenarios = scenarios
+      , chartData = chartData
       }
     H.raise (ProjectionUpdated prediction)
-  
+
   UpdateCurrentTime dt ->
     H.modify_ _ { currentTime = dt }
-  
+
   Tick -> do
     currentTime <- liftEffect getCurrentDateTime
     state <- H.get
-    let currentDiem = state.balanceState.venice.diem # fromMaybe 0.0
+    let currentDiem = case state.balanceState.venice of
+          Just v -> v.diem
+          Nothing -> 0.0
     let consumptionRate = state.balanceState.consumptionRate
     let prediction = calculateTimeToDepletion currentDiem consumptionRate state.resetTime currentTime
     let scenarios = generateScenarios currentDiem consumptionRate state.resetTime currentTime
     let chartData = generateChartData currentDiem consumptionRate state.resetTime currentTime
     H.modify_ _
-      { currentTime
-      , prediction
-      , scenarios
-      , chartData
+      { currentTime = currentTime
+      , prediction = prediction
+      , scenarios = scenarios
+      , chartData = chartData
       }
     H.raise (ProjectionUpdated prediction)
 
 -- | Start ticker - Update every second
 startTicker :: forall m. MonadAff m => H.HalogenM State Action () Output m Unit
 startTicker = do
-  delay (Milliseconds 1000.0)
+  H.liftAff $ delay (Milliseconds 1000.0)
   handleAction Tick
   startTicker  -- Recursive

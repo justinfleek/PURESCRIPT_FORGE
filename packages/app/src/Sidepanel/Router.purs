@@ -38,12 +38,12 @@
 module Sidepanel.Router where
 
 import Prelude
+import Data.Either (Either(..))
 import Data.Generic.Rep (class Generic)
 import Data.Show.Generic (genericShow)
-import Routing.Duplex (RouteDuplex', root, segment, param, parse, print, (<#>))
-import Routing.Duplex.Generic (sum, noArgs)
-import Sidepanel.State.AppState (Panel(..))
 import Data.Maybe (Maybe(..))
+import Data.String as String
+import Sidepanel.State.AppState (Panel(..))
 
 -- | Application routes
 data Route
@@ -65,31 +65,42 @@ derive instance ordRoute :: Ord Route
 instance showRoute :: Show Route where
   show = genericShow
 
--- | Route codec
-routeCodec :: RouteDuplex' Route
-routeCodec = root $ sum
-  { "Dashboard": noArgs
-  , "Session": segment "session" *> (optionalId <|> noArgs)
-  , "Proof": segment "proof" *> noArgs
-  , "Timeline": segment "timeline" *> noArgs
-  , "Settings": segment "settings" *> noArgs
-  , "Terminal": segment "terminal" *> noArgs
-  , "FileContext": segment "file-context" *> noArgs
-  , "DiffViewer": segment "diff" *> noArgs
-  , "NotFound": noArgs
-  }
-  where
-    optionalId = param "id" <#> (\s -> Just s)
-
 -- | Parse URL to route
 parseRoute :: String -> Route
-parseRoute url = case parse routeCodec url of
-  Right route -> route
-  Left _ -> NotFound
+parseRoute url =
+  let path = stripLeadingSlash url
+      segments = String.split (String.Pattern "/") path
+  in case segments of
+    ["dashboard"] -> Dashboard
+    [""] -> Dashboard
+    ["session"] -> Session Nothing
+    ["session", sid] -> Session (Just sid)
+    ["proof"] -> Proof
+    ["timeline"] -> Timeline
+    ["settings"] -> Settings
+    ["terminal"] -> Terminal
+    ["file-context"] -> FileContext
+    ["diff"] -> DiffViewer
+    ["search"] -> Search
+    _ -> NotFound
+  where
+    stripLeadingSlash s =
+      if String.take 1 s == "/" then String.drop 1 s else s
 
 -- | Print route to URL
 printRoute :: Route -> String
-printRoute = print routeCodec
+printRoute = case _ of
+  Dashboard -> "/"
+  Session Nothing -> "/session"
+  Session (Just sid) -> "/session/" <> sid
+  Proof -> "/proof"
+  Timeline -> "/timeline"
+  Settings -> "/settings"
+  Terminal -> "/terminal"
+  FileContext -> "/file-context"
+  DiffViewer -> "/diff"
+  Search -> "/search"
+  NotFound -> "/"
 
 -- | Route to panel mapping
 routeToPanel :: Route -> Panel

@@ -33,6 +33,7 @@ module Sidepanel.Components.KeyboardNavigation where
 import Prelude
 import Halogen as H
 import Halogen.HTML as HH
+import Halogen.Subscription as HS
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
@@ -42,6 +43,7 @@ import Web.Event.EventTarget (addEventListener, eventListener, removeEventListen
 import Web.HTML (window)
 import Web.HTML.Window (document)
 import Web.DOM.Document (toEventTarget)
+import Web.HTML.HTMLDocument (toDocument)
 import Web.UIEvent.KeyboardEvent (KeyboardEvent, fromEvent, key, ctrlKey, shiftKey, altKey)
 import Sidepanel.Router (Route(..))
 import Data.Foldable (for_)
@@ -111,12 +113,12 @@ handleAction = case _ of
           pure unit
 
 -- | Keyboard event emitter - Subscribes to global keydown events
-keyboardEventEmitter :: forall m. MonadAff m => H.Emitter m Action
-keyboardEventEmitter = H.Emitter \emit -> do
-  doc <- liftEffect $ document =<< window
-  let target = toEventTarget doc
-  
-  keydownListener <- liftEffect $ eventListener \e -> do
+keyboardEventEmitter :: HS.Emitter Action
+keyboardEventEmitter = HS.makeEmitter \emit -> do
+  htmlDoc <- document =<< window
+  let target = toEventTarget (toDocument htmlDoc)
+
+  keydownListener <- eventListener \e -> do
     case fromEvent e of
       Just ke -> do
         -- Check if input is focused (don't intercept typing)
@@ -125,12 +127,12 @@ keyboardEventEmitter = H.Emitter \emit -> do
           pure unit
         else
           -- Emit HandleKeyDown action
-          liftEffect $ emit (HandleKeyDown ke)
+          emit (HandleKeyDown ke)
       Nothing ->
         pure unit
-  
-  liftEffect $ addEventListener (EventType "keydown") keydownListener false target
-  
+
+  addEventListener (EventType "keydown") keydownListener false target
+
   -- Return cleanup function
   pure $ removeEventListener (EventType "keydown") keydownListener false target
 

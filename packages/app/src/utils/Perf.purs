@@ -9,14 +9,16 @@ module Sidepanel.Utils.Perf
 
 import Prelude
 
+import Data.Foldable (all)
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Set (Set)
 import Data.Set as Set
+import Data.Tuple (Tuple(..))
+import Data.Tuple.Nested ((/\))
 import Effect (Effect)
 import Effect.Console (log)
-import Effect.Now (now)
 import Effect.Ref (Ref)
 import Effect.Ref as Ref
 import Effect.Timer (setTimeout, clearTimeout, TimeoutId)
@@ -86,12 +88,12 @@ flush id reason = do
                        Nothing -> nav.start
           
           -- Build ms map
-          let msEntries = Map.toUnfoldable nav.marks <#> \(k /\ v) -> k /\ (v - base)
+          let msEntries = (Map.toUnfoldable nav.marks :: Array (Tuple String Number)) <#> \(Tuple k v) -> Tuple k (v - base)
               msMap = Map.fromFoldable msEntries
           
           -- Log the entry
           log $ "perf.session-nav " <> jsonStringify
-            { type: "perf.session-nav.v0"
+            { "type": "perf.session-nav.v0"
             , id: nav.id
             , dir: nav.dir
             , from: nav.from
@@ -103,7 +105,7 @@ flush id reason = do
             }
           
           -- Mark as logged and remove
-          Ref.modify (Map.delete id) navs
+          Ref.modify_ (Map.delete id) navs
 
 -- | Check if all required marks are present and flush if complete
 maybeFlush :: String -> Effect Unit
@@ -114,7 +116,7 @@ maybeFlush id = do
       Nothing -> pure unit
       Just nav -> do
         when (not nav.logged) do
-          let hasAll = Set.all (\mark -> Map.member mark nav.marks) requiredMarks
+          let hasAll = all (\mark -> Map.member mark nav.marks) requiredMarks
           when hasAll do
             flush id "complete"
 
@@ -127,7 +129,7 @@ ensure id data' = do
     Nothing -> do
       timer <- setTimeout 5000 (flush id "timeout")
       let nav = data' { timer = Just timer }
-      Ref.modify (Map.insert id nav) navs
+      Ref.modify_ (Map.insert id nav) navs
       pure nav
 
 -- | Start navigation tracking
@@ -143,7 +145,7 @@ navStart input = do
               , marks: Map.singleton "navigate:start" startTime
               , logged: false, timer: Nothing }
     _ <- ensure id nav
-    Ref.modify (Map.insert (makeKey input.dir input.to) id) pending
+    Ref.modify_ (Map.insert (makeKey input.dir input.to) id) pending
     pure (Just id)
 
 -- | Set params mark
@@ -158,7 +160,7 @@ navParams input = do
     
     -- Remove from pending if found
     case pendingId of
-      Just pid -> Ref.modify (Map.delete k) pending
+      Just pid -> Ref.modify_ (Map.delete k) pending
       Nothing -> pure unit
     
     id <- case pendingId of
@@ -172,7 +174,7 @@ navParams input = do
               , marks: Map.singleton "session:params" startTime
               , logged: false, timer: Nothing }
     _ <- ensure id nav
-    Ref.modify (Map.insert k id) active
+    Ref.modify_ (Map.insert k id) active
     maybeFlush id
     pure (Just id)
 
@@ -192,7 +194,7 @@ navMark input = do
             when (not (Map.member input.name nav.marks)) do
               time <- performanceNow
               let updated = nav { marks = Map.insert input.name time nav.marks }
-              Ref.modify (Map.insert id updated) navs
+              Ref.modify_ (Map.insert id updated) navs
               maybeFlush id
 
 -- | JSON stringify helper

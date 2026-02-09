@@ -18,7 +18,7 @@ import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
 import Data.Array (find) as Array
 import Console.App.Routes.Stripe.Webhook.Types (CheckoutSessionData, PaymentMethodInfo)
-import Console.Core.Identifier (WorkspaceId, UserId)
+import Forge.Console.Core.Identifier (WorkspaceId, UserId)
 
 -- | Validation error
 type ValidationError = String

@@ -16,8 +16,8 @@ import Data.Either (Either(..))
 import Data.Array (elem)
 import Console.App.Routes.Omega.Util.Error (OmegaError(..), AuthError)
 import Console.App.Routes.Omega.Util.Handler.Types (AuthInfo, ModelInfo, Date)
-import Console.Core.Identifier (WorkspaceId, UserId)
-import Console.Core.Util.Price (MicroCents)
+import Forge.Console.Core.Identifier (WorkspaceId, UserId)
+import Forge.Console.Core.Util.Price (MicroCents)
 
 -- | Free workspaces that don't require billing
 freeWorkspaces :: Array String

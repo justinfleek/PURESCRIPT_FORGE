@@ -46,7 +46,10 @@ import Effect.Aff.Class (class MonadAff)
 import Data.Array (filter, mapWithIndex, length, snoc, foldl, findMap)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (Pattern(..), contains, split, joinWith)
+import Data.String as String
 import Data.Array as Array
+import Data.Either (Either(..))
+import Type.Proxy (Proxy(..))
 import Sidepanel.WebSocket.Client as WS
 import Sidepanel.Api.Bridge as Bridge
 import Sidepanel.Components.CodeSelection as CodeSelection
@@ -139,11 +142,29 @@ data Output
   | AllRejected
   | FilePreviewed String
 
+-- | Component queries (for parent components to send commands)
+data Query a
+  = UpdateDiffsQuery (Array FileDiff) a
+  | AcceptHunkQuery String String a  -- file, hunkId
+  | RejectHunkQuery String String a  -- file, hunkId
+
+-- | Slot types for child components
+type Slots =
+  ( codeOld :: H.Slot CodeSelection.Query CodeSelection.Output Unit
+  , codeNew :: H.Slot CodeSelection.Query CodeSelection.Output Unit
+  )
+
+_codeOld :: Proxy "codeOld"
+_codeOld = Proxy
+
+_codeNew :: Proxy "codeNew"
+_codeNew = Proxy
+
 -- | Component input
 type Input = { wsClient :: Maybe WS.WSClient }
 
 -- | Diff Viewer component
-component :: forall q m. MonadAff m => H.Component q Input Output m
+component :: forall m. MonadAff m => H.Component Query Input Output m
 component =
   H.mkComponent
     { initialState: \input -> initialState { wsClient = input.wsClient }
@@ -169,7 +190,7 @@ initialState =
   , wsClient: Nothing
   }
 
-render :: forall m. State -> H.ComponentHTML Action () m
+render :: forall m. MonadAff m => State -> H.ComponentHTML Action Slots m
 render state =
   HH.div
     [ HP.class_ (H.ClassName "diff-viewer") ]
@@ -179,7 +200,7 @@ render state =
     , renderPreviewModal state
     ]
 
-renderHeader :: forall m. State -> H.ComponentHTML Action () m
+renderHeader :: forall m. MonadAff m => State -> H.ComponentHTML Action Slots m
 renderHeader state =
   HH.div
     [ HP.class_ (H.ClassName "diff-header") ]
@@ -217,13 +238,13 @@ renderHeader state =
         ]
     ]
 
-renderDiffList :: forall m. Array FileDiff -> Maybe String -> ViewMode -> H.ComponentHTML Action () m
+renderDiffList :: forall m. MonadAff m => Array FileDiff -> Maybe String -> ViewMode -> H.ComponentHTML Action Slots m
 renderDiffList diffs selectedFile viewMode =
   HH.div
     [ HP.class_ (H.ClassName "diff-list") ]
     (mapWithIndex (\index diff -> renderFileDiff index diff selectedFile viewMode) diffs)
 
-renderFileDiff :: forall m. Int -> FileDiff -> Maybe String -> ViewMode -> H.ComponentHTML Action () m
+renderFileDiff :: forall m. MonadAff m => Int -> FileDiff -> Maybe String -> ViewMode -> H.ComponentHTML Action Slots m
 renderFileDiff index diff selectedFile viewMode =
   HH.div
     [ HP.class_ (H.ClassName $ "file-diff " <> if selectedFile == Just diff.file then "selected" else "")
@@ -264,14 +285,14 @@ renderFileDiff index diff selectedFile viewMode =
         HH.text ""
     ]
 
-renderHunk :: forall m. DiffHunk -> ViewMode -> H.ComponentHTML Action () m
+renderHunk :: forall m. MonadAff m => DiffHunk -> ViewMode -> H.ComponentHTML Action Slots m
 renderHunk hunk viewMode =
   case viewMode of
     Unified -> renderUnifiedHunk hunk
     Split -> renderSplitHunk hunk
     List -> renderListHunk hunk
 
-renderUnifiedHunk :: forall m. DiffHunk -> H.ComponentHTML Action () m
+renderUnifiedHunk :: forall m. MonadAff m => DiffHunk -> H.ComponentHTML Action Slots m
 renderUnifiedHunk hunk =
   HH.div
     [ HP.class_ (H.ClassName $ "diff-hunk " <> statusClass hunk.status) ]
@@ -281,7 +302,7 @@ renderUnifiedHunk hunk =
         , HH.div
             [ HP.class_ (H.ClassName "hunk-content") ]
             [ -- Old lines with code selection
-              HH.slot (H.Slot "old" unit) unit CodeSelection.component
+              HH.slot _codeOld unit CodeSelection.component
                 { codeLines: hunk.oldLines
                 , filePath: Just hunk.file
                 , language: detectLanguage hunk.file
@@ -291,7 +312,7 @@ renderUnifiedHunk hunk =
                   CodeSelection.AddedToChat code -> HandleCodeAddedToChat code
                   CodeSelection.SelectionChanged _ -> NoOp)
             , -- New lines with code selection
-              HH.slot (H.Slot "new" unit) unit CodeSelection.component
+              HH.slot _codeNew unit CodeSelection.component
                 { codeLines: hunk.newLines
                 , filePath: Just hunk.file
                 , language: detectLanguage hunk.file
@@ -324,7 +345,7 @@ renderUnifiedHunk hunk =
         ]
     ]
 
-renderSplitHunk :: forall m. DiffHunk -> H.ComponentHTML Action () m
+renderSplitHunk :: forall m. DiffHunk -> H.ComponentHTML Action Slots m
 renderSplitHunk hunk =
   HH.div
     [ HP.class_ (H.ClassName "diff-hunk-split") ]
@@ -360,7 +381,7 @@ renderSplitHunk hunk =
         ]
     ]
 
-renderListHunk :: forall m. DiffHunk -> H.ComponentHTML Action () m
+renderListHunk :: forall m. DiffHunk -> H.ComponentHTML Action Slots m
 renderListHunk hunk =
   HH.div
     [ HP.class_ (H.ClassName "diff-hunk-list") ]
@@ -435,7 +456,7 @@ detectLanguage path =
       _ -> Just "text"
 
 -- | Render edit dialog
-renderEditDialog :: forall m. State -> H.ComponentHTML Action () m
+renderEditDialog :: forall m. State -> H.ComponentHTML Action Slots m
 renderEditDialog state =
   case state.editingHunk of
     Just hunkId ->
@@ -447,7 +468,7 @@ renderEditDialog state =
             ]
             [ HH.div
                 [ HP.class_ (H.ClassName "modal")
-                , HE.onClick \e -> H.stopPropagation e
+                , HE.onClick \_ -> NoOp
                 ]
                 [ HH.div
                     [ HP.class_ (H.ClassName "modal-header") ]
@@ -499,7 +520,7 @@ renderEditDialog state =
       HH.text ""
 
 -- | Render preview modal
-renderPreviewModal :: forall m. State -> H.ComponentHTML Action () m
+renderPreviewModal :: forall m. State -> H.ComponentHTML Action Slots m
 renderPreviewModal state =
   case state.previewFile of
     Just file ->
@@ -509,7 +530,7 @@ renderPreviewModal state =
         ]
         [ HH.div
             [ HP.class_ (H.ClassName "modal modal-large")
-            , HE.onClick \_ -> pure unit
+            , HE.onClick \_ -> NoOp
             ]
             [ HH.div
                 [ HP.class_ (H.ClassName "modal-header") ]
@@ -539,7 +560,7 @@ renderPreviewModal state =
     Nothing ->
       HH.text ""
 
-handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Output m Unit
+handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action Slots Output m Unit
 handleAction = case _ of
   Initialize -> do
     -- Load diffs from bridge server
@@ -557,10 +578,9 @@ handleAction = case _ of
   UpdateDiffs diffs -> do
     let pendingCount = countPending diffs
     H.modify_ \s ->
-      { s
-      | diffs = diffs
-      , pendingCount = pendingCount
-      }
+      s { diffs = diffs
+        , pendingCount = pendingCount
+        }
   
   SelectFile file -> do
     H.modify_ \s -> s { selectedFile = Just file }
@@ -606,19 +626,17 @@ handleAction = case _ of
     H.raise AllAccepted
     state <- H.get
     H.modify_ \s ->
-      { s
-      | diffs = map (\diff -> diff { hunks = map (\hunk -> hunk { status = Accepted }) diff.hunks }) s.diffs
-      , pendingCount = 0
-      }
-  
+      s { diffs = map (\diff -> diff { hunks = map (\hunk -> hunk { status = Accepted }) diff.hunks }) s.diffs
+        , pendingCount = 0
+        }
+
   RejectAll -> do
     H.raise AllRejected
     state <- H.get
     H.modify_ \s ->
-      { s
-      | diffs = map (\diff -> diff { hunks = map (\hunk -> hunk { status = Rejected }) diff.hunks }) s.diffs
-      , pendingCount = 0
-      }
+      s { diffs = map (\diff -> diff { hunks = map (\hunk -> hunk { status = Rejected }) diff.hunks }) s.diffs
+        , pendingCount = 0
+        }
   
   OpenEditDialog hunkId -> do
     state <- H.get
@@ -627,10 +645,9 @@ handleAction = case _ of
         -- Initialize edit content with new lines
         let content = String.joinWith "\n" hunk.newLines
         H.modify_ \s ->
-          { s
-          | editingHunk = Just hunkId
-          , editContent = content
-          }
+          s { editingHunk = Just hunkId
+            , editContent = content
+            }
       Nothing ->
         pure unit
   
@@ -642,18 +659,16 @@ handleAction = case _ of
     let newLines = String.split (Pattern "\n") state.editContent
     -- Update the hunk with edited content
     H.modify_ \s ->
-      { s
-      | diffs = map (\diff -> diff { hunks = map (\hunk -> if hunk.id == hunkId then hunk { newLines = newLines, status = Modified } else hunk) diff.hunks }) s.diffs
-      , editingHunk = Nothing
-      , editContent = ""
-      }
+      s { diffs = map (\diff -> diff { hunks = map (\hunk -> if hunk.id == hunkId then hunk { newLines = newLines, status = Modified } else hunk) diff.hunks }) s.diffs
+        , editingHunk = Nothing
+        , editContent = ""
+        }
   
   CancelEdit -> do
     H.modify_ \s ->
-      { s
-      | editingHunk = Nothing
-      , editContent = ""
-      }
+      s { editingHunk = Nothing
+        , editContent = ""
+        }
   
   EditHunk hunkId newContent -> do
     -- Legacy action - now handled by SaveEdit
@@ -671,29 +686,25 @@ handleAction = case _ of
         case result of
           Right response -> do
             H.modify_ \s ->
-              { s
-              | previewFile = Just file
-              , previewContent = response.content
-              }
+              s { previewFile = Just file
+                , previewContent = response.content
+                }
           Left err -> do
             H.modify_ \s ->
-              { s
-              | previewFile = Just file
-              , previewContent = Just ("Error loading file: " <> err.message)
-              }
+              s { previewFile = Just file
+                , previewContent = Just ("Error loading file: " <> err.message)
+                }
       Nothing -> do
         H.modify_ \s ->
-          { s
-          | previewFile = Just file
-          , previewContent = Just ("Not connected to bridge server")
-          }
-  
+          s { previewFile = Just file
+            , previewContent = Just ("Not connected to bridge server")
+            }
+
   ClosePreview -> do
     H.modify_ \s ->
-      { s
-      | previewFile = Nothing
-      , previewContent = Nothing
-      }
+      s { previewFile = Nothing
+        , previewContent = Nothing
+        }
   
   PreviewFile file -> do
     handleAction (OpenPreview file)
@@ -710,7 +721,7 @@ handleAction = case _ of
     pure unit
 
 -- | Handle component queries
-handleQuery :: forall m a. MonadAff m => Query a -> H.HalogenM State Action () Output m (Maybe a)
+handleQuery :: forall m a. MonadAff m => Query a -> H.HalogenM State Action Slots Output m (Maybe a)
 handleQuery = case _ of
   UpdateDiffsQuery diffs a -> do
     handleAction (UpdateDiffs diffs)

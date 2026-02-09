@@ -32,7 +32,7 @@ module Sidepanel.Utils.Keyboard where
 
 import Prelude
 import Data.Maybe (Maybe(..))
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), fst, snd)
 import Data.Array as Array
 import Sidepanel.Router (Route(..))
 
@@ -40,24 +40,24 @@ import Sidepanel.Router (Route(..))
 type Shortcut = String
 
 -- | Route shortcuts (Vim-style)
-routeShortcuts :: Array (Shortcut /\ Route)
+routeShortcuts :: Array (Tuple Shortcut Route)
 routeShortcuts =
-  [ "1" /\ Dashboard
-  , "2" /\ Session Nothing
-  , "3" /\ Proof
-  , "4" /\ Timeline
-  , "5" /\ Settings
-  , "g d" /\ Dashboard
-  , "g s" /\ Session Nothing
-  , "g p" /\ Proof
-  , "g t" /\ Timeline
-  , "/" /\ Dashboard  -- Search opens dashboard with focus on search
+  [ Tuple "1" Dashboard
+  , Tuple "2" (Session Nothing)
+  , Tuple "3" Proof
+  , Tuple "4" Timeline
+  , Tuple "5" Settings
+  , Tuple "g d" Dashboard
+  , Tuple "g s" (Session Nothing)
+  , Tuple "g p" Proof
+  , Tuple "g t" Timeline
+  , Tuple "/" Dashboard  -- Search opens dashboard with focus on search
   ]
 
 -- | Find route for keyboard shortcut
 findRouteForShortcut :: Shortcut -> Maybe Route
 findRouteForShortcut shortcut =
-  Array.findMap (\(s /\ r) -> if s == shortcut then Just r else Nothing) routeShortcuts
+  Array.findMap (\(Tuple s r) -> if s == shortcut then Just r else Nothing) routeShortcuts
 
 -- | Check if key combination matches shortcut
 matchesShortcut :: String -> Shortcut -> Boolean

@@ -28,6 +28,7 @@ module Sidepanel.Components.Export.ExportDialog where
 
 import Prelude
 import Data.Array as Array
+import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.String as String
 import Halogen as H
@@ -95,7 +96,7 @@ type State =
 -- | Component actions
 data Action
   = Initialize
-  = Receive Input
+  | Receive Input
   | SetFormat ExportFormat
   | ToggleOption String
   | SetMessageRange (Maybe { from :: Int, to :: Int })
@@ -103,6 +104,7 @@ data Action
   | ExportToFile
   | CopyToClipboard
   | Close
+  | NoOp
 
 -- | Component output
 data Output
@@ -147,7 +149,7 @@ render state =
       ]
       [ HH.div
           [ HP.class_ (H.ClassName "export-dialog")
-          , HE.onClick \_ -> pure unit
+          , HE.onClick \_ -> NoOp
           ]
           [ renderHeader
           , renderFormatSelection state
@@ -329,7 +331,7 @@ handleAction = case _ of
     case state.exportType, state.wsClient of
       Just (SessionExport sessionId), Just client -> do
         -- Generate preview via Bridge API
-        result <- liftEffect $ Bridge.exportSession client
+        result <- H.liftAff $ Bridge.exportSession client
           { sessionId: sessionId
           , format: formatToString state.format
           , includeTimeline: Just state.options.includeTimestamps
@@ -337,24 +339,24 @@ handleAction = case _ of
         case result of
           Right response -> do
             -- Show first 500 chars as preview
-            let preview = String.take 500 response.data
+            let preview = String.take 500 response.exportData
             H.modify_ _ { preview = Just preview }
           Left _ -> pure unit
       _, _ -> pure unit
-  
+
   ExportToFile -> do
     state <- H.get
     H.modify_ _ { isExporting = true }
     case state.exportType, state.wsClient of
       Just (SessionExport sessionId), Just client -> do
-        result <- liftEffect $ Bridge.exportSession client
+        result <- H.liftAff $ Bridge.exportSession client
           { sessionId: sessionId
           , format: formatToString state.format
           , includeTimeline: Just state.options.includeTimestamps
           }
         case result of
           Right response -> do
-            liftEffect $ Download.downloadFile response.data response.filename
+            liftEffect $ Download.downloadFile response.exportData response.filename
             H.modify_ _ { isExporting = false, visible = false }
             H.raise (ExportCompleted response.filename)
           Left _ -> do
@@ -371,6 +373,8 @@ handleAction = case _ of
         H.raise (ExportCompleted "clipboard")
       Nothing -> pure unit
   
+  NoOp -> pure unit
+
   Close -> do
     H.modify_ _ { visible = false, preview = Nothing }
     H.raise ExportCancelled

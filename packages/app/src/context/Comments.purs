@@ -1,6 +1,6 @@
 -- | Comments context - manages line comments on files
 -- | Migrated from: forge-dev/packages/app/src/context/comments.tsx
-module App.Context.Comments
+module Sidepanel.Context.Comments
   ( LineComment
   , SelectedLineRange
   , CommentFocus

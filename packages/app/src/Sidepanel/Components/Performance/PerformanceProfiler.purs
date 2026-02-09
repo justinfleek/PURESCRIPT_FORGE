@@ -47,6 +47,7 @@ import Data.Int as Int
 import Data.Argonaut as A
 import Data.Argonaut (Json)
 import Data.Argonaut.Decode ((.:), (.:?))
+import Foreign.Object as FO
 import Data.Either (Either(..))
 import Effect.Aff (catchError)
 
@@ -62,6 +63,7 @@ data EventType
 derive instance eqEventType :: Eq EventType
 
 -- | Timed event
+-- NOTE: children uses Json to avoid recursive type alias (PureScript limitation)
 type TimedEvent =
   { id :: String
   , type_ :: EventType
@@ -69,7 +71,7 @@ type TimedEvent =
   , startTime :: Number  -- ms from session start
   , endTime :: Number
   , duration :: Number
-  , children :: Array TimedEvent
+  , children :: Array Json
   , metadata :: EventMetadata
   }
 
@@ -137,8 +139,8 @@ derive instance eqViewMode :: Eq ViewMode
 -- | Component actions
 data Action
   = Initialize
-  = Receive Input
-  = LoadPerformanceData
+  | Receive Input
+  | LoadPerformanceData
   | PerformanceDataLoaded PerformanceData
   | SelectEvent String
   | SetViewMode ViewMode
@@ -247,7 +249,7 @@ renderSummary data_ =
         , renderSummaryItem "Tool Execution" (formatDuration data_.toolExecutionTime <> " (" <> show (percent data_.toolExecutionTime data_.totalDuration) <> "%)")
         , renderSummaryItem "Network" (formatDuration data_.networkTime <> " (" <> show (percent data_.networkTime data_.totalDuration) <> "%)")
         , renderSummaryItem "Total Tokens" (show data_.totalTokens)
-        , renderSummaryItem "Avg Response" (show (data_.totalTokens / Int.toNumber data_.messageCount) <> " tk")
+        , renderSummaryItem "Avg Response" (show (Int.toNumber data_.totalTokens / Int.toNumber data_.messageCount) <> " tk")
         , renderSummaryItem "Messages" (show data_.messageCount)
         , renderSummaryItem "Tool Calls" (show data_.toolCallCount)
         ]
@@ -340,7 +342,7 @@ renderSuggestions suggestions =
     [ HH.h3_ [ HH.text "OPTIMIZATION SUGGESTIONS" ]
     , HH.div
         [ HP.class_ (H.ClassName "suggestions-list") ]
-        (Array.map renderSuggestion suggestions)
+        (map renderSuggestion suggestions)
     ]
 
 -- | Render suggestion
@@ -456,7 +458,7 @@ handleAction = case _ of
     case state.wsClient of
       Just client -> do
         -- Create snapshot via Bridge API
-        result <- liftEffect $ Bridge.saveSnapshot client
+        result <- H.liftAff $ Bridge.saveSnapshot client
           { trigger: "manual"
           , description: Just "Performance snapshot"
           }
@@ -492,13 +494,13 @@ decodeSlowOperations json =
     Just arr -> Array.mapMaybe decodeSlowOp arr
   where
     decodeSlowOp :: Json -> Maybe SlowOperation
-    decodeSlowOp j = case A.decodeJson j of
-      Left _ -> Nothing
-      Right obj -> do
-        name <- A.toString =<< A.getField obj "name"
-        duration <- A.toNumber =<< A.getField obj "duration"
-        description <- A.toString =<< A.getField obj "description"
-        let suggestion = A.toString =<< A.getField obj "suggestion"
+    decodeSlowOp j = case A.toObject j of
+      Nothing -> Nothing
+      Just obj -> do
+        name <- A.toString =<< FO.lookup "name" obj
+        duration <- A.toNumber =<< FO.lookup "duration" obj
+        description <- A.toString =<< FO.lookup "description" obj
+        let suggestion = A.toString =<< FO.lookup "suggestion" obj
         Just { name, duration, description, suggestion }
 
 -- | Decode optimization suggestions from JSON array
@@ -509,10 +511,10 @@ decodeSuggestions json =
     Just arr -> Array.mapMaybe decodeSuggestion arr
   where
     decodeSuggestion :: Json -> Maybe OptimizationSuggestion
-    decodeSuggestion j = case A.decodeJson j of
-      Left _ -> Nothing
-      Right obj -> do
-        title <- A.toString =<< A.getField obj "title"
-        description <- A.toString =<< A.getField obj "description"
-        let estimatedSavings = A.toString =<< A.getField obj "estimatedSavings"
+    decodeSuggestion j = case A.toObject j of
+      Nothing -> Nothing
+      Just obj -> do
+        title <- A.toString =<< FO.lookup "title" obj
+        description <- A.toString =<< FO.lookup "description" obj
+        let estimatedSavings = A.toString =<< FO.lookup "estimatedSavings" obj
         Just { title, description, estimatedSavings }

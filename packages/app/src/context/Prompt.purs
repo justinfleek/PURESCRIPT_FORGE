@@ -1,6 +1,6 @@
 -- | Prompt context - manages prompt input state
 -- | Migrated from: forge-dev/packages/app/src/context/prompt.tsx
-module App.Context.Prompt
+module Sidepanel.Context.Prompt
   ( TextPart
   , FileAttachmentPart
   , AgentPart
@@ -20,11 +20,12 @@ module App.Context.Prompt
   , removeContextItem
   , setPrompt
   , resetPrompt
+  , KeyedContextItem
   ) where
 
 import Prelude
 
-import Data.Array (filter, length, snoc, (:))
+import Data.Array (filter, length, snoc)
 import Data.Array as Array
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (take) as String
@@ -137,10 +138,11 @@ isPromptEqual a b =
   else checkParts a b
   where
     checkParts :: Prompt -> Prompt -> Boolean
-    checkParts [] [] = true
-    checkParts [] _ = false
-    checkParts _ [] = false
-    checkParts (x : xs) (y : ys) = partEqual x y && checkParts xs ys
+    checkParts arrA arrB = case Array.uncons arrA, Array.uncons arrB of
+      Nothing, Nothing -> true
+      Nothing, _ -> false
+      _, Nothing -> false
+      Just { head: x, tail: xs }, Just { head: y, tail: ys } -> partEqual x y && checkParts xs ys
     
     partEqual :: ContentPart -> ContentPart -> Boolean
     partEqual (TextContent ta) (TextContent tb) = ta.content == tb.content

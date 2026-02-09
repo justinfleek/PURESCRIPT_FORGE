@@ -36,7 +36,7 @@ import Effect.Aff.Class (class MonadAff)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.Int as Int
-import Sidepanel.Venice.Error (VeniceError, parseError, getRecoveryStrategy, isRetryable, getErrorMessage, calculateRetryDelay, RecoveryStrategy(..), UnknownError(..))
+import Sidepanel.Venice.Error (VeniceError(..), parseError, getRecoveryStrategy, isRetryable, getErrorMessage, calculateRetryDelay, RecoveryStrategy(..))
 import Sidepanel.Api.Types (JsonRpcError)
 
 -- | Retry configuration - Configuration for retry behavior
@@ -114,7 +114,7 @@ errorToAlert error = case error of
   RateLimitError retryAfter ->
     { level: "warning"
     , title: "Rate Limited"
-    , message: "Request limit reached. Retrying in " <> show (round retryAfter) <> "s..."
+    , message: "Request limit reached. Retrying in " <> show (Int.round retryAfter) <> "s..."
     }
   
   NetworkError msg ->

@@ -37,7 +37,11 @@
 module Sidepanel.Components.Settings.SettingsPanel where
 
 import Prelude
+import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Int (floor, round)
+import Data.Number (fromString)
+import DOM.HTML.Indexed.StepValue (StepValue(..))
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
@@ -424,9 +428,9 @@ renderSlider config =
             [ HP.type_ HP.InputRange
             , HP.class_ (H.ClassName "slider")
             , HP.value (show config.value)
-            , HP.min (show config.min)
-            , HP.max (show config.max)
-            , HP.step (show config.step)
+            , HP.min config.min
+            , HP.max config.max
+            , HP.step (Step config.step)
             , HE.onValueChange \v -> config.onChange (parseFloat v)
             ]
         , HH.span [ HP.class_ (H.ClassName "slider-value") ]
@@ -468,7 +472,7 @@ renderRadio name value checked action =
 
 -- Helper functions
 parseInt :: String -> Int
-parseInt s = case parseFloat s of
+parseInt s = case fromString s of
   Just n -> floor n
   Nothing -> 30
 
@@ -479,15 +483,6 @@ parseFloat s = case fromString s of
 
 handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Output m Unit
 handleAction = case _ of
-  Initialize -> pure unit
-
-  Receive newSettings ->
-    H.modify_ \s ->
-      s { settings = newSettings
-        , originalSettings = newSettings
-        , isDirty = false
-        }
-
   SetWarningPercent val ->
     H.modify_ \s ->
       s { settings = s.settings { alerts = s.settings.alerts { warningPercent = val } }
@@ -564,11 +559,13 @@ handleAction = case _ of
   Initialize -> do
     -- Load settings from localStorage
     stored <- liftEffect $ LocalStorage.getItem "sidepanel.settings"
-    case stored >>= decodeSettingsFromString of
-      Right loadedSettings -> do
-        H.modify_ _ { settings = loadedSettings, originalSettings = loadedSettings }
-      Left _ -> do
-        -- Use default settings if loading fails
+    case stored of
+      Just str -> case decodeSettingsFromString str of
+        Right loadedSettings ->
+          H.modify_ _ { settings = loadedSettings, originalSettings = loadedSettings }
+        Left _ ->
+          pure unit
+      Nothing ->
         pure unit
 
   Receive input -> do
@@ -612,6 +609,3 @@ handleAction = case _ of
   CancelReset ->
     H.modify_ _ { showConfirmReset = false }
 
--- Helper imports
-import Data.Int (floor)
-import Data.Number (fromString)

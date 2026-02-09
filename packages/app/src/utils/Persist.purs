@@ -13,6 +13,7 @@ module Sidepanel.Utils.Persist
 
 import Prelude
 
+import Data.Array as Array
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -66,8 +67,8 @@ cacheDelete key = do
   case Map.lookup key cacheMap of
     Nothing -> pure unit
     Just entry -> do
-      Ref.modify (_ - entry.bytes) cacheTotal
-      Ref.modify (Map.delete key) cache
+      Ref.modify_ (_ - entry.bytes) cacheTotal
+      Ref.modify_ (Map.delete key) cache
 
 -- | Prune cache to stay within limits
 cachePrune :: Effect Unit
@@ -76,9 +77,10 @@ cachePrune = do
   total <- Ref.read cacheTotal
   when (size > cacheMaxEntries || total > cacheMaxBytes) do
     cacheMap <- Ref.read cache
-    case Map.findMin cacheMap of
+    let entries = Map.toUnfoldable cacheMap :: Array (Tuple String CacheEntry)
+    case Array.head entries of
       Nothing -> pure unit
-      Just { key, value } -> do
+      Just (Tuple key _) -> do
         cacheDelete key
         cachePrune
 
@@ -88,8 +90,8 @@ cacheSet key value = do
   let bytes = 2 * stringLength value  -- UTF-16 characters = 2 bytes each
   when (bytes <= cacheMaxBytes) do
     cacheDelete key
-    Ref.modify (Map.insert key { value, bytes }) cache
-    Ref.modify (_ + bytes) cacheTotal
+    Ref.modify_ (Map.insert key { value, bytes }) cache
+    Ref.modify_ (_ + bytes) cacheTotal
     cachePrune
 
 -- | Get from cache
@@ -100,8 +102,8 @@ cacheGet key = do
     Nothing -> pure Nothing
     Just entry -> do
       -- Move to end (LRU)
-      Ref.modify (Map.delete key) cache
-      Ref.modify (Map.insert key entry) cache
+      Ref.modify_ (Map.delete key) cache
+      Ref.modify_ (Map.insert key entry) cache
       pure (Just entry.value)
 
 -- | Check if error is quota exceeded

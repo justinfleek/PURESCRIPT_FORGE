@@ -22,6 +22,7 @@
 module Sidepanel.Components.HelpOverlay where
 
 import Prelude
+import Data.Maybe (Maybe(..))
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
@@ -69,10 +70,16 @@ data Action
 
 handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Output m Unit
 handleAction = case _ of
+  Initialize ->
+    pure unit
+
   Receive input ->
     H.modify_ _ { visible = input.visible }
-  
+
   Close ->
+    H.raise OverlayClosed
+
+  HandleEscape ->
     H.raise OverlayClosed
 
 -- | Render component
@@ -85,7 +92,6 @@ render state =
       ]
       [ HH.div
           [ HP.class_ (H.ClassName "help-overlay__content")
-          , HE.onClick \_ -> pure unit
           ]
           [ HH.div
               [ HP.class_ (H.ClassName "help-overlay__header") ]

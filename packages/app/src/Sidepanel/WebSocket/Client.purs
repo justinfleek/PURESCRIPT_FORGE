@@ -4,31 +4,32 @@ module Sidepanel.WebSocket.Client where
 
 import Prelude
 import Effect (Effect)
-import Effect.Aff (Aff, makeAff, delay, Milliseconds(..))
+import Effect.Aff (Aff, makeAff, delay, Milliseconds(..), launchAff_)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Ref (Ref, new, read, write, modify)
-import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Class (liftEffect)
+import Data.Array (filter)
+import Data.Array as Array
+import Data.Foldable (traverse_)
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Either (Either(..))
 import Data.Int (toNumber)
-import Data.DateTime (DateTime)
-import Control.Monad.Rec.Class (class MonadRec)
-import Math (pow, min)
-import Sidepanel.FFI.Math (random)
-import Sidepanel.FFI.WebSocket (WebSocketConnection, create, readyState, send, close, closeWith, onOpen, onClose, onError, onMessage, toReadyState, ReadyState(..))
-import Sidepanel.Api.Types (JsonRpcRequest, JsonRpcResponse, JsonRpcError, ServerMessage(..))
-import Argonaut.Decode.Error (JsonDecodeError)
-import Sidepanel.FFI.DateTime (getCurrentDateTime, toTimestamp)
-import Argonaut.Core (Json)
-import Argonaut.Core as AC
-import Argonaut.Encode (class EncodeJson, encodeJson, (:=), (:=?))
-import Argonaut.Decode (class DecodeJson, decodeJson, (.:), (.:?))
-import Argonaut.Parser (jsonParser)
-import Data.Array as Array
 import Data.Int as Int
-import Data.Maybe (fromMaybe)
-import Effect.Aff (launchAff_)
+import Data.Number (pow)
+import Data.DateTime (DateTime)
+import Effect.Exception (Error, error)
+import Sidepanel.FFI.Math (random)
+import Sidepanel.FFI.WebSocket (WebSocketConnection, create, send, close, closeWith, onOpen, onClose, onError, onMessage)
+import Sidepanel.Api.Types (JsonRpcRequest, JsonRpcResponse, JsonRpcError, ServerMessage, decodeJsonRpcError)
+import Data.Argonaut.Decode.Error (JsonDecodeError)
+import Sidepanel.FFI.DateTime (getCurrentDateTime, toTimestamp)
+import Data.Argonaut.Core (Json)
+import Data.Argonaut.Core as AC
+import Data.Argonaut.Encode (class EncodeJson, encodeJson, (:=))
+import Data.Argonaut.Decode (class DecodeJson, decodeJson, (.:), (.:?))
+import Data.Argonaut.Parser (jsonParser)
+import Foreign.Object as FO
 
 -- | Connection state
 data ConnectionState
@@ -81,7 +82,7 @@ defaultConfig =
 
 -- | WebSocket client state
 type WSClient =
-  { socket :: Maybe WebSocketConnection
+  { socket :: Ref (Maybe WebSocketConnection)
   , state :: Ref ConnectionState
   , nextId :: Ref Int
   , pending :: Ref (Map.Map Int PendingRequest)
@@ -96,6 +97,7 @@ type WSClient =
 -- | Create new WebSocket client
 createClient :: ClientConfig -> Effect WSClient
 createClient config = do
+  socket <- new Nothing
   state <- new Disconnected
   nextId <- new 1
   pending <- new Map.empty
@@ -105,7 +107,7 @@ createClient config = do
   lastPing <- new Nothing
   reconnectAttempt <- new 0
   pure
-    { socket: Nothing
+    { socket
     , state
     , nextId
     , pending
@@ -118,15 +120,14 @@ createClient config = do
     }
 
 -- | Connect to WebSocket server
-connect :: forall m. MonadAff m => WSClient -> Aff (Either String Unit)
+connect :: WSClient -> Aff Unit
 connect client = makeAff \resolve -> do
-  liftEffect do
-    write Connecting client.state
-    socket <- create client.config.url
-    setupHandlers client socket resolve
-    pure (pure unit)
+  write Connecting client.state
+  socket <- create client.config.url
+  setupHandlers client socket resolve
+  pure mempty
 
-setupHandlers :: WSClient -> WebSocketConnection -> (Either String Unit -> Effect Unit) -> Effect Unit
+setupHandlers :: WSClient -> WebSocketConnection -> (Either Error Unit -> Effect Unit) -> Effect Unit
 setupHandlers client socket resolve = do
   onOpen socket do
     write (Connected) client.state
@@ -147,7 +148,7 @@ setupHandlers client socket resolve = do
 
   onError socket \errorMsg -> do
     write (Error errorMsg) client.state
-    resolve (Left errorMsg)
+    resolve (Left (error errorMsg))
 
   onMessage socket \message -> do
     handleMessage client message
@@ -159,58 +160,60 @@ authenticate :: WSClient -> Effect Unit
 authenticate client = case client.config.authToken of
   Just token -> do
     -- Send auth request with proper JSON encoding
-    void $ launchAff_ $ request client "auth.request" (AC.fromObject $ AC.fromFoldable [ "token" := token ]) \result -> do
+    launchAff_ $ void $ request client "auth.request" (AC.fromObject $ FO.fromFoldable [ "token" := token ]) \result -> do
       -- Handle auth response
       pure unit
   Nothing -> pure unit
 
 -- | Send JSON-RPC request and await response
 request :: forall a. WSClient -> String -> Json -> (Json -> Aff a) -> Aff (Either JsonRpcError a)
-request client method paramsJson handler = makeAff \resolve -> do
-  id <- liftEffect $ modify (_ + 1) client.nextId >>= read client.nextId
+request client method paramsJson handler = do
+  id <- liftEffect do
+    void $ modify (_ + 1) client.nextId
+    read client.nextId
   state <- liftEffect $ read client.state
-  
+
   if state == Connected then do
     -- Create request with JSON params
-    let req = { jsonrpc: "2.0", id: show id, method, params: paramsJson }
-    
+    let req = { jsonrpc: "2.0", id: Just (show id), method, params: paramsJson }
+
     -- Send request
     result <- sendRequest client req
-    
+
     case result of
-      Left err -> resolve (Left { code: -32000, message: err, data: Nothing })
+      Left err -> pure (Left { code: -32000, message: err, errorData: Nothing })
       Right _ -> do
-        -- Wait for response
-        waitForResponse client id resolve handler
+        -- Wait for response (timeout)
+        waitForResponse client id handler
   else do
     -- Queue request if offline
-    liftEffect $ queueRequest client { jsonrpc: "2.0", id: show id, method, params: paramsJson }
-    resolve (Left { code: -32000, message: "Not connected", data: Nothing })
+    liftEffect $ queueRequest client { jsonrpc: "2.0", id: Just (show id), method, params: paramsJson }
+    pure (Left { code: -32000, message: "Not connected", errorData: Nothing })
 
 -- | Send request to server
 sendRequest :: WSClient -> JsonRpcRequest -> Aff (Either String Unit)
-sendRequest client req = makeAff \resolve -> do
-  socket <- liftEffect $ read client.socket
-  case socket of
+sendRequest client req = do
+  socketMaybe <- liftEffect $ read client.socket
+  case socketMaybe of
     Just ws -> do
-      -- Serialize request using Argonaut
-      let message = serializeRequest req
-      result <- liftEffect $ send ws message
-      resolve result
-    Nothing -> resolve (Left "Not connected")
+      _ <- liftEffect $ send ws (serializeRequest req)
+      pure (Right unit)
+    Nothing -> pure (Left "Not connected")
 
 -- | Wait for response with timeout
-waitForResponse :: forall a. WSClient -> Int -> (Either JsonRpcError a -> Effect Unit) -> (Json -> Aff a) -> Aff Unit
-waitForResponse client id resolve handler = do
-  timeoutId <- liftEffect $ new Nothing
+waitForResponse :: forall a. WSClient -> Int -> (Json -> Aff a) -> Aff (Either JsonRpcError a)
+waitForResponse client id handler = do
   -- Set timeout
   delay client.config.requestTimeout
   -- Check if still pending
   pending <- liftEffect $ read client.pending
-  when (Map.member id pending) do
+  if Map.member id pending then do
     -- Timeout occurred
-    liftEffect $ resolve (Left { code: -32000, message: "Request timeout", data: Nothing })
-    liftEffect $ modify (Map.delete id) client.pending
+    liftEffect $ void $ modify (Map.delete id) client.pending
+    pure (Left { code: -32000, message: "Request timeout", errorData: Nothing })
+  else
+    -- Response was already handled
+    pure (Left { code: -32000, message: "Response handled externally", errorData: Nothing })
 
 -- | Handle incoming message
 handleMessage :: WSClient -> String -> Effect Unit
@@ -228,25 +231,26 @@ handleMessage client message = do
         case parseMessage message of
           Left _ -> pure unit  -- Unknown message format
           Right msg -> case msg of
-            Notification notif -> do
+            MtNotification notif -> do
               notifySubscribers client notif
               enqueueMessage client notif
-            Response resp -> handleResponse client resp
-            Ping -> handlePing client
-            Pong -> handlePong client
+            MtResponse resp -> handleResponse client resp
+            MtPing -> handlePing client
+            MtPong -> handlePong client
 
 -- | Handle JSON-RPC response
 handleResponse :: WSClient -> JsonRpcResponse -> Effect Unit
 handleResponse client resp = do
   pending <- read client.pending
-  case resp.id >>= \id -> Map.lookup (parseInt id) pending of
+  case resp.id >>= parseInt >>= \intId -> Map.lookup intId pending of
     Just { resolve } -> do
-      modify (Map.delete (fromMaybe 0 (resp.id >>= parseInt))) client.pending
+      let deleteId = fromMaybe 0 (resp.id >>= parseInt)
+      void $ modify (Map.delete deleteId) client.pending
       case resp.error of
         Just err -> resolve (Left err)
         Nothing -> case resp.result of
           Just result -> resolve (Right result)
-          Nothing -> resolve (Left { code: -32603, message: "Internal error: missing result", data: Nothing })
+          Nothing -> resolve (Left { code: -32603, message: "Internal error: missing result", errorData: Nothing })
     Nothing -> pure unit  -- Orphan response
 
 -- | Notify all subscribers
@@ -266,7 +270,7 @@ notifySubscribers client msg = do
 -- | **Side Effects:** Modifies messageQueue Ref
 enqueueMessage :: WSClient -> ServerMessage -> Effect Unit
 enqueueMessage client msg = do
-  modify (_ <> [msg]) client.messageQueue
+  void $ modify (_ <> [msg]) client.messageQueue
 
 -- | Dequeue all messages - Remove and return all queued messages
 -- |
@@ -283,11 +287,16 @@ dequeueMessages client = do
   pure msgs
 
 -- | Subscribe to server notifications
+-- | Returns an unsubscribe effect. Uses array length as a simple marker.
 subscribe :: WSClient -> (ServerMessage -> Effect Unit) -> Effect (Effect Unit)
 subscribe client handler = do
-  modify (_ <> [handler]) client.subscribers
+  subs <- read client.subscribers
+  let idx = Array.length subs
+  write (Array.snoc subs handler) client.subscribers
   pure do
-    modify (filter (_ /= handler)) client.subscribers
+    -- Remove by rebuilding without the handler at the insertion index
+    current <- read client.subscribers
+    write (Array.deleteAt idx current # fromMaybe current) client.subscribers
 
 -- | Handle ping from server
 handlePing :: WSClient -> Effect Unit
@@ -296,7 +305,7 @@ handlePing client = do
   case socket of
     Just ws -> do
       -- Send pong response (notification, no id)
-      let pongReq = { jsonrpc: "2.0", id: Nothing, method: "pong", params: AC.fromObject $ AC.fromFoldable [] }
+      let pongReq = { jsonrpc: "2.0", id: Nothing, method: "pong", params: AC.fromObject $ FO.fromFoldable [] }
       void $ send ws (serializeRequest pongReq)
     Nothing -> pure unit
 
@@ -340,7 +349,7 @@ attemptReconnect client = do
     write (Error "Max reconnection attempts reached") client.state
   else do
     write (Reconnecting (attempt + 1)) client.state
-    modify (_ + 1) client.reconnectAttempt
+    void $ modify (_ + 1) client.reconnectAttempt
     
     -- Calculate exponential backoff with jitter
     void $ launchAff_ do
@@ -367,7 +376,7 @@ queueRequest client req = do
   else do
     -- Get current DateTime for timestamp
     timestamp <- getCurrentDateTime
-    modify (_ <> [{ request: req, timestamp: timestamp, retries: 0 }]) client.queue
+    void $ modify (_ <> [{ request: req, timestamp: timestamp, retries: 0 }]) client.queue
 
 -- | Process queued messages
 processQueue :: WSClient -> Effect Unit
@@ -375,7 +384,7 @@ processQueue client = do
   queue <- read client.queue
   write [] client.queue
   -- Send all queued messages
-  traverse_ (\queued -> void $ sendRequest client queued.request) queue
+  launchAff_ $ traverse_ (\queued -> void $ sendRequest client queued.request) queue
 
 -- | Disconnect from server
 disconnect :: WSClient -> Effect Unit
@@ -388,17 +397,19 @@ disconnect client = do
       write Disconnected client.state
     Nothing -> pure unit
 
--- | JSON-RPC Request codec
-instance EncodeJson JsonRpcRequest where
-  encodeJson req = AC.fromObject $ AC.fromFoldable
+-- | Standalone encoder for JsonRpcRequest (type alias cannot have typeclass instances)
+encodeJsonRpcRequest :: JsonRpcRequest -> Json
+encodeJsonRpcRequest req = AC.fromObject $ FO.fromFoldable $
     [ "jsonrpc" := req.jsonrpc
-    , "id" :=? req.id
     , "method" := req.method
     , "params" := req.params
-    ]
+    ] <> case req.id of
+      Just i -> [ "id" := i ]
+      Nothing -> []
 
-instance DecodeJson JsonRpcRequest where
-  decodeJson json = do
+-- | Standalone decoder for JsonRpcRequest (type alias cannot have typeclass instances)
+decodeJsonRpcRequest :: Json -> Either JsonDecodeError JsonRpcRequest
+decodeJsonRpcRequest json = do
     obj <- decodeJson json
     jsonrpc <- obj .: "jsonrpc"
     id <- obj .:? "id"
@@ -406,27 +417,42 @@ instance DecodeJson JsonRpcRequest where
     params <- obj .: "params"
     pure { jsonrpc, id, method, params }
 
--- | JSON-RPC Response codec
-instance DecodeJson JsonRpcResponse where
-  decodeJson json = do
+-- | Standalone decoder for JsonRpcResponse (type alias cannot have typeclass instances)
+-- | Handles the error field using the standalone decodeJsonRpcError from Types
+decodeJsonRpcResponse :: Json -> Either JsonDecodeError JsonRpcResponse
+decodeJsonRpcResponse json = do
     obj <- decodeJson json
     jsonrpc <- obj .: "jsonrpc"
     id <- obj .:? "id"
     result <- obj .:? "result"
-    error <- obj .:? "error"
+    -- Manually decode the error field using the standalone decoder
+    -- to correctly map JSON "data" key to errorData field
+    errorJson <- obj .:? "error"
+    error <- case errorJson of
+      Nothing -> pure Nothing
+      Just ej -> case decodeJsonRpcError ej of
+        Right e -> pure (Just e)
+        Left err -> Left err
     pure { jsonrpc, id, result, error }
 
-data MessageType = Notification ServerMessage | Response JsonRpcResponse | Ping | Pong
+data MessageType = MtNotification ServerMessage | MtResponse JsonRpcResponse | MtPing | MtPong
 
+-- | Parse a WebSocket message string into a MessageType
 parseMessage :: String -> Either String MessageType
 parseMessage str = case jsonParser str of
   Left err -> Left err
-  Right json -> case decodeJson json of
-    Left err -> Left err
-    Right msg -> Right msg
+  Right json ->
+    -- Try parsing as JSON-RPC response first (has "jsonrpc" field)
+    case decodeJsonRpcResponse json of
+      Right resp -> Right (MtResponse resp)
+      Left _ ->
+        -- Try parsing as ServerMessage
+        case (decodeJson json :: Either JsonDecodeError ServerMessage) of
+          Right msg -> Right (MtNotification msg)
+          Left decodeErr -> Left (show decodeErr)
 
 serializeRequest :: JsonRpcRequest -> String
-serializeRequest req = AC.stringify $ encodeJson req
+serializeRequest req = AC.stringify $ encodeJsonRpcRequest req
 
 parseInt :: String -> Maybe Int
 parseInt = Int.fromString

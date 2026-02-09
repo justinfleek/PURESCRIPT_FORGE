@@ -1,9 +1,8 @@
 // | Download FFI Implementation
 // | Provides file download functionality
-"use strict";
 
 // | Download file with content and filename
-exports.downloadFile = function(content) {
+export const downloadFile = function(content) {
   return function(filename) {
     return function() {
       const blob = new Blob([content], { type: "text/plain;charset=utf-8" });

@@ -1,11 +1,9 @@
 // xterm.js FFI implementation
-"use strict";
+import * as xterm from "xterm";
+import * as xtermFit from "xterm-addon-fit";
+import * as xtermWebLinks from "xterm-addon-web-links";
 
-var xterm = require("xterm");
-var xtermFit = require("xterm-addon-fit");
-var xtermWebLinks = require("xterm-addon-web-links");
-
-exports.create = function(options) {
+export const create = function(options) {
   return function() {
     var term = new xterm.Terminal({
       rows: options.rows || 24,
@@ -20,23 +18,23 @@ exports.create = function(options) {
         selection: "#ffffff"
       }
     });
-    
+
     // Add fit addon
     var fitAddon = new xtermFit.FitAddon();
     term.loadAddon(fitAddon);
-    
+
     // Add web links addon
     var webLinksAddon = new xtermWebLinks.WebLinksAddon();
     term.loadAddon(webLinksAddon);
-    
+
     // Store addons on terminal object
     term._fitAddon = fitAddon;
-    
+
     return term;
   };
 };
 
-exports.open = function(term) {
+export const open = function(term) {
   return function(elementId) {
     return function() {
       var element = document.getElementById(elementId);
@@ -51,7 +49,7 @@ exports.open = function(term) {
   };
 };
 
-exports.write = function(term) {
+export const write = function(term) {
   return function(text) {
     return function() {
       term.write(text);
@@ -59,7 +57,7 @@ exports.write = function(term) {
   };
 };
 
-exports.writeln = function(term) {
+export const writeln = function(term) {
   return function(text) {
     return function() {
       term.writeln(text);
@@ -67,19 +65,19 @@ exports.writeln = function(term) {
   };
 };
 
-exports.clear = function(term) {
+export const clear = function(term) {
   return function() {
     term.clear();
   };
 };
 
-exports.reset = function(term) {
+export const reset = function(term) {
   return function() {
     term.reset();
   };
 };
 
-exports.onData = function(term) {
+export const onData = function(term) {
   return function(handler) {
     return function() {
       term.onData(function(data) {
@@ -89,7 +87,7 @@ exports.onData = function(term) {
   };
 };
 
-exports.onLineFeed = function(term) {
+export const onLineFeed = function(term) {
   return function(handler) {
     return function() {
       term.onLineFeed(function() {
@@ -99,7 +97,7 @@ exports.onLineFeed = function(term) {
   };
 };
 
-exports.resize = function(term) {
+export const resize = function(term) {
   return function(cols) {
     return function(rows) {
       return function() {
@@ -109,25 +107,25 @@ exports.resize = function(term) {
   };
 };
 
-exports.focus = function(term) {
+export const focus = function(term) {
   return function() {
     term.focus();
   };
 };
 
-exports.blur = function(term) {
+export const blur = function(term) {
   return function() {
     term.blur();
   };
 };
 
-exports.dispose = function(term) {
+export const dispose = function(term) {
   return function() {
     term.dispose();
   };
 };
 
-exports.elementId = function(term) {
+export const elementId = function(term) {
   return function() {
     return term.element ? term.element.id : "";
   };

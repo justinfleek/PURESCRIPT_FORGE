@@ -37,12 +37,40 @@ module Sidepanel.State.AppState where
 
 import Prelude
 import Data.DateTime (DateTime)
-import Data.Maybe (Maybe)
+import Data.Maybe (Maybe(..))
 import Data.Map as Map
-import Sidepanel.State.Balance (BalanceState, initialBalanceState)
-import Sidepanel.State.UndoRedo (UndoRedoState, initialUndoRedoState)
+import Data.Array as Array
+import Data.Newtype (class Newtype)
+import Sidepanel.State.Balance (BalanceState, initialBalanceState, AlertLevel(..))
+-- UndoRedoState defined here to avoid cycle with Sidepanel.State.UndoRedo
 import Sidepanel.State.RateLimit (RateLimitState, initialRateLimitState)
 import Sidepanel.State.Sessions (SessionTabsState, SessionMetadata, initialTabsState)
+
+-- | Undo/Redo state type (newtype to break type synonym cycle with AppState)
+newtype UndoRedoState = UndoRedoState
+  { history :: Array AppState
+  , currentIndex :: Int
+  , maxHistory :: Int
+  }
+
+derive instance newtypeUndoRedoState :: Newtype UndoRedoState _
+
+-- | Eq instance for UndoRedoState - compares structurally without recursing into history contents
+-- | (AppState contains UndoRedoState which contains Array AppState - breaking the cycle)
+instance eqUndoRedoState :: Eq UndoRedoState where
+  eq (UndoRedoState a) (UndoRedoState b) =
+    a.currentIndex == b.currentIndex &&
+    a.maxHistory == b.maxHistory &&
+    Array.length a.history == Array.length b.history
+
+-- | Initial undo/redo state with a single entry
+initialUndoRedoState :: AppState -> UndoRedoState
+initialUndoRedoState s =
+  UndoRedoState
+    { history: [ s ]
+    , currentIndex: 0
+    , maxHistory: 50
+    }
 
 -- | Root state type - Complete application state
 -- |
@@ -123,20 +151,7 @@ type AppState =
   }
 
 -- | Alert level - Balance depletion warning levels
--- |
--- | **Purpose:** Indicates the severity of balance depletion warnings.
--- | **Values:**
--- | - `Normal`: Balance is above warning threshold
--- | - `Warning`: Balance is below warning threshold but above critical
--- | - `Critical`: Balance is below critical threshold or time to depletion < 2 hours
--- | - `Depleted`: Balance is zero or negative
--- |
--- | **Invariant:** Alert level is calculated from balance thresholds, not set directly.
--- |              Use `calculateAlertLevel` function to compute from balance state.
-data AlertLevel = Normal | Warning | Critical | Depleted
-
-derive instance eqAlertLevel :: Eq AlertLevel
-derive instance ordAlertLevel :: Ord AlertLevel
+-- | AlertLevel is re-exported from Sidepanel.State.Balance
 
 -- | Session state slice - Active chat session tracking
 -- |
@@ -190,49 +205,6 @@ type SessionSummary =
   , tokenCount :: Int
   , startedAt :: DateTime
   }
-
--- | Message - Chat message with optional tool calls and usage
--- |
--- | **Purpose:** Represents a single message in a conversation session.
--- | **Fields:**
--- | - `id`: Message identifier
--- | - `role`: Message role (user, assistant, system, tool)
--- | - `content`: Message content text
--- | - `timestamp`: When message was created
--- | - `usage`: Token usage (for assistant messages)
--- | - `toolCalls`: Tool calls made (for assistant messages)
-type Message =
-  { id :: String
-  , role :: MessageRole
-  , content :: String
-  , timestamp :: DateTime
-  , usage :: Maybe MessageUsage
-  , toolCalls :: Array ToolCall
-  }
-
--- | Message role
-data MessageRole = User | Assistant | System | Tool
-
-derive instance eqMessageRole :: Eq MessageRole
-
--- | Message usage (token counts and cost)
-type MessageUsage =
-  { promptTokens :: Int
-  , completionTokens :: Int
-  , cost :: Number
-  }
-
--- | Tool call information
-type ToolCall =
-  { name :: String
-  , status :: ToolStatus
-  , durationMs :: Maybe Int
-  }
-
--- | Tool call status
-data ToolStatus = Pending | Running | Completed | Failed
-
-derive instance eqToolStatus :: Eq ToolStatus
 
 -- | Message - Chat message with optional tool calls and usage
 -- |
@@ -380,9 +352,23 @@ data Panel
 
 derive instance eqPanel :: Eq Panel
 
+instance showPanel :: Show Panel where
+  show DashboardPanel = "DashboardPanel"
+  show SessionPanel = "SessionPanel"
+  show ProofPanel = "ProofPanel"
+  show TimelinePanel = "TimelinePanel"
+  show SettingsPanel = "SettingsPanel"
+  show TerminalPanel = "TerminalPanel"
+  show FileContextPanel = "FileContextPanel"
+  show DiffViewerPanel = "DiffViewerPanel"
+
 data Theme = Dark | Light
 
 derive instance eqTheme :: Eq Theme
+
+instance showTheme :: Show Theme where
+  show Dark = "Dark"
+  show Light = "Light"
 
 -- | Alert - User-facing alert notification
 -- |
@@ -454,7 +440,7 @@ initialState =
   , selectedSnapshotId: Nothing
   , ui: initialUIState
   , settings: initialSettings
-  , undoRedo: initialUndoRedoState initialState
+  , undoRedo: UndoRedoState { history: [], currentIndex: 0, maxHistory: 50 }
   }
 
 -- Initial balance state imported from Balance module

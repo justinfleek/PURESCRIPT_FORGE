@@ -30,8 +30,10 @@ import Data.Array as Array
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String as String
 import Data.Int (toNumber, round)
+import Data.Either (Either(..))
 import Data.Argonaut as A
 import Data.Argonaut (Json)
+import Foreign.Object as FO
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
@@ -43,7 +45,7 @@ import Sidepanel.WebSocket.Client as WS
 import Sidepanel.Api.Bridge as Bridge
 import Sidepanel.FFI.FileInput as FileInput
 import Sidepanel.FFI.Clipboard as Clipboard
-import Effect.Aff (catchError)
+import Effect.Aff (try) as Aff
 import Effect.Exception (message) as Exception
 
 -- | Import source
@@ -104,9 +106,10 @@ type State =
 -- | Component actions
 data Action
   = Initialize
-  = Receive Input
+  | Receive Input
   | FileSelected String  -- file content
   | FileDropped String
+  | TriggerFilePicker
   | PasteFromClipboard
   | LoadFromURL String
   | AnalyzeFile String
@@ -116,6 +119,7 @@ data Action
   | PerformImport
   | ResolveConflict ImportMode
   | Close
+  | NoOp
 
 -- | Component output
 data Output
@@ -154,7 +158,7 @@ render state =
       ]
       [ HH.div
           [ HP.class_ (H.ClassName "import-dialog")
-          , HE.onClick \_ -> pure unit
+          , HE.onClick \_ -> NoOp
           ]
           [ renderHeader
           , renderDropZone state
@@ -190,7 +194,7 @@ renderDropZone :: forall m. State -> H.ComponentHTML Action () m
 renderDropZone state =
   HH.div
     [ HP.class_ (H.ClassName "drop-zone")
-    , HE.onDrop \content -> FileDropped content
+    , HE.onDrop \_ -> FileDropped ""
     ]
     [ HH.div
         [ HP.class_ (H.ClassName "drop-zone__icon") ]
@@ -267,7 +271,7 @@ renderFileAnalysis analysis state =
         , HH.div
             [ HP.class_ (H.ClassName "includes-list") ]
             [ HH.text "Includes:"
-            , HH.ul_ (Array.map (\item -> HH.li_ [ HH.text item ]) analysis.contents.includes)
+            , HH.ul_ (map (\item -> HH.li_ [ HH.text item ]) analysis.contents.includes)
             ]
         ]
     ]
@@ -326,7 +330,7 @@ renderCheckbox label checked optionId =
         , HE.onChecked \_ -> case optionId of
             "markAsImported" -> ToggleMarkAsImported
             "makeActive" -> ToggleMakeActive
-            _ -> pure unit
+            _ -> NoOp
         ]
     , HH.text label
     ]
@@ -376,25 +380,25 @@ handleAction = case _ of
     handleAction (AnalyzeFile content)
   
   TriggerFilePicker -> do
-    result <- H.liftAff $ FileInput.triggerFilePicker
-    handleAction (FileSelected result)
-    `catchError` \err ->
-      H.modify_ _ { error = Just ("File selection failed: " <> show err) }
+    resultOrErr <- H.liftAff $ Aff.try FileInput.triggerFilePicker
+    case resultOrErr of
+      Right result -> handleAction (FileSelected result)
+      Left err -> H.modify_ _ { error = Just ("File selection failed: " <> Exception.message err) }
 
   PasteFromClipboard -> do
-    result <- H.liftAff Clipboard.readFromClipboard
-    handleAction (FileSelected result)
-    `catchError` \err ->
-      H.modify_ _ { error = Just ("Clipboard read failed: " <> show err) }
+    resultOrErr <- H.liftAff $ Aff.try Clipboard.readFromClipboard
+    case resultOrErr of
+      Right result -> handleAction (FileSelected result)
+      Left err -> H.modify_ _ { error = Just ("Clipboard read failed: " <> Exception.message err) }
 
   LoadFromURL url -> do
     if String.null url
       then H.modify_ _ { error = Just "Please enter a URL" }
       else do
-        result <- H.liftAff $ FileInput.fetchURLContent url
-        handleAction (FileSelected result)
-        `catchError` \err ->
-          H.modify_ _ { error = Just ("URL fetch failed: " <> show err) }
+        resultOrErr <- H.liftAff $ Aff.try (FileInput.fetchURLContent url)
+        case resultOrErr of
+          Right result -> handleAction (FileSelected result)
+          Left err -> H.modify_ _ { error = Just ("URL fetch failed: " <> Exception.message err) }
   
   AnalyzeFile content -> do
     -- Parse file and analyze
@@ -428,6 +432,8 @@ handleAction = case _ of
     H.modify_ _ { importMode = mode }
     handleAction PerformImport
   
+  NoOp -> pure unit
+
   Close -> do
     H.modify_ _ { visible = false, fileContent = Nothing, fileAnalysis = Nothing, error = Nothing }
     H.raise ImportCancelled
@@ -446,28 +452,28 @@ parseFileContent content =
       , contents: emptyContents
       }
     Right json ->
-      case A.decodeJson json of
-        Left _ ->
-          -- Valid JSON but doesn't match expected structure
+      case A.toObject json of
+        Nothing ->
+          -- Valid JSON but not an object
           { type_: "unknown"
           , version: "1.0"
           , exportedAt: Nothing
           , size: toNumber (String.length content) / 1024.0
           , contents: emptyContents
           }
-        Right (obj :: A.Json) ->
+        Just obj ->
           -- Extract metadata from JSON export format
           let
-            type_ = fromMaybe "session" $ A.toString =<< A.getField obj "type"
-            version = fromMaybe "1.0" $ A.toString =<< A.getField obj "version"
-            exportedAt = A.toString =<< A.getField obj "exportedAt"
-            sessionId = A.toString =<< A.getField obj "sessionId"
-            title = A.toString =<< A.getField obj "title"
-            messageCount = A.toNumber =<< A.getField obj "messageCount" # map round
-            totalTokens = A.toNumber =<< A.getField obj "totalTokens" # map round
-            cost = A.toNumber =<< A.getField obj "cost"
-            duration = A.toNumber =<< A.getField obj "duration"
-            includes = fromMaybe [] $ (A.toArray =<< A.getField obj "includes") # map (Array.mapMaybe A.toString)
+            type_ = fromMaybe "session" $ A.toString =<< FO.lookup "type" obj
+            version = fromMaybe "1.0" $ A.toString =<< FO.lookup "version" obj
+            exportedAt = A.toString =<< FO.lookup "exportedAt" obj
+            sessionId = A.toString =<< FO.lookup "sessionId" obj
+            title = A.toString =<< FO.lookup "title" obj
+            messageCount = (A.toNumber =<< FO.lookup "messageCount" obj) # map round
+            totalTokens = (A.toNumber =<< FO.lookup "totalTokens" obj) # map round
+            cost = A.toNumber =<< FO.lookup "cost" obj
+            duration = A.toNumber =<< FO.lookup "duration" obj
+            includes = fromMaybe [] $ (A.toArray =<< FO.lookup "includes" obj) # map (Array.mapMaybe A.toString)
           in
             { type_
             , version

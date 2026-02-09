@@ -41,14 +41,17 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Halogen.HTML.Events as HE
-import Effect.Aff (Aff, delay, Milliseconds(..), Fiber, killFiber, error)
+import Effect (Effect)
+import Effect.Aff (delay, Milliseconds(..))
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
-import Data.Array (cons, filter, take)
-import Data.Maybe (Maybe(..))
+import Data.Array (cons, filter, take, head)
+import Data.Foldable (for_)
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Map (Map)
 import Data.Map as Map
-import Data.String as String
-import Sidepanel.Api.Types (NotificationPayload)
+import Sidepanel.Api.Types (NotificationPayload, NotificationAction)
+import Sidepanel.FFI.Sound (playAlertSound)
 
 -- | Alert category - Category of alert
 data AlertCategory
@@ -93,7 +96,7 @@ type State =
   { alerts :: Array Alert
   , maxVisible :: Int
   , soundEnabled :: Boolean
-  , autoDismissTimers :: Map String (Fiber Unit)  -- Track auto-dismiss timers
+  , autoDismissTimers :: Map String H.ForkId  -- Track auto-dismiss timers
   }
 
 -- | Component actions
@@ -116,7 +119,7 @@ data Output
   | AlertDismissed String
 
 -- | Alert System component
-component :: forall q m. MonadAff m => H.Component q Query Output m
+component :: forall m. MonadAff m => H.Component Query Unit Output m
 component =
   H.mkComponent
     { initialState: const initialState
@@ -129,7 +132,7 @@ component =
     }
 
 -- | Handle queries
-handleQuery :: forall m a. Query a -> H.HalogenM State Action () Output m (Maybe a)
+handleQuery :: forall m a. MonadAff m => Query a -> H.HalogenM State Action () Output m (Maybe a)
 handleQuery = case _ of
   ShowNotificationQuery payload a -> do
     handleAction (ShowNotification payload)
@@ -155,7 +158,7 @@ render state =
 renderAlert :: forall m. Alert -> H.ComponentHTML Action () m
 renderAlert alert =
   HH.div
-    [ HP.class_ (H.ClassName $ "alert alert-" <> alertClass alert.type)
+    [ HP.class_ (H.ClassName $ "alert alert-" <> alertClass alert.level)
     , HP.attr (H.AttrName "role") "alert"
     ]
     [ HH.div
@@ -175,12 +178,12 @@ renderAlert alert =
         HH.text ""
     ]
 
-alertClass :: AlertType -> String
+alertClass :: AlertLevel -> String
 alertClass = case _ of
-  Info _ -> "info"
-  Warning _ -> "warning"
-  Error _ -> "error"
-  Success _ -> "success"
+  Info -> "info"
+  Warning -> "warning"
+  Critical -> "error"
+  Success -> "success"
 
 -- | Convert notification payload to alert
 notificationToAlert :: NotificationPayload -> Alert
@@ -191,9 +194,9 @@ notificationToAlert payload =
   , title: payload.title
   , message: fromMaybe "" payload.message
   , timestamp: 0.0  -- Would parse createdAt from payload.createdAt
-  , action: map convertAction payload.actions # Array.head
+  , action: head (map convertAction payload.actions)
   , dismissible: payload.dismissible
-  , autoDismissMs: map round payload.duration  -- Convert Number to Int milliseconds
+  , autoDismissMs: payload.duration
   }
 
 -- | Convert notification type to alert category
@@ -234,8 +237,7 @@ handleAction = case _ of
   ShowAlert alert -> do
     -- Add to list
     H.modify_ \s ->
-      { s
-      | alerts = take s.maxVisible $ cons alert s.alerts
+      s { alerts = take s.maxVisible $ cons alert s.alerts
       }
     H.raise (AlertShown alert)
     
@@ -247,8 +249,8 @@ handleAction = case _ of
     -- Set up auto-dismiss timer
     case alert.autoDismissMs of
       Just delayMs -> do
-        timer <- H.fork $ H.liftAff do
-          delay (Milliseconds (Int.toNumber delayMs))
+        timer <- H.fork do
+          H.liftAff $ delay (Milliseconds delayMs)
           handleAction (AutoDismiss alert.id)
         -- Store timer for cleanup
         H.modify_ \s ->
@@ -260,15 +262,13 @@ handleAction = case _ of
     -- Cancel auto-dismiss timer if exists
     state <- H.get
     case Map.lookup id state.autoDismissTimers of
-      Just timer -> do
-        void $ H.fork $ H.liftAff $ killFiber (error "Dismissed") timer
+      Just forkId -> H.kill forkId
       Nothing -> pure unit
     
     H.modify_ \s ->
-      { s
-      | alerts = filter (\a -> a.id /= id) s.alerts
-      , autoDismissTimers = Map.delete id s.autoDismissTimers
-      }
+      s { alerts = filter (\a -> a.id /= id) s.alerts
+        , autoDismissTimers = Map.delete id s.autoDismissTimers
+        }
     H.raise (AlertDismissed id)
   
   AutoDismiss id -> do
@@ -277,11 +277,9 @@ handleAction = case _ of
   ClearAll -> do
     -- Cancel all timers
     state <- H.get
-    Map.for_ state.autoDismissTimers \timer ->
-      void $ H.fork $ H.liftAff $ killFiber (error "Cleared") timer
+    for_ (Map.values state.autoDismissTimers) \forkId ->
+      H.kill forkId
     H.modify_ \s ->
       s { alerts = []
       , autoDismissTimers = Map.empty
       }
-
-import Sidepanel.FFI.Sound (playAlertSound)

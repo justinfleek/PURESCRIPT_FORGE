@@ -13,7 +13,7 @@ import Prelude
 import Effect.Aff (Aff)
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Console.App.Routes.Omega.Util.Handler.Types (AuthInfo, CostInfo, Date)
-import Console.Core.Util.Price (MicroCents, centsToMicroCents)
+import Forge.Console.Core.Util.Price (MicroCents, centsToMicroCents)
 
 -- | Default reload trigger (in dollars)
 defaultReloadTrigger :: Int

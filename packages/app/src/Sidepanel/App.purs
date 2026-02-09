@@ -45,22 +45,25 @@
 module Sidepanel.App where
 
 import Prelude
+import Data.Foldable (for_)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Halogen.HTML.Events as HE
 import Effect.Aff.Class (class MonadAff)
-import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Class (liftEffect)
 import Data.Maybe (Maybe(..))
-import Effect.Aff (Milliseconds(..), delay, forever, forkAff)
+import Effect.Aff (Milliseconds(..), delay)
+import Control.Monad.Rec.Class (forever)
 import Data.Array as Array
-import Routing.Duplex (parse)
-import Routing.Hash (matchesWith)
-import Sidepanel.Router (Route(..), routeCodec, routeToPanel, parseRoute)
-import Sidepanel.State.AppState (AppState, initialState, Panel(..), Message(..), MessageRole(..), MessageUsage(..), ToolCall(..), ToolStatus(..))
-import Sidepanel.Components.Session.SessionPanel as SessionPanel
+import Data.Const (Const)
+import Data.Void (Void, absurd)
+import Type.Proxy (Proxy(..))
+import Sidepanel.Router (Route(..), routeToPanel, parseRoute)
+import Sidepanel.State.AppState (AppState, initialState, Panel(..), Message, MessageRole(..), MessageUsage, ToolCall, ToolStatus(..))
+import Sidepanel.State.AppState as AppState
 import Sidepanel.State.Reducer (reduce)
-import Sidepanel.State.Actions (Action(..), BalanceUpdate)
+import Sidepanel.State.Actions as Actions
 import Sidepanel.Components.Sidebar as Sidebar
 import Sidepanel.Components.Dashboard as Dashboard
 import Sidepanel.Components.Session.SessionPanel as SessionPanel
@@ -70,7 +73,6 @@ import Sidepanel.Components.Settings.SettingsPanel as SettingsPanel
 import Sidepanel.Components.Balance.BalanceTracker as BalanceTracker
 import Sidepanel.Components.TokenUsageChart as TokenUsageChart
 import Sidepanel.Components.AlertSystem as AlertSystem
-import Sidepanel.Api.Types (NotificationPayload)
 import Sidepanel.Components.CommandPalette as CommandPalette
 import Sidepanel.Components.TerminalEmbed as TerminalEmbed
 import Sidepanel.Components.FileContextView as FileContextView
@@ -83,18 +85,14 @@ import Sidepanel.Components.Search.SearchView as SearchView
 import Sidepanel.Components.QuickActions.QuickActions as QuickActions
 import Sidepanel.Components.Performance.PerformanceProfiler as PerformanceProfiler
 import Sidepanel.WebSocket.Client as WS
-import Sidepanel.State.Settings (defaultSettings, Settings as FullSettings)
+import Sidepanel.State.Settings as SettingsModule
 import Sidepanel.Api.Types (ServerMessage(..), NotificationPayload, BalanceUpdatePayload)
 import Sidepanel.Theme.CSS as ThemeCSS
-import Sidepanel.Theme.Prism (generateHolographicTheme, fleekColors, OLED)
+import Sidepanel.Theme.Prism (generateHolographicTheme, fleekColors, MonitorType(..))
 import Sidepanel.State.UndoRedo as UndoRedo
-import Effect.Class (liftEffect)
 import Data.Either (Either(..))
 import Data.Int as Int
 import Data.Functor (map)
-import Effect.Aff (Milliseconds(..), delay, forever, forkAff)
-import Effect.Aff.Class (class MonadAff)
-import Data.Array as Array
 import Sidepanel.Api.Bridge as Bridge
 
 -- | Slots for child components - Component slot type definitions
@@ -117,43 +115,48 @@ import Sidepanel.Api.Bridge as Bridge
 -- | - `diffViewer`: Diff viewer component
 -- | - `helpOverlay`: Help overlay component
 type Slots =
-  ( sidebar :: H.Slot Sidebar.Query Sidebar.Output Unit
+  ( sidebar :: H.Slot (Const Void) Sidebar.Output Unit
   , dashboard :: H.Slot Dashboard.Query Dashboard.Output Unit
-  , session :: H.Slot SessionPanel.Query SessionPanel.Output Unit
-  , proof :: H.Slot ProofPanel.Query Void Unit
-  , timeline :: H.Slot TimelineView.Query TimelineView.Output Unit
-  , settings :: H.Slot SettingsPanel.Query SettingsPanel.Output Unit
+  , session :: H.Slot (Const Void) SessionPanel.Output Unit
+  , proof :: H.Slot (Const Void) Void Unit
+  , timeline :: H.Slot (Const Void) TimelineView.Output Unit
+  , settings :: H.Slot (Const Void) SettingsPanel.Output Unit
   , balanceTracker :: H.Slot BalanceTracker.Query BalanceTracker.Output Unit
   , tokenChart :: H.Slot TokenUsageChart.Query TokenUsageChart.Output Unit
   , alertSystem :: H.Slot AlertSystem.Query AlertSystem.Output Unit
-  , keyboardNavigation :: H.Slot KeyboardNavigation.Query KeyboardNavigation.Output Unit
+  , keyboardNavigation :: H.Slot (Const Void) KeyboardNavigation.Output Unit
   , commandPalette :: H.Slot CommandPalette.Query CommandPalette.Output Unit
   , terminalEmbed :: H.Slot TerminalEmbed.Query TerminalEmbed.Output Unit
   , fileContextView :: H.Slot FileContextView.Query FileContextView.Output Unit
   , diffViewer :: H.Slot DiffViewer.Query DiffViewer.Output Unit
-  , helpOverlay :: H.Slot HelpOverlay.Query HelpOverlay.Output Unit
+  , helpOverlay :: H.Slot (Const Void) HelpOverlay.Output Unit
+  , sessionTabs :: H.Slot (Const Void) SessionTabs.Output Unit
+  , branchDialog :: H.Slot (Const Void) BranchDialog.Output Unit
+  , searchView :: H.Slot (Const Void) SearchView.Output Unit
+  , quickActions :: H.Slot (Const Void) QuickActions.Output Unit
+  , performanceProfiler :: H.Slot (Const Void) PerformanceProfiler.Output Unit
   )
 
-_sidebar = H.Slot :: H.Slot Sidebar.Query Sidebar.Output Unit
-_dashboard = H.Slot :: H.Slot Dashboard.Query Dashboard.Output Unit
-_session = H.Slot :: H.Slot SessionPanel.Query SessionPanel.Output Unit
-_proof = H.Slot :: H.Slot ProofPanel.Query Void Unit
-_timeline = H.Slot :: H.Slot TimelineView.Query TimelineView.Output Unit
-_settings = H.Slot :: H.Slot SettingsPanel.Query SettingsPanel.Output Unit
-_balanceTracker = H.Slot :: H.Slot BalanceTracker.Query BalanceTracker.Output Unit
-_tokenChart = H.Slot :: H.Slot TokenUsageChart.Query TokenUsageChart.Output Unit
-_alertSystem = H.Slot :: H.Slot AlertSystem.Query AlertSystem.Output Unit
-_keyboardNavigation = H.Slot :: H.Slot KeyboardNavigation.Query KeyboardNavigation.Output Unit
-_commandPalette = H.Slot :: H.Slot CommandPalette.Query CommandPalette.Output Unit
-_terminalEmbed = H.Slot :: H.Slot TerminalEmbed.Query TerminalEmbed.Output Unit
-_fileContextView = H.Slot :: H.Slot FileContextView.Query FileContextView.Output Unit
-_diffViewer = H.Slot :: H.Slot DiffViewer.Query DiffViewer.Output Unit
-_helpOverlay = H.Slot :: H.Slot HelpOverlay.Query HelpOverlay.Output Unit
-_sessionTabs = H.Slot :: H.Slot SessionTabs.Query SessionTabs.Output Unit
-_branchDialog = H.Slot :: H.Slot BranchDialog.Query BranchDialog.Output Unit
-_searchView = H.Slot :: H.Slot SearchView.Query SearchView.Output Unit
-_quickActions = H.Slot :: H.Slot QuickActions.Query QuickActions.Output Unit
-_performanceProfiler = H.Slot :: H.Slot PerformanceProfiler.Query PerformanceProfiler.Output Unit
+_sidebar = Proxy :: Proxy "sidebar"
+_dashboard = Proxy :: Proxy "dashboard"
+_session = Proxy :: Proxy "session"
+_proof = Proxy :: Proxy "proof"
+_timeline = Proxy :: Proxy "timeline"
+_settings = Proxy :: Proxy "settings"
+_balanceTracker = Proxy :: Proxy "balanceTracker"
+_tokenChart = Proxy :: Proxy "tokenChart"
+_alertSystem = Proxy :: Proxy "alertSystem"
+_keyboardNavigation = Proxy :: Proxy "keyboardNavigation"
+_commandPalette = Proxy :: Proxy "commandPalette"
+_terminalEmbed = Proxy :: Proxy "terminalEmbed"
+_fileContextView = Proxy :: Proxy "fileContextView"
+_diffViewer = Proxy :: Proxy "diffViewer"
+_helpOverlay = Proxy :: Proxy "helpOverlay"
+_sessionTabs = Proxy :: Proxy "sessionTabs"
+_branchDialog = Proxy :: Proxy "branchDialog"
+_searchView = Proxy :: Proxy "searchView"
+_quickActions = Proxy :: Proxy "quickActions"
+_performanceProfiler = Proxy :: Proxy "performanceProfiler"
 
 -- | App state
 type State =
@@ -161,6 +164,8 @@ type State =
   , currentRoute :: Route
   , wsClient :: Maybe WS.WSClient
   , helpOverlayVisible :: Boolean
+  , searchViewVisible :: Boolean
+  , performanceProfilerVisible :: Boolean
   }
 
 -- | App actions - All possible actions the App component can handle
@@ -189,7 +194,7 @@ data Action
   | HandleTerminalEmbedOutput TerminalEmbed.Output
   | HandleFileContextViewOutput FileContextView.Output
   | HandleDiffViewerOutput DiffViewer.Output
-  | HandleAppAction Action
+  | HandleAppAction Actions.Action
   | WebSocketConnected WS.WSClient
   | WebSocketDisconnected
   | OpenCommandPalette
@@ -206,6 +211,10 @@ data Action
   | OpenPerformanceProfiler
   | ClosePerformanceProfiler
   | OpenGameSelection
+  | HandleBalanceUpdate BalanceUpdatePayload
+  | PollWebSocketMessages
+  | HandleSessionTabsOutput SessionTabs.Output
+  | HandleBranchDialogOutput BranchDialog.Output
 
 -- | App component - Root Halogen component factory
 -- |
@@ -234,14 +243,14 @@ component = H.mkComponent
       }
   }
 
-render :: forall m. State -> H.ComponentHTML Action Slots m
+render :: forall m. MonadAff m => State -> H.ComponentHTML Action Slots m
 render state =
   HH.div
     [ HP.class_ (H.ClassName "app") ]
     [ -- Alert system (always visible)
       HH.slot _alertSystem unit AlertSystem.component unit HandleAlertSystemOutput
     , -- Keyboard navigation (invisible, handles global shortcuts)
-      HH.slot (H.Slot :: H.Slot KeyboardNavigation.Query KeyboardNavigation.Output Unit) unit KeyboardNavigation.component unit HandleKeyboardNavigationOutput
+      HH.slot _keyboardNavigation unit KeyboardNavigation.component unit HandleKeyboardNavigationOutput
     , -- Command palette (overlay)
       HH.slot _commandPalette unit CommandPalette.component { wsClient: state.wsClient } HandleCommandPaletteOutput
     , -- Undo/Redo toolbar
@@ -303,7 +312,7 @@ render state =
 -- | **Keyboard Shortcuts:**
 -- | - Undo: Ctrl+Z
 -- | - Redo: Ctrl+Shift+Z
-renderUndoRedoToolbar :: forall m. State -> H.ComponentHTML Action Slots m
+renderUndoRedoToolbar :: forall m. MonadAff m => State -> H.ComponentHTML Action Slots m
 renderUndoRedoToolbar state =
   let
     undoRedoState = state.appState.undoRedo
@@ -316,14 +325,14 @@ renderUndoRedoToolbar state =
           [ HP.class_ (H.ClassName "btn-icon")
           , HP.disabled (not canUndo)
           , HP.title "Undo Ctrl+Z"
-          , HE.onClick \_ -> HandleAppAction Undo
+          , HE.onClick \_ -> HandleAppAction Actions.Undo
           ]
           [ HH.text "↶" ]
       , HH.button
           [ HP.class_ (H.ClassName "btn-icon")
           , HP.disabled (not canRedo)
           , HP.title "Redo Ctrl+Shift+Z"
-          , HE.onClick \_ -> HandleAppAction Redo
+          , HE.onClick \_ -> HandleAppAction Actions.Redo
           ]
           [ HH.text "↷" ]
       ]
@@ -346,12 +355,12 @@ renderUndoRedoToolbar state =
 -- | - `FileContext` -> FileContextView component
 -- | - `DiffViewer` -> DiffViewer component
 -- | - `NotFound` -> 404 error page
-renderCurrentPanel :: forall m. State -> H.ComponentHTML Action Slots m
+renderCurrentPanel :: forall m. MonadAff m => State -> H.ComponentHTML Action Slots m
 renderCurrentPanel state = case state.currentRoute of
   Dashboard ->
     HH.slot _dashboard unit Dashboard.component
       { state: state.appState }
-      (const HandleAppAction)
+      (\_ -> Initialize)
   
   Session sessionId ->
     HH.slot _session unit SessionPanel.component
@@ -361,7 +370,7 @@ renderCurrentPanel state = case state.currentRoute of
   Proof ->
     HH.slot _proof unit ProofPanel.component
       { proofState: state.appState.proof, wsClient: state.wsClient }
-      (const HandleAppAction)
+      absurd
   
   Timeline ->
     HH.slot _timeline unit TimelineView.component
@@ -373,7 +382,7 @@ renderCurrentPanel state = case state.currentRoute of
   
   Settings ->
     HH.slot _settings unit SettingsPanel.component
-      { settings: defaultSettings, wsClient: state.wsClient }
+      { settings: SettingsModule.defaultSettings, wsClient: state.wsClient }
       HandleSettingsOutput
   
   NotFound ->
@@ -392,6 +401,9 @@ renderCurrentPanel state = case state.currentRoute of
   DiffViewer ->
     HH.slot _diffViewer unit DiffViewer.component { wsClient: state.wsClient } HandleDiffViewerOutput
 
+  Search ->
+    HH.slot _searchView unit SearchView.component { wsClient: state.wsClient, visible: true } HandleSearchViewOutput
+
 -- | Get session for route - Extract session data for SessionPanel
 -- |
 -- | **Purpose:** Converts AppState session data to SessionPanel.Session format.
@@ -408,7 +420,7 @@ getSessionForRoute appState sessionId = case appState.session of
   Just session ->
     -- Convert AppState messages to SessionPanel messages
     let
-      convertedMessages = Array.map convertMessage appState.messages
+      convertedMessages = map convertMessage appState.messages
     in
       Just
         { id: session.id
@@ -430,7 +442,7 @@ getSessionForRoute appState sessionId = case appState.session of
       , content: msg.content
       , timestamp: msg.timestamp
       , usage: map convertUsage msg.usage
-      , toolCalls: Array.map convertToolCall msg.toolCalls
+      , toolCalls: map convertToolCall msg.toolCalls
       }
     
     convertRole :: AppState.MessageRole -> SessionPanel.Role
@@ -496,36 +508,30 @@ handleAction = case _ of
     let css = ThemeCSS.generateCSS base16Colors fleekColors
     liftEffect $ ThemeCSS.applyTheme css
     
-    -- Initialize routing
-    liftEffect $ matchesWith (parse routeCodec) \_ newRoute ->
-      H.liftEffect $ pure unit  -- Would trigger HandleRouteChange
+    -- Initialize routing (route changes handled via parseRoute in HandleRouteChange)
+    pure unit
     
     -- Initialize WebSocket connection
     wsClient <- liftEffect $ WS.createClient WS.defaultConfig
-    result <- WS.connect wsClient
-    case result of
-      Right _ -> do
-        H.modify_ _ { wsClient = Just wsClient }
-        
-        -- Subscribe to WebSocket notifications (messages are queued automatically)
-        void $ liftEffect $ WS.subscribe wsClient \_ -> pure unit
-        
-        -- Start polling for queued messages
-        void $ H.fork $ forever do
-          delay (Milliseconds 100.0)  -- Poll every 100ms
-          handleAction PollWebSocketMessages
-        
-        pure unit
-      Left _ -> pure unit
+    H.liftAff $ WS.connect wsClient
+    H.modify_ _ { wsClient = Just wsClient }
+
+    -- Subscribe to WebSocket notifications (messages are queued automatically)
+    void $ liftEffect $ WS.subscribe wsClient \_ -> pure unit
+
+    -- Start polling for queued messages
+    void $ H.fork $ forever do
+      H.liftAff $ delay (Milliseconds 100.0)  -- Poll every 100ms
+      handleAction PollWebSocketMessages
   
   HandleWebSocketNotification payload -> do
     -- Forward notification to AlertSystem via query
-    void $ H.query _alertSystem unit $ H.tell $ AlertSystem.ShowNotificationQuery payload unit
+    void $ H.query _alertSystem unit (AlertSystem.ShowNotificationQuery payload unit)
 
   HandleBalanceUpdate payload -> do
     -- Convert BalanceUpdatePayload to BalanceUpdate and dispatch
     let balanceUpdate = convertBalanceUpdatePayload payload
-    H.modify_ \s -> s { appState = reduce s.appState (BalanceUpdated balanceUpdate) }
+    H.modify_ \s -> s { appState = reduce s.appState (Actions.BalanceUpdated balanceUpdate) }
 
   PollWebSocketMessages -> do
     -- Poll WebSocket message queue and dispatch actions
@@ -533,7 +539,7 @@ handleAction = case _ of
     case state.wsClient of
       Just wsClient -> do
         msgs <- liftEffect $ WS.dequeueMessages wsClient
-        Array.for_ msgs \msg -> case msg of
+        for_ msgs \msg -> case msg of
           BalanceUpdate payload ->
             handleAction (HandleBalanceUpdate payload)
           Notification payload ->
@@ -544,14 +550,14 @@ handleAction = case _ of
   HandleRouteChange route -> do
     H.modify_ _ { currentRoute = route }
     -- Update app state panel
-    H.modify_ \s -> s { appState = reduce s.appState (SetActivePanel (routeToPanel route)) }
+    H.modify_ \s -> s { appState = reduce s.appState (Actions.SetActivePanel (routeToPanel route)) }
 
   HandleSidebarOutput (Sidebar.RouteSelected route) ->
     handleAction (HandleRouteChange route)
 
   HandleBalanceTrackerOutput output -> case output of
     BalanceTracker.AlertTriggered level ->
-      H.modify_ \s -> s { appState = reduce s.appState (AlertLevelChanged level) }
+      H.modify_ \s -> s { appState = reduce s.appState (Actions.AlertLevelChanged level) }
     BalanceTracker.SettingsRequested ->
       handleAction (HandleRouteChange Settings)
     BalanceTracker.RefreshRequested -> do
@@ -572,9 +578,9 @@ handleAction = case _ of
                       , consumptionRate: balanceData.consumptionRate
                       , timeToDepletion: map Int.toNumber balanceData.timeToDepletion
                       , todayUsed: balanceData.todayUsed
-                      , timestamp: balanceData.venice.lastUpdated
+                      , timestamp: Nothing  -- Bridge timestamps are strings, conversion deferred
                       }
-                H.modify_ \s -> s { appState = reduce s.appState (BalanceUpdated balanceUpdate) }
+                H.modify_ \s -> s { appState = reduce s.appState (Actions.BalanceUpdated balanceUpdate) }
               Nothing -> pure unit
             Left _ -> pure unit
         Nothing -> pure unit
@@ -584,29 +590,41 @@ handleAction = case _ of
 
   HandleSessionPanelOutput output -> case output of
     SessionPanel.SessionCleared ->
-      H.modify_ \s -> s { appState = reduce s.appState SessionCleared }
+      H.modify_ \s -> s { appState = reduce s.appState Actions.SessionCleared }
     SessionPanel.SessionExported path -> do
       -- Show export success notification via AlertSystem
-      void $ H.query _alertSystem unit $ H.tell $ AlertSystem.ShowNotificationQuery
-        { type_: "success"
+      void $ H.query _alertSystem unit (AlertSystem.ShowNotificationQuery
+        { id: "export-" <> path
+        , type_: "toast"
+        , level: "success"
         , title: "Session Exported"
-        , message: "Session exported to " <> path
-        , duration: Just 3000
+        , message: Just ("Session exported to " <> path)
+        , createdAt: ""
+        , duration: Just 3000.0
+        , actions: []
+        , dismissible: true
+        , persistent: false
         }
-        unit
+        unit)
 
   HandleTimelineOutput output -> case output of
     TimelineView.SnapshotRestored id ->
-      H.modify_ \s -> s { appState = reduce s.appState (SnapshotRestored id) }
+      H.modify_ \s -> s { appState = reduce s.appState (Actions.SnapshotRestored id) }
     TimelineView.SnapshotCreated id -> do
       -- Show snapshot creation notification via AlertSystem
-      void $ H.query _alertSystem unit $ H.tell $ AlertSystem.ShowNotificationQuery
-        { type_: "success"
+      void $ H.query _alertSystem unit (AlertSystem.ShowNotificationQuery
+        { id: "snapshot-" <> id
+        , type_: "toast"
+        , level: "success"
         , title: "Snapshot Created"
-        , message: "Snapshot " <> id <> " created successfully"
-        , duration: Just 3000
+        , message: Just ("Snapshot " <> id <> " created successfully")
+        , createdAt: ""
+        , duration: Just 3000.0
+        , actions: []
+        , dismissible: true
+        , persistent: false
         }
-        unit
+        unit)
 
   HandleSettingsOutput output -> case output of
     SettingsPanel.SettingsChanged newSettings ->
@@ -622,13 +640,19 @@ handleAction = case _ of
       pure unit
     TokenUsageChart.ChartError err -> do
       -- Show chart error via AlertSystem
-      void $ H.query _alertSystem unit $ H.tell $ AlertSystem.ShowNotificationQuery
-        { type_: "error"
+      void $ H.query _alertSystem unit (AlertSystem.ShowNotificationQuery
+        { id: "chart-error"
+        , type_: "toast"
+        , level: "error"
         , title: "Chart Error"
-        , message: err
-        , duration: Just 5000
+        , message: Just err
+        , createdAt: ""
+        , duration: Just 5000.0
+        , actions: []
+        , dismissible: true
+        , persistent: false
         }
-        unit
+        unit)
 
   HandleAlertSystemOutput output -> case output of
     AlertSystem.AlertShown alert ->
@@ -641,10 +665,10 @@ handleAction = case _ of
   HandleKeyboardNavigationOutput output -> case output of
     KeyboardNavigation.KeyboardActionTriggered action -> case action of
       KeyboardNavigation.Undo ->
-        H.modify_ \s -> s { appState = reduce s.appState Undo }
-      
+        H.modify_ \s -> s { appState = reduce s.appState Actions.Undo }
+
       KeyboardNavigation.Redo ->
-        H.modify_ \s -> s { appState = reduce s.appState Redo }
+        H.modify_ \s -> s { appState = reduce s.appState Actions.Redo }
       
       KeyboardNavigation.OpenCommandPalette ->
         handleAction OpenCommandPalette
@@ -671,9 +695,9 @@ handleAction = case _ of
                           , consumptionRate: balanceData.consumptionRate
                           , timeToDepletion: map Int.toNumber balanceData.timeToDepletion
                           , todayUsed: balanceData.todayUsed
-                          , timestamp: balanceData.venice.lastUpdated
+                          , timestamp: Nothing  -- Bridge timestamps are strings, conversion deferred
                           }
-                    H.modify_ \s -> s { appState = reduce s.appState (BalanceUpdated balanceUpdate) }
+                    H.modify_ \s -> s { appState = reduce s.appState (Actions.BalanceUpdated balanceUpdate) }
                   Nothing -> pure unit
               Left _ -> pure unit
           Nothing -> pure unit
@@ -735,7 +759,7 @@ handleAction = case _ of
       state <- H.get
       case state.wsClient of
         Just client -> do
-          Array.for_ paths \path -> do
+          for_ paths \path -> do
             void $ H.liftAff $ Bridge.addFileToContext client
               { path: path
               , sessionId: state.appState.activeSessionId
@@ -805,10 +829,10 @@ handleAction = case _ of
         Nothing -> pure unit
 
   OpenCommandPalette -> do
-    void $ H.query _commandPalette unit $ H.tell CommandPalette.Open
+    void $ H.query _commandPalette unit (CommandPalette.Open unit)
 
   CloseCommandPalette -> do
-    void $ H.query _commandPalette unit $ H.tell CommandPalette.Close
+    void $ H.query _commandPalette unit (CommandPalette.Close unit)
 
   OpenHelp -> do
     H.modify_ _ { helpOverlayVisible = true }
@@ -824,12 +848,12 @@ handleAction = case _ of
   
   HandleSessionTabsOutput output -> case output of
     SessionTabs.TabSelected sessionId -> do
-      H.modify_ \s -> s { appState = reduce s.appState (SessionSwitched sessionId) }
+      H.modify_ \s -> s { appState = reduce s.appState (Actions.SessionSwitched sessionId) }
       -- Navigate to session route
       handleAction (HandleRouteChange (Session (Just sessionId)))
     
     SessionTabs.TabClosed sessionId -> do
-      H.modify_ \s -> s { appState = reduce s.appState (SessionClosed sessionId) }
+      H.modify_ \s -> s { appState = reduce s.appState (Actions.SessionClosed sessionId) }
       -- If closed session was active, navigate away
       state <- H.get
       if state.appState.activeSessionId == Just sessionId then
@@ -838,7 +862,7 @@ handleAction = case _ of
         pure unit
     
     SessionTabs.TabsReordered newOrder -> do
-      H.modify_ \s -> s { appState = reduce s.appState (TabsReordered newOrder) }
+      H.modify_ \s -> s { appState = reduce s.appState (Actions.TabsReordered newOrder) }
     
     SessionTabs.NewTabRequested -> do
       -- Create new session via Bridge API
@@ -854,7 +878,7 @@ handleAction = case _ of
           case result of
             Right response -> do
               -- Open new session tab via reducer
-              H.modify_ \s -> s { appState = reduce s.appState (SessionOpened response.sessionId "New Session" "💬") }
+              H.modify_ \s -> s { appState = reduce s.appState (Actions.SessionOpened response.sessionId "New Session" "chat") }
               handleAction (HandleRouteChange (Session (Just response.sessionId)))
             Left _ -> pure unit
         Nothing -> pure unit
@@ -875,13 +899,13 @@ handleAction = case _ of
           case result of
             Right response -> do
               let branchSessionId = response.sessionId
-              H.modify_ \s -> s { appState = reduce s.appState (SessionBranchCreated sessionId messageIndex description branchSessionId branchTitle) }
+              H.modify_ \s -> s { appState = reduce s.appState (Actions.SessionBranchCreated sessionId messageIndex description branchSessionId branchTitle) }
               handleAction (HandleRouteChange (Session (Just branchSessionId)))
             Left _ -> pure unit
         Nothing -> do
           -- Fallback: use deterministic ID if no WS connection
           let branchSessionId = "branch-" <> sessionId <> "-" <> show messageIndex
-          H.modify_ \s -> s { appState = reduce s.appState (SessionBranchCreated sessionId messageIndex description branchSessionId branchTitle) }
+          H.modify_ \s -> s { appState = reduce s.appState (Actions.SessionBranchCreated sessionId messageIndex description branchSessionId branchTitle) }
           handleAction (HandleRouteChange (Session (Just branchSessionId)))
     
     BranchDialog.BranchCancelled ->
@@ -929,7 +953,7 @@ handleAction = case _ of
             Just sessionId -> do
               case state.wsClient of
                 Just client -> do
-                  result <- liftEffect $ Bridge.exportSession client
+                  result <- H.liftAff $ Bridge.exportSession client
                     { sessionId: sessionId
                     , format: "markdown"
                     , includeTimeline: Just true
@@ -948,7 +972,7 @@ handleAction = case _ of
           state <- H.get
           case state.wsClient of
             Just client -> do
-              result <- liftEffect $ Bridge.saveSnapshot client
+              result <- H.liftAff $ Bridge.saveSnapshot client
                 { trigger: "manual"
                 , description: Just "Quick action snapshot"
                 }
@@ -981,6 +1005,9 @@ handleAction = case _ of
   WebSocketDisconnected ->
     H.modify_ _ { wsClient = Nothing }
 
+  OpenGameSelection ->
+    pure unit  -- Game selection handled by embedded game components
+
 -- | Convert route name string to Route - Parse route string to Route type
 -- |
 -- | **Purpose:** Converts a route name string (from command palette or other sources)
@@ -1010,11 +1037,11 @@ routeNameToRoute name = case name of
   "diff" -> DiffViewer
   _ -> Dashboard
 
--- | Convert FullSettings to AppSettings - Settings type conversion
+-- | Convert Settings to AppSettings - Settings type conversion
 -- |
 -- | **Purpose:** Converts from `Sidepanel.State.Settings.Settings` (full settings type)
 -- |             to `AppSettings` (simplified subset used in AppState). Preserves what
--- |             can be mapped, uses defaults for fields not present in FullSettings.
+-- |             can be mapped, uses defaults for fields not present in Settings.
 -- | **Parameters:**
 -- | - `fullSettings`: Complete settings from SettingsPanel
 -- | **Returns:** AppSettings for AppState
@@ -1023,17 +1050,17 @@ routeNameToRoute name = case name of
 -- | **Mapping:**
 -- | - Theme -> MonitorType (Dark -> OLED, Light -> LCD, System -> OLED)
 -- | - Other fields (veniceApiKey, forgeApiUrl, leanLspUrl) use defaults or Nothing
--- |   (would need to be stored separately or added to FullSettings)
-convertSettingsToAppState :: FullSettings -> AppSettings
+-- |   (would need to be stored separately or added to Settings)
+convertSettingsToAppState :: SettingsModule.Settings -> AppState.Settings
 convertSettingsToAppState fullSettings =
-  { veniceApiKey: Nothing  -- Not in FullSettings, would need to be stored separately
-  , forgeApiUrl: "http://localhost:4096"  -- Not in FullSettings, use default
-  , leanLspUrl: Nothing  -- Not in FullSettings, would need to be stored separately
+  { veniceApiKey: Nothing  -- Not in Settings, would need to be stored separately
+  , forgeApiUrl: "http://localhost:4096"  -- Not in Settings, use default
+  , leanLspUrl: Nothing  -- Not in Settings, would need to be stored separately
   , monitorType: case fullSettings.appearance.theme of
-      Sidepanel.State.Settings.Dark -> OLED
-      Sidepanel.State.Settings.Light -> LCD
-      Sidepanel.State.Settings.System -> OLED  -- Default to OLED for system
-  , blackBalance: 0.11  -- Not in FullSettings, use default
+      SettingsModule.Dark -> AppState.OLED
+      SettingsModule.Light -> AppState.LCD
+      SettingsModule.System -> AppState.OLED  -- Default to OLED for system
+  , blackBalance: 0.11  -- Not in Settings, use default
   }
 
 -- | Convert BalanceUpdatePayload to BalanceUpdate - WebSocket payload conversion
@@ -1044,7 +1071,7 @@ convertSettingsToAppState fullSettings =
 -- | - `payload`: Balance update payload from WebSocket
 -- | **Returns:** BalanceUpdate for reducer
 -- | **Side Effects:** None (pure function)
-convertBalanceUpdatePayload :: BalanceUpdatePayload -> BalanceUpdate
+convertBalanceUpdatePayload :: BalanceUpdatePayload -> Actions.BalanceUpdate
 convertBalanceUpdatePayload payload =
   { diem: payload.diem
   , flk: payload.flk
@@ -1053,7 +1080,7 @@ convertBalanceUpdatePayload payload =
   , consumptionRate: payload.consumptionRate
   , timeToDepletion: payload.timeToDepletion
   , todayUsed: payload.todayUsed
-  , timestamp: payload.timestamp  -- Include timestamp for history tracking
+  , timestamp: Just payload.timestamp  -- Include timestamp for history tracking
   }
 
 -- | Should show tabs - Determine if session tabs should be displayed

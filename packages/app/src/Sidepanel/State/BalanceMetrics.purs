@@ -28,7 +28,8 @@ import Data.DateTime (DateTime)
 import Data.Maybe (Maybe(..))
 import Data.Ord (max)
 import Sidepanel.FFI.DateTime (toTimestamp, fromTimestamp, getCurrentDateTime)
-import Math (pow)
+import Data.Int as Int
+import Math (pow, floor)
 
 -- | Balance snapshot for history tracking
 type BalanceSnapshot =
@@ -125,7 +126,7 @@ calculateLongTermRate history =
                   if timeDeltaHours > 0.0 && diemDelta > 0.0 then
                     let
                       rate = diemDelta / timeDeltaHours
-                      recency = (Number.fromInt i) / (Number.fromInt total)  -- 0 to 1
+                      recency = (Int.toNumber i) / (Int.toNumber total)  -- 0 to 1
                       weight = pow recency 2.0  -- Square for stronger recency bias
                     in
                       Just { rate, weight }

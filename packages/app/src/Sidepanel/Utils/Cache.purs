@@ -41,12 +41,12 @@
 module Sidepanel.Utils.Cache where
 
 import Prelude
+import Data.Foldable (foldl)
+import Data.Map as Map
+import Data.Maybe (Maybe(..), fromMaybe, isJust)
+import Data.Time.Duration (Milliseconds(..))
 import Effect (Effect)
 import Effect.Ref as Ref
-import Data.Map as Map
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Time.Duration (Milliseconds(..))
-import Data.Int (toNumber)
 
 -- | Cache entry with expiry time
 type CacheEntry v =
@@ -85,7 +85,7 @@ set :: forall k v. Ord k => Cache k v -> k -> v -> Maybe Milliseconds -> Effect 
 set cache key value maybeTTL = do
   now <- getCurrentTimeMs
   let ttl = fromMaybe cache.defaultTTL maybeTTL
-  let expiryTime = now + (toNumber $ unwrap ttl)
+  let expiryTime = now + unwrap ttl
   let entry = { value, expiryTime }
   Ref.modify_ (Map.insert key entry) cache.entries
 
@@ -123,5 +123,5 @@ has cache key = do
 foreign import getCurrentTimeMs :: Effect Number
 
 -- | Helper to unwrap Milliseconds
-unwrap :: Milliseconds -> Int
+unwrap :: Milliseconds -> Number
 unwrap (Milliseconds ms) = ms

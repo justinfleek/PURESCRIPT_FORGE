@@ -5,16 +5,19 @@ module Sidepanel.Pages.Voice
   , VoiceChatState
   , TranscriptMessage
   , VoiceChatResponse
+  , MediaRecorderHandle
+  , Blob
   ) where
 
 import Prelude
 
-import Data.Array as Array
 import Data.DateTime (DateTime)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Aff (Aff)
-import Web.File.Blob (Blob)
+
+-- | Opaque handle to Blob (Web API)
+foreign import data Blob :: Type
 
 -- | Message in the voice transcript
 type TranscriptMessage =
@@ -162,11 +165,11 @@ type VoiceChatPage = Effect Unit
 
 -- | Get status text based on current state
 getStatusText :: VoiceChatState -> String -> String
-getStatusText state default =
+getStatusText state defaultText =
   if state.isListening then "Listening... Speak now"
   else if state.isProcessing then "Processing your message..."
   else if state.isSpeaking then "Assistant is speaking..."
-  else default
+  else defaultText
 
 -- | Audio visualization update loop
 -- | Uses AnalyserNode.getByteFrequencyData to get frequency data

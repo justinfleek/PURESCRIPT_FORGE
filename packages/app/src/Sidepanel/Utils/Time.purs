@@ -40,12 +40,15 @@
 module Sidepanel.Utils.Time where
 
 import Prelude
-import Data.DateTime (DateTime, diff, date, time)
+import Data.DateTime (DateTime(..), diff, date, time)
 import Data.Date (Date, canonicalDate, year, month, day)
-import Data.Time (Time, midnight, hour, minute)
+import Data.Enum (fromEnum)
+import Data.Time (Time(..), hour, minute)
+import Data.Bounded (bottom)
 import Data.Time.Duration (Milliseconds(..))
 import Data.Int (toNumber, floor)
 import Effect (Effect)
+import Sidepanel.FFI.DateTime (calculateMsUntilMidnightUTC, getCurrentTimeMs)
 
 -- | Time remaining until UTC midnight
 type TimeRemaining =
@@ -79,9 +82,7 @@ getTimeUntilReset = do
 getTimeUntilResetFromDateTime :: DateTime -> TimeRemaining
 getTimeUntilResetFromDateTime now = 
   let midnight = getNextMidnightUTC now
-      diffMs = diff midnight now
-      totalMs = case diffMs of
-        Milliseconds ms -> toNumber ms
+      (Milliseconds totalMs) = diff midnight now :: Milliseconds
       hours = floor (totalMs / 3600000.0)
       hoursNum = toNumber hours
       minutes = floor ((totalMs - (hoursNum * 3600000.0)) / 60000.0)
@@ -96,26 +97,19 @@ getTimeUntilResetFromDateTime now =
 
 -- | Get next UTC midnight (from DateTime)
 getNextMidnightUTC :: DateTime -> DateTime
-getNextMidnightUTC now = 
+getNextMidnightUTC now =
   let
     -- Get current UTC date/time components
-    date = toDate now
-    time = toTime now
-    year = year date
-    month = month date
-    day = day date
-    
+    d = date now
+    yr = year d
+    mo = month d
+    dy = day d
+
     -- Create DateTime for next midnight UTC
-    nextMidnightDate = canonicalDate year month (day + 1)
-    nextMidnightTime = Time.midnight
+    nextMidnightDate = canonicalDate yr mo dy
+    nextMidnightTime = Time bottom bottom bottom bottom
   in
     DateTime nextMidnightDate nextMidnightTime
-  where
-    import Data.Date (Date, canonicalDate, year, month, day, toDate)
-    import Data.Time (Time, midnight, toTime)
-
--- | Import FFI functions
-import Sidepanel.FFI.DateTime (calculateMsUntilMidnightUTC, getCurrentTimeMs)
 
 -- | Format time remaining as string
 formatTimeRemaining :: TimeRemaining -> String
@@ -135,8 +129,8 @@ formatTimeRemainingCompact { hours, minutes, seconds } =
 formatTime :: DateTime -> String
 formatTime dt =
   let
-    h = hour (time dt)
-    m = minute (time dt)
+    h = fromEnum (hour (time dt))
+    m = fromEnum (minute (time dt))
     h12 = if h == 0 then 12 else if h > 12 then h - 12 else h
     ampm = if h < 12 then "AM" else "PM"
   in
@@ -160,9 +154,7 @@ formatDateTime dt =
 formatDuration :: DateTime -> DateTime -> String
 formatDuration start end =
   let
-    diffMs = diff end start
-    totalMs = case diffMs of
-      Milliseconds ms -> toNumber ms
+    (Milliseconds totalMs) = diff end start :: Milliseconds
     totalMinutes = floor (totalMs / 60000.0)
     hours = floor (toNumber totalMinutes / 60.0)
     minutes = totalMinutes - (hours * 60)

@@ -1,14 +1,12 @@
 // PRISM Color System FFI Implementation
 // Calls Haskell prism-theme-generator binary via CLI
-"use strict";
-
-var child_process = require("child_process");
-var path = require("path");
+import * as child_process from "child_process";
+import * as path from "path";
 
 // Path to Haskell binary (built by Nix)
 var PRISM_BINARY = process.env.PRISM_BINARY_PATH || "prism-theme-generator";
 
-exports.generatePrismTheme = function(config) {
+export const generatePrismTheme = function(config) {
   try {
     // Convert PureScript config to JSON format expected by Haskell binary
     var jsonConfig = {
@@ -26,7 +24,7 @@ exports.generatePrismTheme = function(config) {
       blackBalance: config.blackBalance || (config.monitorType === "OLED" ? 0.11 : 0.16),
       mode: config.mode === "Dark" ? "dark" : "light"
     };
-    
+
     // Call Haskell binary with JSON input
     var inputJson = JSON.stringify(jsonConfig);
     var result = child_process.spawnSync(PRISM_BINARY, ["generate"], {
@@ -34,26 +32,26 @@ exports.generatePrismTheme = function(config) {
       encoding: "utf8",
       timeout: 5000
     });
-    
+
     if (result.error) {
       console.error("PRISM generation error:", result.error);
       return getDefaultPalette();
     }
-    
+
     if (result.status !== 0) {
       console.error("PRISM generation failed:", result.stderr);
       return getDefaultPalette();
     }
-    
+
     // Parse output JSON
     var output = JSON.parse(result.stdout);
-    
+
     // Extract first variant (or use default if none)
     if (output.variants && output.variants.length > 0) {
       var variant = output.variants[0];
       return variant.colors || getDefaultPalette();
     }
-    
+
     return getDefaultPalette();
   } catch (e) {
     console.error("PRISM FFI error:", e);

@@ -12,6 +12,7 @@ import Data.Text (Text)
 import qualified Data.Text as Text
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
+import qualified Data.List
 import Render.Gateway.STM.Queue (RequestQueue, QueuedJob(..), JobStatus(..), dequeueJob, enqueueJob, tryDequeueJob)
 import Render.Gateway.STM.RateLimiter (RateLimiter, createRateLimiter, acquireTokenBlocking)
 import Render.Gateway.STM.Clock (Clock, readClockSTM)
@@ -59,11 +60,24 @@ deleteJob JobStore {..} jobId = do
   modifyTVar' jsJobs (Map.delete jobId)
 
 -- | Get queue position for a job
-getQueuePosition :: RequestQueue -> Text -> STM Int
-getQueuePosition _queue _jobId = do
-  -- For now, return a placeholder
-  -- Real implementation would scan the queues
-  pure 0
+-- | Scans the job store for jobs with Queued status, orders by creation time,
+-- | and returns 1-based position. Returns 0 if job not found or not queued.
+-- | Note: TQueue does not support random access, so position is derived from
+-- | the JobStore which mirrors queue state.
+getQueuePosition :: JobStore -> Text -> STM Int
+getQueuePosition JobStore {..} jobId = do
+  jobs <- readTVar jsJobs
+  let queuedJobs = Map.filter (\j -> qjStatus j == Queued) jobs
+  let sortedIds = map fst
+        $ Data.List.sortBy (\(_, a) (_, b) -> compare (qjCreatedAt a) (qjCreatedAt b))
+        $ Map.toList queuedJobs
+  pure $ findPosition 1 jobId sortedIds
+  where
+    findPosition :: Int -> Text -> [Text] -> Int
+    findPosition _ _ [] = 0
+    findPosition n needle (x:xs)
+      | x == needle = n
+      | otherwise = findPosition (n + 1) needle xs
 
 -- | Process request atomically
 -- | Returns Nothing if no backend available (job stays in queue)

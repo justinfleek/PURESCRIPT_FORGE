@@ -1,6 +1,6 @@
 -- | SDK context - manages Forge client SDK
 -- | Migrated from: forge-dev/packages/app/src/context/sdk.tsx
-module App.Context.SDK
+module Sidepanel.Context.SDK
   ( SDKContext
   , mkSDKContext
   , getDirectory

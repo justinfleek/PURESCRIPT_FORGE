@@ -14,6 +14,7 @@
 -- | ```
 module App.Addons.Serialize
   ( SerializeAddon
+  , ITerminalCore
   , SerializeOptions
   , SerializeRange
   , HTMLSerializeOptions
@@ -86,9 +87,9 @@ foreign import activateImpl :: EffectFn2 SerializeAddon ITerminalCore Unit
 
 foreign import disposeImpl :: EffectFn1 SerializeAddon Unit
 
-foreign import serializeImpl :: EffectFn2 SerializeAddon (SerializeOptionsJS) String
+foreign import serializeImpl :: EffectFn2 SerializeAddon SerializeOptionsJS String
 
-foreign import serializeAsTextImpl :: EffectFn2 SerializeAddon (TextSerializeOptionsJS) String
+foreign import serializeAsTextImpl :: EffectFn2 SerializeAddon TextSerializeOptionsJS String
 
 -- ============================================================================
 -- Internal JS-compatible types

@@ -35,6 +35,7 @@ import Prelude
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Data.Map as Map
+import Data.Tuple.Nested ((/\))
 
 -- | Session status - Current status of a session
 -- |
@@ -198,7 +199,7 @@ openTab state sessionId title icon =
             }
           
           -- Deactivate all existing tabs
-          deactivatedTabs = Array.map (\t -> t { isActive = false }) tabsToKeep.tabs
+          deactivatedTabs = map (\t -> t { isActive = false }) tabsToKeep.tabs
           
           -- Add new tab
           updatedTabsArray = Array.snoc deactivatedTabs newTab
@@ -232,12 +233,12 @@ closeTab :: SessionTabsState -> String -> SessionTabsState
 closeTab state sessionId =
   let
     tabToClose = Array.find (\t -> t.sessionId == sessionId) state.tabs
-    
+
     -- Check if pinned
     isPinned = case tabToClose of
       Just tab -> tab.isPinned
       Nothing -> false
-    
+  in
     -- If pinned, don't close
     if isPinned then
       state
@@ -273,13 +274,13 @@ closeTab state sessionId =
         -- Update active state
         finalTabs = case newActiveTabId of
           Just activeId ->
-            Array.map (\t ->
+            map (\t ->
               if t.sessionId == activeId
                 then t { isActive = true }
                 else t { isActive = false }
             ) updatedTabs
           Nothing ->
-            Array.map (\t -> t { isActive = false }) updatedTabs
+            map (\t -> t { isActive = false }) updatedTabs
       in
         state
           { tabs = finalTabs
@@ -303,7 +304,7 @@ closeTab state sessionId =
 switchToTab :: SessionTabsState -> String -> SessionTabsState
 switchToTab state sessionId =
   let
-    updatedTabs = Array.map (\t ->
+    updatedTabs = map (\t ->
       if t.sessionId == sessionId
         then t { isActive = true }
         else t { isActive = false }
@@ -331,7 +332,7 @@ reorderTabs :: SessionTabsState -> Array String -> SessionTabsState
 reorderTabs state newOrder =
   let
     -- Create Map for quick lookup
-    tabMap = Map.fromFoldable $ Array.map (\t -> t.sessionId /\ t) state.tabs
+    tabMap = Map.fromFoldable $ map (\t -> t.sessionId /\ t) state.tabs
     
     -- Reorder tabs based on newOrder
     reorderedTabs = Array.mapMaybe (\id -> Map.lookup id tabMap) newOrder
@@ -352,7 +353,7 @@ reorderTabs state newOrder =
 pinTab :: SessionTabsState -> String -> SessionTabsState
 pinTab state sessionId =
   let
-    updatedTabs = Array.map (\t ->
+    updatedTabs = map (\t ->
       if t.sessionId == sessionId
         then t { isPinned = true }
         else t
@@ -371,7 +372,7 @@ pinTab state sessionId =
 unpinTab :: SessionTabsState -> String -> SessionTabsState
 unpinTab state sessionId =
   let
-    updatedTabs = Array.map (\t ->
+    updatedTabs = map (\t ->
       if t.sessionId == sessionId
         then t { isPinned = false }
         else t
@@ -391,7 +392,7 @@ unpinTab state sessionId =
 renameTab :: SessionTabsState -> String -> String -> SessionTabsState
 renameTab state sessionId newTitle =
   let
-    updatedTabs = Array.map (\t ->
+    updatedTabs = map (\t ->
       if t.sessionId == sessionId
         then t { title = newTitle }
         else t
@@ -411,7 +412,7 @@ renameTab state sessionId newTitle =
 setTabIcon :: SessionTabsState -> String -> String -> SessionTabsState
 setTabIcon state sessionId newIcon =
   let
-    updatedTabs = Array.map (\t ->
+    updatedTabs = map (\t ->
       if t.sessionId == sessionId
         then t { icon = newIcon }
         else t
@@ -430,7 +431,7 @@ setTabIcon state sessionId newIcon =
 markTabDirty :: SessionTabsState -> String -> SessionTabsState
 markTabDirty state sessionId =
   let
-    updatedTabs = Array.map (\t ->
+    updatedTabs = map (\t ->
       if t.sessionId == sessionId
         then t { isDirty = true }
         else t
@@ -449,7 +450,7 @@ markTabDirty state sessionId =
 markTabClean :: SessionTabsState -> String -> SessionTabsState
 markTabClean state sessionId =
   let
-    updatedTabs = Array.map (\t ->
+    updatedTabs = map (\t ->
       if t.sessionId == sessionId
         then t { isDirty = false }
         else t

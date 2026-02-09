@@ -235,7 +235,7 @@ renderSuggested state =
         [ HH.text "💡 Based on your current context:" ]
     , HH.div
         [ HP.class_ (H.ClassName "actions-grid") ]
-        (Array.map renderActionButton (getSuggestedActions state))
+        (map renderActionButton (getSuggestedActions state))
     ]
 
 -- | Render favorites
@@ -246,7 +246,7 @@ renderFavorites state =
     [ HH.h3_ [ HH.text "FAVORITES" ]
     , HH.div
         [ HP.class_ (H.ClassName "actions-grid") ]
-        (Array.map renderActionButton (getFavoriteActions state))
+        (map renderActionButton (getFavoriteActions state))
     ]
 
 -- | Render recent actions
@@ -257,7 +257,7 @@ renderRecent state =
     [ HH.h3_ [ HH.text "RECENT" ]
     , HH.div
         [ HP.class_ (H.ClassName "recent-list") ]
-        (Array.map (renderRecentItem state.currentTimeMs) state.recentActions)
+        (map (renderRecentItem state.currentTimeMs) state.recentActions)
     ]
 
 -- | Render action button

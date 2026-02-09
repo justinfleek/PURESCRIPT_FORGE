@@ -3,19 +3,27 @@
 module Sidepanel.Api.Bridge where
 
 import Prelude
-import Effect.Aff (Aff)
-import Data.Either (Either)
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.DateTime (DateTime)
+import Effect.Aff (Aff, throwError)
+import Data.Either (Either(..))
+import Data.Maybe (Maybe(..))
+import Effect.Exception (error)
 import Sidepanel.WebSocket.Client (WSClient, request)
 import Sidepanel.Api.Types (JsonRpcError)
-import Argonaut.Core as AC
-import Argonaut.Core (Json)
-import Argonaut.Decode (class DecodeJson, decodeJson, (.:), (.:?))
-import Argonaut.Encode (class EncodeJson, encodeJson, (:=), (:=?))
-import Argonaut.Parser (jsonParser)
-import Data.Either (Either, either)
-import Data.Argonaut.Decode.Error (JsonDecodeError)
+import Data.Argonaut.Core (Json)
+import Data.Argonaut.Decode (decodeJson)
+import Data.Argonaut.Encode (encodeJson)
+
+-- | Bridge-local session type (uses String for timestamps to enable JSON decoding)
+type BridgeSessionState =
+  { id :: String
+  , model :: String
+  , promptTokens :: Int
+  , completionTokens :: Int
+  , totalTokens :: Int
+  , cost :: Number
+  , messageCount :: Int
+  , startedAt :: String  -- ISO 8601
+  }
 
 -- | File context add request
 type FileContextAddRequest =
@@ -86,137 +94,45 @@ type SessionNewResponse =
   , success :: Boolean
   }
 
--- | File context add response JSON codec
-instance EncodeJson FileContextAddRequest where
-  encodeJson req = encodeJson
-    { path: req.path
-    , sessionId: req.sessionId
-    }
-
-instance DecodeJson FileContextAddResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    success <- obj .: "success"
-    tokens <- obj .: "tokens"
-    contextBudget <- obj .: "contextBudget"
-    used <- contextBudget .: "used"
-    total <- contextBudget .: "total"
-    pure { success, tokens, contextBudget: { used, total } }
-
 -- | Add file to context
 addFileToContext :: WSClient -> FileContextAddRequest -> Aff (Either JsonRpcError FileContextAddResponse)
-addFileToContext client req = do
-  result <- request client "file.context.add" (encodeJson req) decodeResponse
-  pure result
+addFileToContext client req =
+  request client "file.context.add" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError FileContextAddResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
-
--- | File context list response JSON codec
-instance EncodeJson FileContextListRequest where
-  encodeJson req = encodeJson
-    { sessionId: req.sessionId
-    , filter: req.filter
-    }
-
-instance DecodeJson FileInContext where
-  decodeJson json = do
-    obj <- decodeJson json
-    path <- obj .: "path"
-    tokens <- obj .: "tokens"
-    readAt <- obj .: "readAt"
-    status <- obj .: "status"
-    language <- obj .: "language"
-    size <- obj .: "size"
-    pure { path, tokens, readAt, status, language, size }
-
-instance DecodeJson FileContextListResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    files <- obj .: "files"
-    contextBudget <- obj .: "contextBudget"
-    used <- contextBudget .: "used"
-    total <- contextBudget .: "total"
-    pure { files, contextBudget: { used, total } }
+    decodeResponse :: Json -> Aff FileContextAddResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | List files in context
 listFilesInContext :: WSClient -> FileContextListRequest -> Aff (Either JsonRpcError FileContextListResponse)
-listFilesInContext client req = do
-  result <- request client "file.context.list" (encodeJson req) decodeResponse
-  pure result
+listFilesInContext client req =
+  request client "file.context.list" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError FileContextListResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
-
--- | Terminal execute response JSON codec
-instance EncodeJson TerminalExecuteRequest where
-  encodeJson req = encodeJson
-    { command: req.command
-    , cwd: req.cwd
-    , sessionId: req.sessionId
-    }
-
-instance DecodeJson TerminalExecuteResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    success <- obj .: "success"
-    output <- obj .:? "output"
-    exitCode <- obj .:? "exitCode"
-    pure { success, output, exitCode }
+    decodeResponse :: Json -> Aff FileContextListResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Execute terminal command
 executeTerminalCommand :: WSClient -> TerminalExecuteRequest -> Aff (Either JsonRpcError TerminalExecuteResponse)
-executeTerminalCommand client req = do
-  result <- request client "terminal.execute" (encodeJson req) decodeResponse
-  pure result
+executeTerminalCommand client req =
+  request client "terminal.execute" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError TerminalExecuteResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
-
--- | Session new response JSON codec
-instance EncodeJson SessionNewRequest where
-  encodeJson req = encodeJson
-    { name: req.name
-    , parentId: req.parentId
-    , model: req.model
-    , provider: req.provider
-    }
-
-instance DecodeJson SessionNewResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    sessionId <- obj .: "sessionId"
-    success <- obj .: "success"
-    pure { sessionId, success }
+    decodeResponse :: Json -> Aff TerminalExecuteResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Create new session
 createNewSession :: WSClient -> SessionNewRequest -> Aff (Either JsonRpcError SessionNewResponse)
-createNewSession client req = do
-  result <- request client "session.new" (encodeJson req) decodeResponse
-  pure result
+createNewSession client req =
+  request client "session.new" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError SessionNewResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff SessionNewResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | File read request
 type FileReadRequest =
@@ -230,33 +146,15 @@ type FileReadResponse =
   , error :: Maybe String
   }
 
--- | File read request JSON codec
-instance EncodeJson FileReadRequest where
-  encodeJson req = encodeJson
-    { path: req.path
-    }
-
-instance DecodeJson FileReadResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    success <- obj .: "success"
-    content <- obj .:? "content"
-    error <- obj .:? "error"
-    pure { success, content, error }
-
 -- | Read file content
 readFileContent :: WSClient -> FileReadRequest -> Aff (Either JsonRpcError FileReadResponse)
-readFileContent client req = do
-  result <- request client "file.read" (encodeJson req) decodeResponse
-  pure result
+readFileContent client req =
+  request client "file.read" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError FileReadResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff FileReadResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Snapshot list request
 type SnapshotListRequest =
@@ -298,89 +196,35 @@ type SnapshotRestoreResponse =
   { success :: Boolean
   }
 
-instance EncodeJson SnapshotListRequest where
-  encodeJson req = encodeJson
-    { limit: req.limit
-    , offset: req.offset
-    }
-
-instance DecodeJson SnapshotSummary where
-  decodeJson json = do
-    obj <- decodeJson json
-    id <- obj .: "id"
-    timestamp <- obj .: "timestamp"
-    description <- obj .:? "description"
-    pure { id, timestamp, description }
-
-instance DecodeJson SnapshotListResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    snapshots <- obj .: "snapshots"
-    pure { snapshots }
-
-instance EncodeJson SnapshotSaveRequest where
-  encodeJson req = encodeJson
-    { trigger: req.trigger
-    , description: req.description
-    }
-
-instance DecodeJson SnapshotSaveResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    id <- obj .: "id"
-    success <- obj .: "success"
-    pure { id, success }
-
-instance EncodeJson SnapshotRestoreRequest where
-  encodeJson req = encodeJson { id: req.id }
-
-instance DecodeJson SnapshotRestoreResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    success <- obj .: "success"
-    pure { success }
-
 -- | List snapshots
 listSnapshots :: WSClient -> SnapshotListRequest -> Aff (Either JsonRpcError SnapshotListResponse)
-listSnapshots client req = do
-  result <- request client "snapshot.list" (encodeJson req) decodeResponse
-  pure result
+listSnapshots client req =
+  request client "snapshot.list" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError SnapshotListResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff SnapshotListResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Save snapshot
 saveSnapshot :: WSClient -> SnapshotSaveRequest -> Aff (Either JsonRpcError SnapshotSaveResponse)
-saveSnapshot client req = do
-  result <- request client "snapshot.save" (encodeJson req) decodeResponse
-  pure result
+saveSnapshot client req =
+  request client "snapshot.save" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError SnapshotSaveResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff SnapshotSaveResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Restore snapshot
 restoreSnapshot :: WSClient -> SnapshotRestoreRequest -> Aff (Either JsonRpcError SnapshotRestoreResponse)
-restoreSnapshot client req = do
-  result <- request client "snapshot.restore" (encodeJson req) decodeResponse
-  pure result
+restoreSnapshot client req =
+  request client "snapshot.restore" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError SnapshotRestoreResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff SnapshotRestoreResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Snapshot get request
 type SnapshotGetRequest =
@@ -397,7 +241,7 @@ type SnapshotGetResponse =
 
 type SnapshotGetState =
   { balance :: Maybe BalanceState
-  , session :: Maybe SessionState
+  , session :: Maybe BridgeSessionState
   , proof :: Maybe ProofState
   , metrics :: Maybe UsageMetrics
   , fileContext :: Array FileContextEntry
@@ -410,7 +254,7 @@ type FileContextEntry =
   }
 
 type BalanceState =
-  { venice :: { diem :: Number, usd :: Number, effective :: Number, lastUpdated :: Maybe DateTime }
+  { venice :: { diem :: Number, usd :: Number, effective :: Number, lastUpdated :: Maybe String }
   , consumptionRate :: Number
   , timeToDepletion :: Maybe Int
   , todayUsed :: Number
@@ -435,55 +279,15 @@ type UsageMetrics =
   , toolTimings :: Array { name :: String, duration :: Number }
   }
 
-instance EncodeJson SnapshotGetRequest where
-  encodeJson req = encodeJson { id: req.id }
-
-instance DecodeJson FileContextEntry where
-  decodeJson json = do
-    obj <- decodeJson json
-    path <- obj .: "path"
-    tokens <- obj .: "tokens"
-    language <- obj .: "language"
-    pure { path, tokens, language }
-
-instance DecodeJson SnapshotGetState where
-  decodeJson json = do
-    obj <- decodeJson json
-    balance <- obj .:? "balance"
-    session <- obj .:? "session"
-    proof <- obj .:? "proof"
-    metrics <- obj .:? "metrics"
-    fileContext <- obj .:? "fileContext"
-    pure
-      { balance
-      , session
-      , proof
-      , metrics
-      , fileContext: fromMaybe [] fileContext
-      }
-
-instance DecodeJson SnapshotGetResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    id <- obj .: "id"
-    timestamp <- obj .: "timestamp"
-    description <- obj .:? "description"
-    state <- obj .: "state"
-    pure { id, timestamp, description, state }
-
 -- | Get snapshot by ID
 getSnapshot :: WSClient -> SnapshotGetRequest -> Aff (Either JsonRpcError SnapshotGetResponse)
-getSnapshot client req = do
-  result <- request client "snapshot.get" (encodeJson req) decodeResponse
-  pure result
+getSnapshot client req =
+  request client "snapshot.get" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError SnapshotGetResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff SnapshotGetResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Lean check request
 type LeanCheckRequest =
@@ -523,83 +327,25 @@ type LeanGoalsResponse =
   { goals :: Array LeanGoal
   }
 
-instance EncodeJson LeanCheckRequest where
-  encodeJson req = encodeJson { file: req.file }
-
-instance DecodeJson LeanDiagnostic where
-  decodeJson json = do
-    obj <- decodeJson json
-    severity <- obj .: "severity"
-    message <- obj .: "message"
-    range <- obj .: "range"
-    start <- range .: "start"
-    end <- range .: "end"
-    startLine <- start .: "line"
-    startCol <- start .: "col"
-    endLine <- end .: "line"
-    endCol <- end .: "col"
-    pure
-      { severity
-      , message
-      , range:
-          { start: { line: startLine, col: startCol }
-          , end: { line: endLine, col: endCol }
-          }
-      }
-
-instance DecodeJson LeanCheckResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    diagnostics <- obj .: "diagnostics"
-    pure { diagnostics }
-
-instance EncodeJson LeanGoalsRequest where
-  encodeJson req = encodeJson
-    { file: req.file
-    , line: req.line
-    , column: req.column
-    }
-
-instance DecodeJson LeanGoal where
-  decodeJson json = do
-    obj <- decodeJson json
-    type_ <- obj .: "type"
-    context <- obj .: "context"
-    pure { type_, context }
-
-instance DecodeJson LeanGoalsResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    goals <- obj .: "goals"
-    pure { goals }
-
 -- | Check Lean file
 checkLeanFile :: WSClient -> LeanCheckRequest -> Aff (Either JsonRpcError LeanCheckResponse)
-checkLeanFile client req = do
-  result <- request client "lean.check" (encodeJson req) decodeResponse
-  pure result
+checkLeanFile client req =
+  request client "lean.check" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError LeanCheckResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff LeanCheckResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Get Lean goals
 getLeanGoals :: WSClient -> LeanGoalsRequest -> Aff (Either JsonRpcError LeanGoalsResponse)
-getLeanGoals client req = do
-  result <- request client "lean.goals" (encodeJson req) decodeResponse
-  pure result
+getLeanGoals client req =
+  request client "lean.goals" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError LeanGoalsResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff LeanGoalsResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Apply Lean tactic request
 type LeanApplyTacticRequest =
@@ -617,36 +363,15 @@ type LeanApplyTacticResponse =
   , goals :: Array LeanGoal
   }
 
-instance EncodeJson LeanApplyTacticRequest where
-  encodeJson req = AC.fromObject $ AC.fromFoldable
-    [ "file" := req.file
-    , "line" := req.line
-    , "column" := req.column
-    , "tactic" := req.tactic
-    , "goalIndex" :=? req.goalIndex
-    ]
-
-instance DecodeJson LeanApplyTacticResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    success <- obj .: "success"
-    message <- obj .:? "message"
-    goals <- obj .: "goals"
-    pure { success, message, goals }
-
 -- | Apply Lean tactic
 applyLeanTactic :: WSClient -> LeanApplyTacticRequest -> Aff (Either JsonRpcError LeanApplyTacticResponse)
-applyLeanTactic client req = do
-  result <- request client "lean.applyTactic" (encodeJson req) decodeResponse
-  pure result
+applyLeanTactic client req =
+  request client "lean.applyTactic" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError LeanApplyTacticResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff LeanApplyTacticResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Search Lean theorems request
 type LeanSearchTheoremsRequest =
@@ -670,43 +395,15 @@ type LeanSearchTheoremsResponse =
   , total :: Int
   }
 
-instance EncodeJson LeanSearchTheoremsRequest where
-  encodeJson req = AC.fromObject $ AC.fromFoldable
-    [ "query" := req.query
-    , "limit" :=? req.limit
-    , "file" :=? req.file
-    ]
-
-instance DecodeJson TheoremResult where
-  decodeJson json = do
-    obj <- decodeJson json
-    name <- obj .: "name"
-    statement <- obj .: "statement"
-    file <- obj .: "file"
-    line <- obj .: "line"
-    description <- obj .:? "description"
-    pure { name, statement, file, line, description }
-
-instance DecodeJson LeanSearchTheoremsResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    theorems <- obj .: "theorems"
-    total <- obj .: "total"
-    pure { theorems, total }
-
 -- | Search Lean theorems
 searchLeanTheorems :: WSClient -> LeanSearchTheoremsRequest -> Aff (Either JsonRpcError LeanSearchTheoremsResponse)
-searchLeanTheorems client req = do
-  result <- request client "lean.searchTheorems" (encodeJson req) decodeResponse
-  pure result
+searchLeanTheorems client req =
+  request client "lean.searchTheorems" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError LeanSearchTheoremsResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff LeanSearchTheoremsResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Settings save request (matches Settings type from Sidepanel.State.Settings)
 type SettingsSaveRequest =
@@ -739,34 +436,15 @@ type SettingsSaveResponse =
   { success :: Boolean
   }
 
-instance EncodeJson SettingsSaveRequest where
-  encodeJson req = encodeJson
-    { alerts: req.alerts
-    , appearance: req.appearance
-    , keyboard: req.keyboard
-    , features: req.features
-    , storage: req.storage
-    }
-
-instance DecodeJson SettingsSaveResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    success <- obj .: "success"
-    pure { success }
-
 -- | Save settings to bridge server
 saveSettings :: WSClient -> SettingsSaveRequest -> Aff (Either JsonRpcError SettingsSaveResponse)
-saveSettings client req = do
-  result <- request client "settings.save" (encodeJson req) decodeResponse
-  pure result
+saveSettings client req =
+  request client "settings.save" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError SettingsSaveResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff SettingsSaveResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | State get request (empty params)
 type StateGetRequest = {}
@@ -775,49 +453,22 @@ type StateGetRequest = {}
 type StateGetResponse =
   { connected :: Boolean
   , balance :: Maybe BalanceState
-  , session :: Maybe SessionState
+  , session :: Maybe BridgeSessionState
   , proof :: Maybe ProofState
   , metrics :: Maybe UsageMetrics
   , snapshots :: Array SnapshotSummary
   , timestamp :: String  -- ISO 8601
   }
 
-instance EncodeJson StateGetRequest where
-  encodeJson _ = AC.fromObject $ AC.fromFoldable []
-
-instance DecodeJson StateGetResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    connected <- obj .: "connected"
-    balance <- obj .:? "balance"
-    session <- obj .:? "session"
-    proof <- obj .:? "proof"
-    metrics <- obj .:? "metrics"
-    snapshots <- obj .:? "snapshots"
-    timestamp <- obj .: "timestamp"
-    pure
-      { connected
-      , balance
-      , session
-      , proof
-      , metrics
-      , snapshots: fromMaybe [] snapshots
-      , timestamp
-      }
-
 -- | Get full state from bridge server
 getState :: WSClient -> StateGetRequest -> Aff (Either JsonRpcError StateGetResponse)
-getState client req = do
-  result <- request client "state.get" (encodeJson req) decodeResponse
-  pure result
+getState client req =
+  request client "state.get" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError StateGetResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff StateGetResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | State subscribe request
 type StateSubscribeRequest =
@@ -830,31 +481,15 @@ type StateSubscribeResponse =
   , paths :: Array String  -- Confirmed subscribed paths
   }
 
-instance EncodeJson StateSubscribeRequest where
-  encodeJson req = AC.fromObject $ AC.fromFoldable
-    [ "paths" :=? req.paths
-    ]
-
-instance DecodeJson StateSubscribeResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    subscribed <- obj .: "subscribed"
-    paths <- obj .: "paths"
-    pure { subscribed, paths }
-
 -- | Subscribe to state updates
 subscribeState :: WSClient -> StateSubscribeRequest -> Aff (Either JsonRpcError StateSubscribeResponse)
-subscribeState client req = do
-  result <- request client "state.subscribe" (encodeJson req) decodeResponse
-  pure result
+subscribeState client req =
+  request client "state.subscribe" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError StateSubscribeResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff StateSubscribeResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Alerts configure request
 type AlertsConfigureRequest =
@@ -868,32 +503,15 @@ type AlertsConfigureResponse =
   { success :: Boolean
   }
 
-instance EncodeJson AlertsConfigureRequest where
-  encodeJson req = AC.fromObject $ AC.fromFoldable
-    [ "diemWarningPercent" :=? req.diemWarningPercent
-    , "diemCriticalPercent" :=? req.diemCriticalPercent
-    , "depletionWarningHours" :=? req.depletionWarningHours
-    ]
-
-instance DecodeJson AlertsConfigureResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    success <- obj .: "success"
-    pure { success }
-
 -- | Configure alert thresholds
 configureAlerts :: WSClient -> AlertsConfigureRequest -> Aff (Either JsonRpcError AlertsConfigureResponse)
-configureAlerts client req = do
-  result <- request client "alerts.configure" (encodeJson req) decodeResponse
-  pure result
+configureAlerts client req =
+  request client "alerts.configure" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError AlertsConfigureResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff AlertsConfigureResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Session export request
 type SessionExportRequest =
@@ -904,37 +522,19 @@ type SessionExportRequest =
 
 -- | Session export response
 type SessionExportResponse =
-  { data :: String  -- Exported data (JSON string, Markdown, or HTML)
+  { exportData :: String  -- Exported data (JSON string, Markdown, or HTML)
   , filename :: String
   }
 
-instance EncodeJson SessionExportRequest where
-  encodeJson req = AC.fromObject $ AC.fromFoldable
-    [ "sessionId" := req.sessionId
-    , "format" := req.format
-    , "includeTimeline" :=? req.includeTimeline
-    ]
-
-instance DecodeJson SessionExportResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    data_ <- obj .: "data"
-    filename <- obj .: "filename"
-    pure { data: data_, filename }
-
 -- | Export session data
 exportSession :: WSClient -> SessionExportRequest -> Aff (Either JsonRpcError SessionExportResponse)
-exportSession client req = do
-  result <- request client "session.export" (encodeJson req) decodeResponse
-  pure result
+exportSession client req =
+  request client "session.export" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError SessionExportResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff SessionExportResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | File context remove request
 type FileContextRemoveRequest =
@@ -952,35 +552,15 @@ type FileContextRemoveResponse =
       }
   }
 
-instance EncodeJson FileContextRemoveRequest where
-  encodeJson req = encodeJson
-    { paths: req.paths
-    , sessionId: req.sessionId
-    }
-
-instance DecodeJson FileContextRemoveResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    success <- obj .: "success"
-    removedCount <- obj .: "removedCount"
-    contextBudget <- obj .: "contextBudget"
-    used <- contextBudget .: "used"
-    total <- contextBudget .: "total"
-    pure { success, removedCount, contextBudget: { used, total } }
-
 -- | Remove files from context
 removeFileFromContext :: WSClient -> FileContextRemoveRequest -> Aff (Either JsonRpcError FileContextRemoveResponse)
-removeFileFromContext client req = do
-  result <- request client "file.context.remove" (encodeJson req) decodeResponse
-  pure result
+removeFileFromContext client req =
+  request client "file.context.remove" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError FileContextRemoveResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff FileContextRemoveResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Diff accept hunk request
 type DiffAcceptHunkRequest =
@@ -993,45 +573,25 @@ type DiffAcceptHunkResponse =
   { success :: Boolean
   }
 
-instance EncodeJson DiffAcceptHunkRequest where
-  encodeJson req = encodeJson
-    { file: req.file
-    , hunkId: req.hunkId
-    }
-
-instance DecodeJson DiffAcceptHunkResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    success <- obj .: "success"
-    pure { success }
-
 -- | Accept a diff hunk
 acceptDiffHunk :: WSClient -> DiffAcceptHunkRequest -> Aff (Either JsonRpcError DiffAcceptHunkResponse)
-acceptDiffHunk client req = do
-  result <- request client "diff.hunk.accept" (encodeJson req) decodeResponse
-  pure result
+acceptDiffHunk client req =
+  request client "diff.hunk.accept" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError DiffAcceptHunkResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff DiffAcceptHunkResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Reject a diff hunk
 rejectDiffHunk :: WSClient -> DiffAcceptHunkRequest -> Aff (Either JsonRpcError DiffAcceptHunkResponse)
-rejectDiffHunk client req = do
-  result <- request client "diff.hunk.reject" (encodeJson req) decodeResponse
-  pure result
+rejectDiffHunk client req =
+  request client "diff.hunk.reject" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError DiffAcceptHunkResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff DiffAcceptHunkResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Diff accept all request (file or global)
 type DiffAcceptAllRequest =
@@ -1040,31 +600,23 @@ type DiffAcceptAllRequest =
 
 -- | Accept all diff hunks
 acceptAllDiffHunks :: WSClient -> DiffAcceptAllRequest -> Aff (Either JsonRpcError DiffAcceptHunkResponse)
-acceptAllDiffHunks client req = do
-  result <- request client "diff.accept.all" (encodeJson { file: req.file }) decodeResponse
-  pure result
+acceptAllDiffHunks client req =
+  request client "diff.accept.all" (encodeJson { file: req.file }) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError DiffAcceptHunkResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff DiffAcceptHunkResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Reject all diff hunks
 rejectAllDiffHunks :: WSClient -> DiffAcceptAllRequest -> Aff (Either JsonRpcError DiffAcceptHunkResponse)
-rejectAllDiffHunks client req = do
-  result <- request client "diff.reject.all" (encodeJson { file: req.file }) decodeResponse
-  pure result
+rejectAllDiffHunks client req =
+  request client "diff.reject.all" (encodeJson { file: req.file }) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError DiffAcceptHunkResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff DiffAcceptHunkResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Performance data request
 type PerformanceDataRequest =
@@ -1087,41 +639,15 @@ type PerformanceDataResponse =
   , suggestions :: Json
   }
 
-instance EncodeJson PerformanceDataRequest where
-  encodeJson req = encodeJson
-    { sessionId: req.sessionId
-    }
-
-instance DecodeJson PerformanceDataResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    sessionId <- obj .: "sessionId"
-    totalDuration <- obj .: "totalDuration"
-    aiThinkingTime <- obj .: "aiThinkingTime"
-    toolExecutionTime <- obj .: "toolExecutionTime"
-    networkTime <- obj .: "networkTime"
-    totalTokens <- obj .: "totalTokens"
-    totalCost <- obj .: "totalCost"
-    messageCount <- obj .: "messageCount"
-    toolCallCount <- obj .: "toolCallCount"
-    events <- obj .: "events"
-    slowestOperations <- obj .: "slowestOperations"
-    suggestions <- obj .: "suggestions"
-    pure { sessionId, totalDuration, aiThinkingTime, toolExecutionTime, networkTime, totalTokens, totalCost, messageCount, toolCallCount, events, slowestOperations, suggestions }
-
 -- | Get performance data for a session
 getPerformanceData :: WSClient -> PerformanceDataRequest -> Aff (Either JsonRpcError PerformanceDataResponse)
-getPerformanceData client req = do
-  result <- request client "performance.data" (encodeJson req) decodeResponse
-  pure result
+getPerformanceData client req =
+  request client "performance.data" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError PerformanceDataResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff PerformanceDataResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result
 
 -- | Search request
 type SearchRequest =
@@ -1152,47 +678,12 @@ type SearchResponse =
   , searchTimeMs :: Number
   }
 
-instance EncodeJson SearchRequest where
-  encodeJson req = AC.fromObject $ AC.fromFoldable
-    [ "query" := req.query
-    , "types" :=? req.types
-    , "dateRange" :=? req.dateRange
-    , "model" :=? req.model
-    , "sessionId" :=? req.sessionId
-    , "limit" :=? req.limit
-    , "offset" :=? req.offset
-    ]
-
-instance DecodeJson SearchResultBridge where
-  decodeJson json = do
-    obj <- decodeJson json
-    id <- obj .: "id"
-    type_ <- obj .: "type"
-    title <- obj .: "title"
-    preview <- obj .: "preview"
-    score <- obj .: "score"
-    timestamp <- obj .: "timestamp"
-    metadata <- obj .: "metadata"
-    pure { id, type_, title, preview, score, timestamp, metadata }
-
-instance DecodeJson SearchResponse where
-  decodeJson json = do
-    obj <- decodeJson json
-    results <- obj .: "results"
-    totalCount <- obj .: "totalCount"
-    searchTimeMs <- obj .: "searchTimeMs"
-    pure { results, totalCount, searchTimeMs }
-
 -- | Perform search
 performSearch :: WSClient -> SearchRequest -> Aff (Either JsonRpcError SearchResponse)
-performSearch client req = do
-  result <- request client "search.perform" (encodeJson req) decodeResponse
-  pure result
+performSearch client req =
+  request client "search.perform" (encodeJson req) decodeResponse
   where
-    decodeResponse :: Json -> Aff (Either JsonRpcError SearchResponse)
-    decodeResponse json = do
-      case decodeJson json of
-        Left err -> pure $ Left { code: -32700, message: "Parse error: " <> printJsonDecodeError err, data: Nothing }
-        Right result -> pure $ Right result
-    printJsonDecodeError :: JsonDecodeError -> String
-    printJsonDecodeError err = show err
+    decodeResponse :: Json -> Aff SearchResponse
+    decodeResponse json = case decodeJson json of
+      Left err -> throwError (error (show err))
+      Right result -> pure result

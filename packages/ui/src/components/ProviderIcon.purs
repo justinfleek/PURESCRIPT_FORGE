@@ -126,7 +126,7 @@ renderProviderPath providerId = case providerId of
       , HP.attr (HH.AttrName "fill") "currentColor"
       ] []
   
-  -- Default: render a generic AI icon placeholder
+  -- Default: render a generic AI icon for unrecognized providers
   _ ->
     HH.element (HH.ElemName "path")
       [ HP.attr (HH.AttrName "d") "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"

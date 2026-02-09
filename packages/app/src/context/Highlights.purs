@@ -1,6 +1,6 @@
 -- | Highlights context - manages release notes highlights
 -- | Migrated from: forge-dev/packages/app/src/context/highlights.tsx
-module App.Context.Highlights
+module Sidepanel.Context.Highlights
   ( Highlight
   , HighlightMedia
   , ParsedRelease
@@ -14,7 +14,7 @@ module App.Context.Highlights
 
 import Prelude
 
-import Data.Array (filter, findIndex, length, slice, take, (:))
+import Data.Array (filter, findIndex, length, slice, take)
 import Data.Array as Array
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set (Set)
@@ -113,42 +113,38 @@ sliceHighlights input =
     endIdx = case previous of
       Nothing -> length releases
       Just p ->
-        case findIndex (\r -> i >= startIdx && normalizeVersion r.tag == Just p) (withIndex releases) of
+        let indexed = Array.mapWithIndex (\idx rel -> { idx, rel }) releases
+        in case findIndex (\entry -> entry.idx >= startIdx && normalizeVersion entry.rel.tag == Just p) indexed of
           Nothing -> length releases
-          Just i -> i
-    
+          Just foundIdx -> foundIdx
+
     -- Slice releases
     sliced = slice startIdx endIdx releases
-    
+
     -- Flatten highlights
     allHighlights = Array.concatMap _.highlights sliced
-    
+
     -- Deduplicate
     unique = dedupe allHighlights
   in
     take 5 unique
   where
-    -- Helper to get indexed elements
-    withIndex :: forall a. Array a -> Array { i :: Int, r :: a }
-    withIndex arr = Array.mapWithIndex (\i r -> { i, r }) arr
-    
-    i :: forall r. { i :: Int | r } -> Int
-    i = _.i
     
     -- Deduplicate highlights by content
     dedupe :: Array Highlight -> Array Highlight
     dedupe highlights =
       let
-        go acc seen [] = acc
-        go acc seen (h : rest) =
-          let
-            key = h.title <> "\n" <> h.description <> "\n" <> 
-                  fromMaybe "" (map _.mediaType h.media) <> "\n" <>
-                  fromMaybe "" (map _.src h.media)
-          in
-            if Set.member key seen
-            then go acc seen rest
-            else go (Array.snoc acc h) (Set.insert key seen) rest
+        go acc seen arr = case Array.uncons arr of
+          Nothing -> acc
+          Just { head: h, tail: rest } ->
+            let
+              key = h.title <> "\n" <> h.description <> "\n" <>
+                    fromMaybe "" (map _.mediaType h.media) <> "\n" <>
+                    fromMaybe "" (map _.src h.media)
+            in
+              if Set.member key seen
+              then go acc seen rest
+              else go (Array.snoc acc h) (Set.insert key seen) rest
       in
         go [] Set.empty highlights
 

@@ -40,10 +40,12 @@
 module Sidepanel.State.Settings where
 
 import Prelude
-import Argonaut.Core (Json)
-import Argonaut.Decode (class DecodeJson, decodeJson, (.:), (.:?))
-import Argonaut.Encode (class EncodeJson, encodeJson, (:=), (:=?))
-import Argonaut.Parser (jsonParser)
+import Data.Argonaut.Core (Json, stringify)
+import Data.Argonaut.Decode (class DecodeJson, decodeJson, (.:))
+import Data.Argonaut.Decode.Error (JsonDecodeError(..))
+import Data.Argonaut.Encode (class EncodeJson, encodeJson)
+import Data.Argonaut.Parser (jsonParser)
+import Data.Bifunctor (lmap)
 import Data.Either (Either(..), either)
 
 -- | All user-configurable settings - Root settings type
@@ -91,7 +93,7 @@ instance DecodeJson Theme where
       "dark" -> pure Dark
       "light" -> pure Light
       "system" -> pure System
-      _ -> Left "Invalid theme"
+      _ -> Left (TypeMismatch "Invalid theme")
 
 type KeyboardSettings =
   { enabled :: Boolean            -- Default true
@@ -136,87 +138,103 @@ defaultSettings =
       }
   }
 
--- | JSON codecs for Settings
-instance EncodeJson AlertSettings where
-  encodeJson s = encodeJson
-    { warningPercent: s.warningPercent
-    , criticalPercent: s.criticalPercent
-    , warningHours: s.warningHours
-    , soundEnabled: s.soundEnabled
-    }
+-- | Encode AlertSettings to JSON
+encodeAlertSettings :: AlertSettings -> Json
+encodeAlertSettings s = encodeJson
+  { warningPercent: s.warningPercent
+  , criticalPercent: s.criticalPercent
+  , warningHours: s.warningHours
+  , soundEnabled: s.soundEnabled
+  }
 
-instance DecodeJson AlertSettings where
-  decodeJson json = do
-    obj <- decodeJson json
-    warningPercent <- obj .: "warningPercent"
-    criticalPercent <- obj .: "criticalPercent"
-    warningHours <- obj .: "warningHours"
-    soundEnabled <- obj .: "soundEnabled"
-    pure { warningPercent, criticalPercent, warningHours, soundEnabled }
+-- | Decode AlertSettings from JSON
+decodeAlertSettings :: Json -> Either JsonDecodeError AlertSettings
+decodeAlertSettings json = do
+  obj <- decodeJson json
+  warningPercent <- obj .: "warningPercent"
+  criticalPercent <- obj .: "criticalPercent"
+  warningHours <- obj .: "warningHours"
+  soundEnabled <- obj .: "soundEnabled"
+  pure { warningPercent, criticalPercent, warningHours, soundEnabled }
 
-instance EncodeJson AppearanceSettings where
-  encodeJson s = encodeJson { theme: s.theme }
+-- | Encode AppearanceSettings to JSON
+encodeAppearanceSettings :: AppearanceSettings -> Json
+encodeAppearanceSettings s = encodeJson { theme: s.theme }
 
-instance DecodeJson AppearanceSettings where
-  decodeJson json = do
-    obj <- decodeJson json
-    theme <- obj .: "theme"
-    pure { theme }
+-- | Decode AppearanceSettings from JSON
+decodeAppearanceSettings :: Json -> Either JsonDecodeError AppearanceSettings
+decodeAppearanceSettings json = do
+  obj <- decodeJson json
+  theme <- obj .: "theme"
+  pure { theme }
 
-instance EncodeJson KeyboardSettings where
-  encodeJson s = encodeJson { enabled: s.enabled, vimMode: s.vimMode }
+-- | Encode KeyboardSettings to JSON
+encodeKeyboardSettings :: KeyboardSettings -> Json
+encodeKeyboardSettings s = encodeJson { enabled: s.enabled, vimMode: s.vimMode }
 
-instance DecodeJson KeyboardSettings where
-  decodeJson json = do
-    obj <- decodeJson json
-    enabled <- obj .: "enabled"
-    vimMode <- obj .: "vimMode"
-    pure { enabled, vimMode }
+-- | Decode KeyboardSettings from JSON
+decodeKeyboardSettings :: Json -> Either JsonDecodeError KeyboardSettings
+decodeKeyboardSettings json = do
+  obj <- decodeJson json
+  enabled <- obj .: "enabled"
+  vimMode <- obj .: "vimMode"
+  pure { enabled, vimMode }
 
-instance EncodeJson FeatureSettings where
-  encodeJson s = encodeJson
-    { countdown: s.countdown
-    , tokenCharts: s.tokenCharts
-    , proofPanel: s.proofPanel
-    , timeline: s.timeline
-    }
+-- | Encode FeatureSettings to JSON
+encodeFeatureSettings :: FeatureSettings -> Json
+encodeFeatureSettings s = encodeJson
+  { countdown: s.countdown
+  , tokenCharts: s.tokenCharts
+  , proofPanel: s.proofPanel
+  , timeline: s.timeline
+  }
 
-instance DecodeJson FeatureSettings where
-  decodeJson json = do
-    obj <- decodeJson json
-    countdown <- obj .: "countdown"
-    tokenCharts <- obj .: "tokenCharts"
-    proofPanel <- obj .: "proofPanel"
-    timeline <- obj .: "timeline"
-    pure { countdown, tokenCharts, proofPanel, timeline }
+-- | Decode FeatureSettings from JSON
+decodeFeatureSettings :: Json -> Either JsonDecodeError FeatureSettings
+decodeFeatureSettings json = do
+  obj <- decodeJson json
+  countdown <- obj .: "countdown"
+  tokenCharts <- obj .: "tokenCharts"
+  proofPanel <- obj .: "proofPanel"
+  timeline <- obj .: "timeline"
+  pure { countdown, tokenCharts, proofPanel, timeline }
 
-instance EncodeJson StorageSettings where
-  encodeJson s = encodeJson { retentionDays: s.retentionDays }
+-- | Encode StorageSettings to JSON
+encodeStorageSettings :: StorageSettings -> Json
+encodeStorageSettings s = encodeJson { retentionDays: s.retentionDays }
 
-instance DecodeJson StorageSettings where
-  decodeJson json = do
-    obj <- decodeJson json
-    retentionDays <- obj .: "retentionDays"
-    pure { retentionDays }
+-- | Decode StorageSettings from JSON
+decodeStorageSettings :: Json -> Either JsonDecodeError StorageSettings
+decodeStorageSettings json = do
+  obj <- decodeJson json
+  retentionDays <- obj .: "retentionDays"
+  pure { retentionDays }
 
-instance EncodeJson Settings where
-  encodeJson s = encodeJson
-    { alerts: s.alerts
-    , appearance: s.appearance
-    , keyboard: s.keyboard
-    , features: s.features
-    , storage: s.storage
-    }
+-- | Encode Settings to JSON
+encodeSettingsJson :: Settings -> Json
+encodeSettingsJson s = encodeJson
+  { alerts: encodeAlertSettings s.alerts
+  , appearance: encodeAppearanceSettings s.appearance
+  , keyboard: encodeKeyboardSettings s.keyboard
+  , features: encodeFeatureSettings s.features
+  , storage: encodeStorageSettings s.storage
+  }
 
-instance DecodeJson Settings where
-  decodeJson json = do
-    obj <- decodeJson json
-    alerts <- obj .: "alerts"
-    appearance <- obj .: "appearance"
-    keyboard <- obj .: "keyboard"
-    features <- obj .: "features"
-    storage <- obj .: "storage"
-    pure { alerts, appearance, keyboard, features, storage }
+-- | Decode Settings from JSON
+decodeSettingsJson :: Json -> Either JsonDecodeError Settings
+decodeSettingsJson json = do
+  obj <- decodeJson json
+  alertsJson <- obj .: "alerts"
+  alerts <- decodeAlertSettings alertsJson
+  appearanceJson <- obj .: "appearance"
+  appearance <- decodeAppearanceSettings appearanceJson
+  keyboardJson <- obj .: "keyboard"
+  keyboard <- decodeKeyboardSettings keyboardJson
+  featuresJson <- obj .: "features"
+  features <- decodeFeatureSettings featuresJson
+  storageJson <- obj .: "storage"
+  storage <- decodeStorageSettings storageJson
+  pure { alerts, appearance, keyboard, features, storage }
 
 -- | Encode Settings to JSON string - Serialize settings for persistence
 -- |
@@ -232,7 +250,7 @@ instance DecodeJson Settings where
 -- | localStorage.setItem "settings" jsonString
 -- | ```
 encodeSettingsToString :: Settings -> String
-encodeSettingsToString = encodeJson >>> show
+encodeSettingsToString = encodeSettingsJson >>> stringify
 
 -- | Decode Settings from JSON string - Deserialize settings from storage
 -- |
@@ -257,4 +275,4 @@ encodeSettingsToString = encodeJson >>> show
 decodeSettingsFromString :: String -> Either String Settings
 decodeSettingsFromString str = do
   json <- either Left Right $ jsonParser str
-  either (\err -> Left $ "Failed to decode settings: " <> show err) Right $ decodeJson json
+  lmap show $ decodeSettingsJson json

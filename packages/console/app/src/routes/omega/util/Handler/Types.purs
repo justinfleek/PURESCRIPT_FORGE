@@ -17,8 +17,8 @@ import Prelude
 
 import Data.Maybe (Maybe(..))
 import Foreign (Foreign)
-import Console.Core.Identifier (WorkspaceId, UserId)
-import Console.Core.Util.Price (MicroCents)
+import Forge.Console.Core.Identifier (WorkspaceId, UserId)
+import Forge.Console.Core.Util.Price (MicroCents)
 import Console.App.Routes.Omega.Util.Provider.Provider (UsageInfo)
 
 -- | Retry options for provider selection

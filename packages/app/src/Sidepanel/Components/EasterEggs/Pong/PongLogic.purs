@@ -10,7 +10,9 @@ module Sidepanel.Components.EasterEggs.Pong.PongLogic where
 
 import Prelude
 
+import Data.Int (toNumber)
 import Data.Maybe (Maybe(..))
+import Data.Number (abs)
 import Sidepanel.Components.EasterEggs.Pong.PongTypes
   ( GameState
   , GameAction(..)
@@ -18,6 +20,7 @@ import Sidepanel.Components.EasterEggs.Pong.PongTypes
   , Ball
   , Player(..)
   , GameMode(..)
+  , initialGameState
   , gameWidth
   , gameHeight
   )
@@ -64,7 +67,7 @@ checkCollisions ball leftPaddle rightPaddle = do
 -- | Check wall collisions (top/bottom)
 checkWallCollisions :: Ball -> Ball
 checkWallCollisions ball = do
-  if ball.y - ball.radius <= 0.0 || ball.y + ball.radius >= Number.fromInt gameHeight then
+  if ball.y - ball.radius <= 0.0 || ball.y + ball.radius >= toNumber gameHeight then
     ball { velocityY = -ball.velocityY }
   else
     ball
@@ -91,14 +94,16 @@ checkPaddleCollision ball paddle isLeft = do
   
   if collides then
     -- Reverse X velocity and add slight angle based on where ball hit paddle
-    let hitPosition = (ball.y - paddle.y) / paddle.height  -- 0.0 to 1.0
-    let angle = (hitPosition - 0.5) * 2.0  -- -1.0 to 1.0
-    let newVelocityX = if isLeft then abs ball.velocityX else -abs ball.velocityX
-    let newVelocityY = ball.velocityY + (angle * 2.0)
-    ball
-      { velocityX = newVelocityX
-      , velocityY = newVelocityY
-      }
+    let
+      hitPosition = (ball.y - paddle.y) / paddle.height  -- 0.0 to 1.0
+      angle = (hitPosition - 0.5) * 2.0  -- -1.0 to 1.0
+      newVelocityX = if isLeft then abs ball.velocityX else -(abs ball.velocityX)
+      newVelocityY = ball.velocityY + (angle * 2.0)
+    in
+      ball
+        { velocityX = newVelocityX
+        , velocityY = newVelocityY
+        }
   else
     ball
 
@@ -111,7 +116,7 @@ checkScoring state ball = do
       { rightScore = state.rightScore + 1
       , ball = resetBall state.ball false
       }
-  else if ball.x > Number.fromInt gameWidth then
+  else if ball.x > toNumber gameWidth then
     -- Left player scores
     state
       { leftScore = state.leftScore + 1
@@ -124,8 +129,8 @@ checkScoring state ball = do
 resetBall :: Ball -> Boolean -> Ball
 resetBall ball goLeft = do
   ball
-    { x = Number.fromInt (gameWidth / 2)
-    , y = Number.fromInt (gameHeight / 2)
+    { x = toNumber (gameWidth / 2)
+    , y = toNumber (gameHeight / 2)
     , velocityX = if goLeft then -3.0 else 3.0
     , velocityY = 3.0
     }
@@ -146,7 +151,7 @@ updateAIPaddle state = do
         aiPaddle.y
   
   -- Keep paddle in bounds
-  let clampedY = max 0.0 (min (Number.fromInt gameHeight - aiPaddle.height) newY)
+  let clampedY = max 0.0 (min (toNumber gameHeight - aiPaddle.height) newY)
   
   state { rightPaddle = aiPaddle { y = clampedY } }
 
@@ -176,7 +181,7 @@ movePaddle :: GameState -> Boolean -> Number -> GameState
 movePaddle state isLeft direction = do
   let paddle = if isLeft then state.leftPaddle else state.rightPaddle
   let newY = paddle.y + (direction * paddle.speed)
-  let clampedY = max 0.0 (min (Number.fromInt gameHeight - paddle.height) newY)
+  let clampedY = max 0.0 (min (toNumber gameHeight - paddle.height) newY)
   let updatedPaddle = paddle { y = clampedY }
   
   if isLeft then
@@ -184,5 +189,3 @@ movePaddle state isLeft direction = do
   else
     state { rightPaddle = updatedPaddle }
 
--- | Import abs
-import Data.Number (abs)

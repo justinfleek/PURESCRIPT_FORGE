@@ -78,7 +78,7 @@ data Output
   = AlertTriggered AlertLevel
   | SettingsRequested
   | RefreshRequested
-  = ProviderSelected String
+  | ProviderSelected String
 
 -- | Internal state
 type State =
@@ -190,6 +190,10 @@ getVeniceDiem balance = case balance.venice of
   Just venice -> venice.diem
   Nothing -> 0.0
 
+-- | Extract FLK balance from balance state
+getFlkBalance :: BalanceState -> Maybe FlkBalance
+getFlkBalance balance = balance.flk
+
 containerClasses :: AlertLevel -> AnimationState -> Array H.ClassName
 containerClasses level anim =
   [ H.ClassName "balance-tracker" ] <>
@@ -220,7 +224,7 @@ renderHeader state =
             [ HH.text $ "Resets in " <> formatTimeRemaining state.countdown ]
         FlkOnly -> HH.text ""  -- FLK doesn't have countdown
         _ -> HH.text ""
-    , renderAlertBadge state
+    , renderAlertBadge state.alertLevel
     ]
 
 getTitle :: DisplayMode -> String

@@ -1,5 +1,3 @@
-"use strict";
-
 /**
  * Canvas rendering FFI for Tetris game
  */
@@ -7,7 +5,7 @@
 /**
  * Get canvas 2D context
  */
-exports.getCanvasContext = function (canvasId) {
+export const getCanvasContext = function (canvasId) {
   return function () {
     const canvas = document.getElementById(canvasId);
     if (!canvas) {
@@ -20,7 +18,7 @@ exports.getCanvasContext = function (canvasId) {
 /**
  * Clear canvas
  */
-exports.clearCanvas = function (ctx) {
+export const clearCanvas = function (ctx) {
   return function () {
     if (!ctx) return;
     const canvas = ctx.canvas;
@@ -31,7 +29,7 @@ exports.clearCanvas = function (ctx) {
 /**
  * Draw filled rectangle
  */
-exports.drawRect = function (ctx) {
+export const drawRect = function (ctx) {
   return function (x) {
     return function (y) {
       return function (width) {
@@ -52,7 +50,7 @@ exports.drawRect = function (ctx) {
 /**
  * Draw rectangle outline
  */
-exports.drawRectOutline = function (ctx) {
+export const drawRectOutline = function (ctx) {
   return function (x) {
     return function (y) {
       return function (width) {
@@ -74,7 +72,7 @@ exports.drawRectOutline = function (ctx) {
 /**
  * Draw text
  */
-exports.drawText = function (ctx) {
+export const drawText = function (ctx) {
   return function (text) {
     return function (x) {
       return function (y) {
@@ -96,6 +94,6 @@ exports.drawText = function (ctx) {
 /**
  * Get current timestamp in milliseconds
  */
-exports.getCurrentTime = function () {
+export const getCurrentTime = function () {
   return Date.now();
 };

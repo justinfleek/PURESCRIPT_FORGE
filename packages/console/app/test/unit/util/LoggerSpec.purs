@@ -8,7 +8,6 @@ import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldEqual, shouldContain)
 import Data.String as String
 import Data.String.Pattern (Pattern(..))
-import Data.String.Replacement (Replacement(..))
 
 import Console.App.Routes.Omega.Util.Logger
   ( LogLevel(..)

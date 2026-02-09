@@ -35,9 +35,10 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Halogen.HTML.Events as HE
-import Effect.Aff.Class (class MonadAff, liftAff)
+import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
-import Effect.Aff (Milliseconds(..), delay, forever, forkAff, killFiber, error)
+import Effect.Aff (Milliseconds(..), delay)
+import Data.Int (floor)
 import Data.Maybe (Maybe(..))
 import Data.Array as Array
 import Sidepanel.Utils.Time (TimeRemaining, getTimeUntilReset, formatTimeRemaining, formatTimeRemainingCompact)
@@ -144,8 +145,8 @@ handleAction = case _ of
     let urgency = calculateUrgency time
     H.modify_ _ { timeRemaining = time, urgencyLevel = urgency }
     
-    -- Start ticker subscription
-    void $ H.subscribe tickerEmitter
+    -- Start ticker
+    void $ H.fork startTicker
 
   Tick -> do
     time <- liftEffect getTimeUntilReset
@@ -155,20 +156,19 @@ handleAction = case _ of
     -- Check if we just crossed midnight
     when (time.totalMs <= 0.0) do
       -- Reset already occurred, recalculate for tomorrow
-      liftAff $ delay (Milliseconds 100.0)
+      H.liftAff $ delay (Milliseconds 100.0)
       newTime <- liftEffect getTimeUntilReset
       H.modify_ _ { timeRemaining = newTime }
 
   ToggleTooltip show ->
     H.modify_ _ { showTooltip = show }
 
--- | Ticker that fires every second
-tickerEmitter :: forall m. MonadAff m => H.Emitter m Action
-tickerEmitter = H.Emitter \emit -> do
-  fiber <- forkAff $ forever do
-    delay (Milliseconds 1000.0)
-    liftEffect $ emit Tick
-  pure $ killFiber (error "unsubscribed") fiber
+-- | Ticker that fires every second (recursive fork pattern)
+startTicker :: forall m. MonadAff m => H.HalogenM State Action () Output m Unit
+startTicker = do
+  H.liftAff $ delay (Milliseconds 1000.0)
+  handleAction Tick
+  startTicker
 
 -- | Calculate urgency level based on time remaining
 calculateUrgency :: TimeRemaining -> UrgencyLevel

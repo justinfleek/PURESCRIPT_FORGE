@@ -3,22 +3,23 @@
 module Sidepanel.Pages.Home
   ( HomePage
   , HomePageState
+  , HomePageProps
   ) where
 
 import Prelude
 
 import Data.Array as Array
 import Data.DateTime.Instant (Instant)
+import Data.Foldable (traverse_)
 import Data.Maybe (Maybe(..))
-import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff (Aff)
 
-import Sidepanel.Context.GlobalSync (GlobalSyncData, Project)
-import Sidepanel.Context.Layout (LayoutContext)
-import Sidepanel.Context.Platform (PlatformContext)
-import Sidepanel.Context.Server (ServerContext)
-import Sidepanel.Context.Language (LanguageContext)
+import Sidepanel.Context.GlobalSync (GlobalState, Project)
+import Sidepanel.Context.Layout (LayoutStore)
+import Sidepanel.Context.Platform (Platform)
+import Sidepanel.Context.Server (ServerState)
+import Sidepanel.Context.Language (Locale)
 import Sidepanel.Utils.Encode (base64Encode)
 
 -- | Home page component state
@@ -29,35 +30,27 @@ type HomePageState =
 
 -- | Props passed to the Home page
 type HomePageProps =
-  { sync :: GlobalSyncData
-  , layout :: LayoutContext
-  , platform :: PlatformContext
-  , server :: ServerContext
-  , language :: LanguageContext
+  { sync :: GlobalState
+  , layout :: LayoutStore
+  , platform :: Platform
+  , server :: ServerState
+  , language :: Locale
   }
 
 -- | Get the home directory path from sync data
-homedir :: GlobalSyncData -> String
+homedir :: GlobalState -> String
 homedir sync = sync.path.home
 
--- | Get recent projects sorted by last updated time
--- | Returns the 5 most recently updated projects
-recentProjects :: GlobalSyncData -> Array Project
+-- | Get recent projects sorted by name
+-- | Returns the 5 most recent projects
+recentProjects :: GlobalState -> Array Project
 recentProjects sync =
   sync.project
-    # Array.sortBy compareByUpdated
+    # Array.sortBy compareByName
     # Array.take 5
   where
-    compareByUpdated :: Project -> Project -> Ordering
-    compareByUpdated a b =
-      let aTime = a.time.updated `orElse` a.time.created
-          bTime = b.time.updated `orElse` b.time.created
-      in compare bTime aTime  -- Descending order (most recent first)
-    
-    orElse :: Maybe Instant -> Instant -> Instant
-    orElse maybeTime fallback = case maybeTime of
-      Just t -> t
-      Nothing -> fallback
+    compareByName :: Project -> Project -> Ordering
+    compareByName a b = compare a.worktree b.worktree
 
 -- | Open a project by directory path
 -- | 1. Adds project to layout's open projects
@@ -89,7 +82,7 @@ chooseProject props = do
         Nothing -> pure unit
         Just first -> do
           -- Open all selected directories
-          Array.traverse_ (openProject props) dirs
+          traverse_ (openProject props) dirs
 
 -- | Format project path for display
 -- | Replaces home directory with ~ for shorter display

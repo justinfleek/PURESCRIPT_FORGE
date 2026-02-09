@@ -3,96 +3,60 @@
 module Test.Sidepanel.FFI.WebSocketSpec where
 
 import Prelude
-import Test.Spec (describe, it)
-import Test.Spec.Assertions (shouldEqual, shouldBeTrue)
-import Test.QuickCheck (quickCheck, (<?>))
-import Effect (Effect)
 import Effect.Class (liftEffect)
-import Data.Either (Either(..), isRight, isLeft)
+import Test.Spec (Spec, describe, it, pending)
+import Test.Spec.Assertions (shouldEqual)
+import Test.QuickCheck (quickCheck)
 import Sidepanel.FFI.WebSocket
-  ( create
-  , readyState
-  , send
-  , close
-  , closeWith
-  , onOpen
-  , onClose
-  , onError
-  , onMessage
-  , toReadyState
+  ( toReadyState
   , ReadyState(..)
   )
 
 -- | Test WebSocket creation
-testWebSocketCreation :: forall m. Monad m => m Unit
-testWebSocketCreation = do
+testWebSocketCreation :: Spec Unit
+testWebSocketCreation =
   describe "WebSocket Creation" do
-    it "creates WebSocket connection" do
-      -- Would test connection creation with mock URL
-      true `shouldBeTrue` -- Placeholder
+    pending "creates WebSocket connection (requires WebSocket server)"
 
 -- | Test ready state
-testReadyState :: forall m. Monad m => m Unit
-testReadyState = do
+testReadyState :: Spec Unit
+testReadyState =
   describe "Ready State" do
     it "converts ready state int to type" do
       toReadyState 0 `shouldEqual` Connecting
       toReadyState 1 `shouldEqual` Open
       toReadyState 2 `shouldEqual` Closing
       toReadyState 3 `shouldEqual` Closed
-      toReadyState 4 `shouldEqual` Closed -- Invalid state defaults to Closed
-    
-    it "gets ready state from connection" do
-      -- Would test readyState function with mock connection
-      true `shouldBeTrue` -- Placeholder
+      toReadyState 4 `shouldEqual` Closed
+
+    pending "gets ready state from connection (requires WebSocket server)"
 
 -- | Test message operations
-testMessageOperations :: forall m. Monad m => m Unit
-testMessageOperations = do
+testMessageOperations :: Spec Unit
+testMessageOperations =
   describe "Message Operations" do
-    it "sends messages" do
-      -- Would test send function
-      true `shouldBeTrue` -- Placeholder
-    
-    it "handles send errors" do
-      -- Would test error handling
-      true `shouldBeTrue` -- Placeholder
+    pending "sends messages (requires WebSocket server)"
+    pending "handles send errors (requires WebSocket server)"
 
 -- | Test connection operations
-testConnectionOperations :: forall m. Monad m => m Unit
-testConnectionOperations = do
+testConnectionOperations :: Spec Unit
+testConnectionOperations =
   describe "Connection Operations" do
-    it "closes connection" do
-      -- Would test close function
-      true `shouldBeTrue` -- Placeholder
-    
-    it "closes connection with code and reason" do
-      -- Would test closeWith function
-      true `shouldBeTrue` -- Placeholder
+    pending "closes connection (requires WebSocket server)"
+    pending "closes connection with code and reason (requires WebSocket server)"
 
 -- | Test event handlers
-testEventHandlers :: forall m. Monad m => m Unit
-testEventHandlers = do
+testEventHandlers :: Spec Unit
+testEventHandlers =
   describe "Event Handlers" do
-    it "sets onopen handler" do
-      -- Would test onOpen handler
-      true `shouldBeTrue` -- Placeholder
-    
-    it "sets onclose handler" do
-      -- Would test onClose handler
-      true `shouldBeTrue` -- Placeholder
-    
-    it "sets onerror handler" do
-      -- Would test onError handler
-      true `shouldBeTrue` -- Placeholder
-    
-    it "sets onmessage handler" do
-      -- Would test onMessage handler
-      true `shouldBeTrue` -- Placeholder
+    pending "sets onopen handler (requires WebSocket server)"
+    pending "sets onclose handler (requires WebSocket server)"
+    pending "sets onerror handler (requires WebSocket server)"
+    pending "sets onmessage handler (requires WebSocket server)"
 
 -- | Property: Ready state conversion is total
 prop_readyStateConversionTotal :: Int -> Boolean
-prop_readyStateConversionTotal n = 
+prop_readyStateConversionTotal n =
   case toReadyState n of
     Connecting -> true
     Open -> true
@@ -100,8 +64,8 @@ prop_readyStateConversionTotal n =
     Closed -> true
 
 -- | Property tests
-testProperties :: forall m. Monad m => m Unit
-testProperties = do
+testProperties :: Spec Unit
+testProperties =
   describe "Property Tests" do
     it "ready state conversion is total" do
-      quickCheck prop_readyStateConversionTotal
+      liftEffect $ quickCheck prop_readyStateConversionTotal

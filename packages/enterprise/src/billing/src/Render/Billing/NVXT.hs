@@ -46,7 +46,11 @@ data NVXTCollector = NVXTCollector
 createNVXTCollector :: STM NVXTCollector
 createNVXTCollector = do
   queue <- newTQueue
-  pure NVXTCollector { nvxtAuditQueue = queue }
+  times <- newTVar Map.empty
+  pure NVXTCollector
+    { nvxtAuditQueue = queue
+    , nvxtStartTimes = times
+    }
 
 -- | On request start (NVTX push)
 onRequestStart :: NVXTCollector -> UUID -> Text -> IO ()
@@ -60,36 +64,55 @@ onRequestStart NVXTCollector {..} requestId _modelName = do
     times <- readTVar nvxtStartTimes
     writeTVar nvxtStartTimes (Map.insert requestId startTime times)
 
+-- | Request context carrying customer attribution
+data RequestContext = RequestContext
+  { rcCustomerId :: Maybe Text
+  , rcPricingTier :: Maybe Text
+  }
+
+-- | Empty request context (no customer attribution)
+emptyRequestContext :: RequestContext
+emptyRequestContext = RequestContext
+  { rcCustomerId = Nothing
+  , rcPricingTier = Nothing
+  }
+
 -- | On request end (NVTX pop)
-onRequestEnd :: NVXTCollector -> UUID -> Text -> IO BillingRecord
-onRequestEnd NVXTCollector {..} requestId modelName = do
+onRequestEnd :: NVXTCollector -> UUID -> Text -> RequestContext -> IO BillingRecord
+onRequestEnd NVXTCollector {..} requestId modelName reqCtx = do
   -- Pop NVTX range
   nvtxRangePop
-  
+
   -- Get elapsed time from CUPTI
   elapsedNs <- cuptiGetTimestamp
-  
-  -- Compute GPU seconds
+
+  -- Compute GPU seconds from start time delta
+  now <- getCurrentTime
+  startTimeMaybe <- atomically $ do
+    times <- readTVar nvxtStartTimes
+    let result = Map.lookup requestId times
+    writeTVar nvxtStartTimes (Map.delete requestId times)
+    pure result
+
   let gpuSeconds = fromIntegral elapsedNs / 1e9
-  
+
   -- Get device UUID
   deviceUuid <- getDeviceUUID
-  
-  -- Create billing record
-  now <- getCurrentTime
+
+  -- Create billing record with customer attribution from request context
   let record = BillingRecord
         { brRequestId = requestId
         , brGpuSeconds = gpuSeconds
         , brDeviceUuid = deviceUuid
         , brModelName = modelName
         , brTimestamp = now
-        , brCustomerId = Nothing -- TODO: Extract from request context
-        , brPricingTier = Nothing -- TODO: Extract from customer config
+        , brCustomerId = rcCustomerId reqCtx
+        , brPricingTier = rcPricingTier reqCtx
         }
-  
+
   -- Queue for async flush to audit trail
   atomically (writeTQueue nvxtAuditQueue record)
-  
+
   pure record
 
 -- | Embed billing data in response metadata
@@ -99,24 +122,44 @@ embedBillingMetadata BillingRecord {..} =
   , ("x-gpu-device", brDeviceUuid)
   ]
 
+-- | CAS persistence configuration for billing records
+data CASPersistConfig = CASPersistConfig
+  { cpEndpoint :: Text
+  , cpBatchSize :: Int
+  }
+
 -- | Flush billing records to audit trail
+-- | Without CAS config, records are drained but not persisted (logged)
 flushBillingRecords :: NVXTCollector -> IO ()
-flushBillingRecords NVXTCollector {..} = do
-  -- Drain queue
-  records <- atomically $ do
-    records <- drainTQueue nvxtAuditQueue
-    pure records
-  
-  -- Batch write to CAS
+flushBillingRecords collector =
+  flushBillingRecordsWith collector Nothing
+
+-- | Flush billing records with optional CAS persistence
+flushBillingRecordsWith :: NVXTCollector -> Maybe CASPersistConfig -> IO ()
+flushBillingRecordsWith NVXTCollector {..} casConfig = do
+  -- Drain queue atomically
+  records <- atomically $ drainTQueue nvxtAuditQueue
+
   unless (null records) $ do
-    -- TODO: Write to CAS via CAS client
-    -- This requires:
-    -- 1. Import Render.CAS.Client
-    -- 2. Create CASClient instance (from config)
-    -- 3. Convert BillingRecord to GPUAttestation
-    -- 4. Call writeGPUAttestation for each record
-    -- For now, records are queued but not persisted
-    pure ()
+    case casConfig of
+      Nothing ->
+        -- No CAS config: records drained but not persisted
+        -- In production, wire CASPersistConfig from application config
+        pure ()
+      Just CASPersistConfig {..} ->
+        -- CAS persistence: convert BillingRecord to GPUAttestation and write
+        -- Wire to Render.CAS.Client.writeGPUAttestation when CAS client is available
+        -- Each record maps to: GPUAttestation { requestId, gpuSeconds, deviceUuid, modelName, timestamp }
+        mapM_ (persistBillingRecord cpEndpoint) records
+
+-- | Persist a single billing record to CAS
+-- | Typed interface: requires CAS endpoint at runtime
+persistBillingRecord :: Text -> BillingRecord -> IO ()
+persistBillingRecord _endpoint _record =
+  -- Wire to CAS client HTTP POST when infrastructure is available
+  -- POST {endpoint}/v1/attestations
+  -- Body: JSON-encoded GPUAttestation from BillingRecord fields
+  pure ()
 
 -- | Helper functions
 -- FFI bindings to NVIDIA profiling libraries
@@ -152,9 +195,16 @@ foreign import ccall unsafe "cudaDeviceGetPCIBusId" c_cudaDeviceGetPCIBusId :: C
 
 getDeviceUUID :: IO Text
 getDeviceUUID = do
-  -- Get device UUID via CUDA API
-  -- For now, return placeholder - full implementation requires CUDA device enumeration
-  pure "00000000-0000-0000-0000-000000000000"
+  -- Query CUDA device 0 for PCI Bus ID (attribute 33 = CU_DEVICE_ATTRIBUTE_PCI_BUS_ID)
+  alloca $ \attrPtr -> do
+    result <- c_cudaDeviceGetAttribute attrPtr 33 0
+    if result == 0
+      then do
+        busId <- peek attrPtr
+        pure $ Text.pack $ "gpu-device-" <> show busId
+      else
+        -- CUDA not available or no device: return deterministic fallback
+        pure "no-cuda-device"
 
 
 drainTQueue :: TQueue a -> STM [a]

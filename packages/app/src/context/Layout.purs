@@ -1,15 +1,22 @@
 -- | Layout context - manages UI layout state
 -- | Migrated from: forge-dev/packages/app/src/context/layout.tsx
-module App.Context.Layout
+module Sidepanel.Context.Layout
   ( AvatarColorKey(..)
   , LocalProject
   , ReviewDiffStyle(..)
+  , SessionScroll
   , SessionTabs
   , SessionView
   , LayoutStore
   , mkLayoutStore
   , getAvatarColors
   , avatarColorKeys
+  , SidebarState
+  , TerminalState
+  , ReviewState
+  , FileTreeState
+  , SessionState
+  , MobileSidebarState
   ) where
 
 import Prelude

@@ -1,9 +1,13 @@
 -- | Platform context - provides platform-specific capabilities
 -- | Migrated from: forge-dev/packages/app/src/context/platform.tsx
-module App.Context.Platform
+module Sidepanel.Context.Platform
   ( Platform
   , PlatformType(..)
   , OperatingSystem(..)
+  , DirectoryPickerOptions
+  , FilePickerOptions
+  , SaveFilePickerOptions
+  , UpdateCheckResult
   , mkPlatform
   , openLink
   , restart
@@ -30,6 +34,7 @@ import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (class MonadAff)
+import Effect.Class (liftEffect)
 
 -- | Platform discriminator
 data PlatformType
@@ -100,17 +105,31 @@ type Platform =
   , parseMarkdown :: Maybe (String -> Aff String)
   }
 
+-- | FFI imports for web platform
+foreign import openLinkImpl :: String -> Effect Unit
+foreign import restartImpl :: Aff Unit
+foreign import backImpl :: Effect Unit
+foreign import forwardImpl :: Effect Unit
+foreign import notifyImpl :: String -> String -> String -> Aff Unit
+
 -- | Create a minimal web platform
 mkPlatform :: Platform
 mkPlatform =
   { platformType: Web
   , os: Nothing
   , version: Nothing
-  , openLink: \_ -> pure unit
-  , restart: pure unit
-  , back: pure unit
-  , forward: pure unit
-  , notify: \_ _ _ -> pure unit
+  , openLink: openLinkImpl
+  , restart: restartImpl
+  , back: backImpl
+  , forward: forwardImpl
+  , notify: \title desc href ->
+      let d = case desc of
+                Just s -> s
+                Nothing -> ""
+          h = case href of
+                Just s -> s
+                Nothing -> ""
+      in notifyImpl title d h
   , openDirectoryPickerDialog: Nothing
   , openFilePickerDialog: Nothing
   , saveFilePickerDialog: Nothing
@@ -124,7 +143,7 @@ mkPlatform =
 
 -- | Open a URL in the default browser
 openLink :: forall m. MonadAff m => Platform -> String -> m Unit
-openLink platform url = pure unit -- Would call platform.openLink via FFI
+openLink platform url = liftEffect (platform.openLink url)
 
 -- | Restart the app
 restart :: Platform -> Aff Unit

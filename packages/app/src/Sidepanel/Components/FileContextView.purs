@@ -51,6 +51,7 @@ import Data.Array as Array
 import Data.String as String
 import Data.Int as Int
 import Data.Either (Either(..))
+import Type.Proxy (Proxy(..))
 import Sidepanel.WebSocket.Client as WS
 import Sidepanel.Api.Bridge as Bridge
 import Sidepanel.Components.CodeSelection as CodeSelection
@@ -72,6 +73,14 @@ data FileStatus
   | Recommended -- Should be added to context
 
 derive instance eqFileStatus :: Eq FileStatus
+
+-- | Convert string status from Bridge API to FileStatus
+parseFileStatus :: String -> FileStatus
+parseFileStatus = case _ of
+  "active" -> Active
+  "stale" -> Stale
+  "recommended" -> Recommended
+  _ -> Active
 
 -- | Directory grouping
 type DirectoryGroup =
@@ -127,11 +136,24 @@ data Output
   | FilesAdded (Array String)
   | ContextRefreshed
 
+-- | Component query algebra
+data Query a
+  = Refresh a
+  | AddFile String a
+  | RemoveFile String a
+
+-- | Slot proxy for code selection child component
+_codeSelection :: Proxy "codeSelection"
+_codeSelection = Proxy
+
 -- | Component input
 type Input = { wsClient :: Maybe WS.WSClient }
 
+-- | Slot type for child components
+type Slots = ( codeSelection :: CodeSelection.Slot Unit )
+
 -- | File Context View component
-component :: forall q m. MonadAff m => H.Component q Input Output m
+component :: forall m. MonadAff m => H.Component Query Input Output m
 component =
   H.mkComponent
     { initialState: \input -> initialState { wsClient = input.wsClient }
@@ -161,7 +183,7 @@ initialState =
   , previewContent: Nothing
   }
 
-render :: forall m. State -> H.ComponentHTML Action () m
+render :: forall m. MonadAff m => State -> H.ComponentHTML Action Slots m
 render state =
   HH.div
     [ HP.class_ (H.ClassName "file-context-view") ]
@@ -173,7 +195,7 @@ render state =
     , renderPreviewModal state
     ]
 
-renderHeader :: forall m. State -> H.ComponentHTML Action () m
+renderHeader :: forall m. State -> H.ComponentHTML Action Slots m
 renderHeader state =
   HH.div
     [ HP.class_ (H.ClassName "file-context-header") ]
@@ -200,7 +222,7 @@ renderHeader state =
         ]
     ]
 
-renderBudgetBar :: forall m. ContextBudget -> H.ComponentHTML Action () m
+renderBudgetBar :: forall m. ContextBudget -> H.ComponentHTML Action Slots m
 renderBudgetBar budget =
   HH.div
     [ HP.class_ (H.ClassName "context-budget-bar") ]
@@ -217,13 +239,13 @@ renderBudgetBar budget =
         ]
     ]
 
-renderFileGroups :: forall m. Array DirectoryGroup -> Array String -> H.ComponentHTML Action () m
+renderFileGroups :: forall m. Array DirectoryGroup -> Array String -> H.ComponentHTML Action Slots m
 renderFileGroups groups selected =
   HH.div
     [ HP.class_ (H.ClassName "file-groups") ]
     (mapWithIndex (\index group -> renderDirectoryGroup index group selected) groups)
 
-renderDirectoryGroup :: forall m. Int -> DirectoryGroup -> Array String -> H.ComponentHTML Action () m
+renderDirectoryGroup :: forall m. Int -> DirectoryGroup -> Array String -> H.ComponentHTML Action Slots m
 renderDirectoryGroup index group selected =
   HH.div
     [ HP.class_ (H.ClassName "directory-group") ]
@@ -235,7 +257,7 @@ renderDirectoryGroup index group selected =
         (mapWithIndex (\fileIndex file -> renderFile fileIndex file selected) group.files)
     ]
 
-renderFile :: forall m. Int -> FileInContext -> Array String -> H.ComponentHTML Action () m
+renderFile :: forall m. Int -> FileInContext -> Array String -> H.ComponentHTML Action Slots m
 renderFile index file selected =
   let isSelected = Array.elem file.path selected
   in
@@ -272,7 +294,7 @@ renderFile index file selected =
         [ HH.text "👁" ]
     ]
 
-renderRecommendations :: forall m. Array FileInContext -> H.ComponentHTML Action () m
+renderRecommendations :: forall m. Array FileInContext -> H.ComponentHTML Action Slots m
 renderRecommendations files =
   let recommended = filter (\f -> f.status == Recommended) files
   in
@@ -287,7 +309,7 @@ renderRecommendations files =
     else
       HH.text ""
 
-renderRecommendedFile :: forall m. FileInContext -> H.ComponentHTML Action () m
+renderRecommendedFile :: forall m. FileInContext -> H.ComponentHTML Action Slots m
 renderRecommendedFile file =
   HH.div
     [ HP.class_ (H.ClassName "recommended-file") ]
@@ -307,7 +329,7 @@ renderRecommendedFile file =
         [ HH.text "+ Add to Context" ]
     ]
 
-renderQuickActions :: forall m. H.ComponentHTML Action () m
+renderQuickActions :: forall m. H.ComponentHTML Action Slots m
 renderQuickActions =
   HH.div
     [ HP.class_ (H.ClassName "quick-actions") ]
@@ -322,7 +344,7 @@ renderQuickActions =
         [ HH.text "💾 Save as Preset..." ]
     ]
 
-handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Output m Unit
+handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action Slots Output m Unit
 handleAction = case _ of
   Initialize -> do
     -- Load files from bridge server
@@ -332,28 +354,27 @@ handleAction = case _ of
         result <- H.liftAff $ Bridge.listFilesInContext client { sessionId: Nothing, filter: Nothing }
         case result of
           Right response -> do
+            let convertedFiles = map (\f -> f { status = parseFileStatus f.status }) response.files
             H.modify_ \s ->
-              { s
-              | files = response.files
-              , groupedFiles = groupFilesByDirectory response.files
-              , contextBudget =
-                  { used: response.contextBudget.used
-                  , total: response.contextBudget.total
-                  , percentage: if response.contextBudget.total > 0
-                      then (toNumber response.contextBudget.used / toNumber response.contextBudget.total) * 100.0
-                      else 0.0
-                  }
-              }
+              s { files = convertedFiles
+                , groupedFiles = groupFilesByDirectory convertedFiles
+                , contextBudget =
+                    { used: response.contextBudget.used
+                    , total: response.contextBudget.total
+                    , percentage: if response.contextBudget.total > 0
+                        then (toNumber response.contextBudget.used / toNumber response.contextBudget.total) * 100.0
+                        else 0.0
+                    }
+                }
           Left _ -> pure unit -- Handle error silently on init
       Nothing -> pure unit -- No client available
-  
+
   UpdateFiles files -> do
     H.modify_ \s ->
-      { s
-      | files = files
-      , groupedFiles = groupFilesByDirectory files
-      , contextBudget = calculateBudget files s.contextBudget.total
-      }
+      s { files = files
+        , groupedFiles = groupFilesByDirectory files
+        , contextBudget = calculateBudget files s.contextBudget.total
+        }
   
   ToggleFileSelection path -> do
     state <- H.get
@@ -376,17 +397,15 @@ handleAction = case _ of
     if length state.selectedFiles > 0 then do
       H.raise (FilesRemoved state.selectedFiles)
       H.modify_ \s ->
-        { s
-        | files = filter (\f -> not $ Array.elem f.path state.selectedFiles) s.files
-        , selectedFiles = []
-        }
+        s { files = filter (\f -> not $ Array.elem f.path state.selectedFiles) s.files
+          , selectedFiles = []
+          }
       -- Recalculate groups and budget
       updatedState <- H.get
       H.modify_ \s ->
-        { s
-        | groupedFiles = groupFilesByDirectory updatedState.files
-        , contextBudget = calculateBudget updatedState.files s.contextBudget.total
-        }
+        s { groupedFiles = groupFilesByDirectory updatedState.files
+          , contextBudget = calculateBudget updatedState.files s.contextBudget.total
+          }
     else
       pure unit
   
@@ -400,15 +419,14 @@ handleAction = case _ of
             H.raise (FilesAdded [path])
             -- Update context budget
             H.modify_ \s ->
-              { s
-              | contextBudget =
-                  { used: response.contextBudget.used
-                  , total: response.contextBudget.total
-                  , percentage: if response.contextBudget.total > 0
-                      then (toNumber response.contextBudget.used / toNumber response.contextBudget.total) * 100.0
-                      else 0.0
-                  }
-              }
+              s { contextBudget =
+                    { used: response.contextBudget.used
+                    , total: response.contextBudget.total
+                    , percentage: if response.contextBudget.total > 0
+                        then (toNumber response.contextBudget.used / toNumber response.contextBudget.total) * 100.0
+                        else 0.0
+                    }
+                }
           Left err -> pure unit -- Handle error (could show notification)
       Nothing -> pure unit -- No client available
   
@@ -436,18 +454,18 @@ handleAction = case _ of
         case result of
           Right response -> do
             H.raise ContextRefreshed
+            let convertedFiles = map (\f -> f { status = parseFileStatus f.status }) response.files
             H.modify_ \s ->
-              { s
-              | files = response.files
-              , groupedFiles = groupFilesByDirectory response.files
-              , contextBudget =
-                  { used: response.contextBudget.used
-                  , total: response.contextBudget.total
-                  , percentage: if response.contextBudget.total > 0
-                      then (toNumber response.contextBudget.used / toNumber response.contextBudget.total) * 100.0
-                      else 0.0
-                  }
-              }
+              s { files = convertedFiles
+                , groupedFiles = groupFilesByDirectory convertedFiles
+                , contextBudget =
+                    { used: response.contextBudget.used
+                    , total: response.contextBudget.total
+                    , percentage: if response.contextBudget.total > 0
+                        then (toNumber response.contextBudget.used / toNumber response.contextBudget.total) * 100.0
+                        else 0.0
+                    }
+                }
           Left err -> pure unit -- Handle error
       Nothing -> pure unit -- No client available
   
@@ -456,12 +474,11 @@ handleAction = case _ of
     let allPaths = map _.path state.files
     H.raise (FilesRemoved allPaths)
     H.modify_ \s ->
-      { s
-      | files = []
-      , groupedFiles = []
-      , selectedFiles = []
-      , contextBudget = s.contextBudget { used = 0, percentage = 0.0 }
-      }
+      s { files = []
+        , groupedFiles = []
+        , selectedFiles = []
+        , contextBudget = s.contextBudget { used = 0, percentage = 0.0 }
+        }
   
   OpenPreview file -> do
     state <- H.get
@@ -471,29 +488,25 @@ handleAction = case _ of
         case result of
           Right response -> do
             H.modify_ \s ->
-              { s
-              | previewFile = Just file
-              , previewContent = response.content
-              }
+              s { previewFile = Just file
+                , previewContent = response.content
+                }
           Left err -> do
             H.modify_ \s ->
-              { s
-              | previewFile = Just file
-              , previewContent = Just ("Error loading file: " <> err.message)
-              }
+              s { previewFile = Just file
+                , previewContent = Just ("Error loading file: " <> err.message)
+                }
       Nothing -> do
         H.modify_ \s ->
-          { s
-          | previewFile = Just file
-          , previewContent = Just ("Not connected to bridge server")
-          }
-  
+          s { previewFile = Just file
+            , previewContent = Just ("Not connected to bridge server")
+            }
+
   ClosePreview -> do
     H.modify_ \s ->
-      { s
-      | previewFile = Nothing
-      , previewContent = Nothing
-      }
+      s { previewFile = Nothing
+        , previewContent = Nothing
+        }
   
   HandleCodeCopied code -> do
     -- Code was copied to clipboard - could show notification
@@ -507,7 +520,7 @@ handleAction = case _ of
     pure unit
 
 -- | Handle component queries
-handleQuery :: forall m a. MonadAff m => Query a -> H.HalogenM State Action () Output m (Maybe a)
+handleQuery :: forall m a. MonadAff m => Query a -> H.HalogenM State Action Slots Output m (Maybe a)
 handleQuery = case _ of
   Refresh a -> do
     handleAction RefreshContext
@@ -531,7 +544,7 @@ groupFilesByDirectory files =
       let dir = getDirectoryPath file.path
           existingIndex = Array.findIndex (\g -> g.path == dir) acc
       in case existingIndex of
-        Just index -> case Array.updateAt index (\g -> g { files = snoc g.files file, totalTokens = g.totalTokens + file.tokens }) acc of
+        Just index -> case Array.modifyAt index (\g -> g { files = snoc g.files file, totalTokens = g.totalTokens + file.tokens }) acc of
           Just updated -> updated
           Nothing -> acc
         Nothing -> snoc acc { path: dir, files: [file], totalTokens: file.tokens }
@@ -598,7 +611,7 @@ detectLanguage path =
       _ -> Just "text"
 
 -- | Render preview modal
-renderPreviewModal :: forall m. State -> H.ComponentHTML Action () m
+renderPreviewModal :: forall m. MonadAff m => State -> H.ComponentHTML Action Slots m
 renderPreviewModal state =
   case state.previewFile of
     Just file ->
@@ -608,7 +621,7 @@ renderPreviewModal state =
         ]
             [ HH.div
                 [ HP.class_ (H.ClassName "modal modal-large")
-                , HE.onClick \_ -> pure unit
+                , HE.onClick \_ -> NoOp
                 ]
             [ HH.div
                 [ HP.class_ (H.ClassName "modal-header") ]
@@ -627,7 +640,7 @@ renderPreviewModal state =
                         lines = String.split (Pattern "\n") content
                         language = detectLanguage file
                       in
-                        HH.slot (H.Slot unit) unit CodeSelection.component
+                        HH.slot _codeSelection unit CodeSelection.component
                           { codeLines: lines
                           , filePath: Just file
                           , language: language

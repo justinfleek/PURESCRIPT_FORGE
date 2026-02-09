@@ -17,6 +17,7 @@ import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 import Data.Either (Either(..))
 import Control.Promise (Promise, toAff)
 import Effect (Effect)
+import Effect.Class (liftEffect)
 
 -- | Trigger native file picker dialog and read selected file as text
 -- | Returns the file content as a string, or fails with an error
@@ -32,5 +33,3 @@ fetchURLContent url = toAff =<< liftEffect (fetchURLContentImpl url)
 
 foreign import fetchURLContentImpl :: String -> Effect (Promise String)
 
--- Re-export liftEffect
-import Effect.Class (liftEffect)

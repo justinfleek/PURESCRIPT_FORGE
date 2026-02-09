@@ -37,6 +37,7 @@ module Sidepanel.Utils.TokenUsage where
 import Prelude
 import Data.Array as Array
 import Data.DateTime (DateTime)
+import Data.Int (toNumber)
 import Data.Maybe (Maybe(..))
 import Data.Foldable (sum)
 import Sidepanel.State.AppState (SessionSummary)
@@ -124,7 +125,7 @@ earliestDateTime = fromTimestamp 0.0
 -- |          could be aggregated into time buckets (hourly, daily, etc.).
 sessionsToDataPoints :: Array SessionSummary -> Array TokenDataPoint
 sessionsToDataPoints sessions =
-  Array.map sessionToDataPoint sessions
+  map sessionToDataPoint sessions
 
 -- | Convert single session to data point
 -- | SessionSummary has only tokenCount (total). Estimate prompt/completion split
@@ -158,9 +159,9 @@ calculateCostBreakdown sessions =
   let
     -- Group sessions by model and sum costs
     grouped = groupByModel sessions
-    totalCost = sum (Array.map _.cost sessions)
+    totalCost = sum (map _.cost sessions)
     -- Convert to breakdown with percentages
-    breakdowns = Array.map (\{ model, cost } ->
+    breakdowns = map (\{ model, cost } ->
       { model
       , cost
       , percentage: if totalCost > 0.0 then (cost / totalCost) * 100.0 else 0.0
@@ -185,7 +186,7 @@ groupByModel sessions =
           existing = Array.find (\m -> m.model == session.model) acc
         in
           case existing of
-            Just m -> Array.map (\x -> if x.model == session.model then { model: x.model, cost: x.cost + session.cost } else x) acc
+            Just m -> map (\x -> if x.model == session.model then { model: x.model, cost: x.cost + session.cost } else x) acc
             Nothing -> Array.snoc acc { model: session.model, cost: session.cost }
       )
       []

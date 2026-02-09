@@ -1,6 +1,6 @@
 -- | Terminal context - manages terminal/PTY sessions
 -- | Migrated from: forge-dev/packages/app/src/context/terminal.tsx
-module App.Context.Terminal
+module Sidepanel.Context.Terminal
   ( LocalPTY
   , TerminalStore
   , mkTerminalStore
@@ -114,9 +114,10 @@ moveTerminal id toIndex store =
   where
     removeAtIndex :: forall a. Int -> Array a -> Array a
     removeAtIndex idx arr =
-      case splitAt idx arr of
-        { before, after: _ : rest } -> before <> rest
-        _ -> arr
+      let { before, after } = splitAt idx arr
+      in case Array.uncons after of
+        Just { tail: rest } -> before <> rest
+        Nothing -> arr
     
     insertAtIndex :: forall a. Int -> a -> Array a -> Array a
     insertAtIndex idx item arr =

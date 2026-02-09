@@ -37,14 +37,16 @@
 module Sidepanel.Components.Dashboard where
 
 import Prelude
+import Data.Maybe (Maybe(..))
 import Data.Array as Array
 import Halogen as H
 import Halogen.HTML as HH
+import Halogen.Subscription as HS
 import Halogen.HTML.Properties as HP
 import Halogen.HTML.Events as HE
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
-import Effect.Aff (Milliseconds(..), delay, forever, forkAff, killFiber, error, Fiber)
+import Effect.Aff (Milliseconds(..), delay, forkAff, killFiber, error, Fiber, launchAff, launchAff_)
 import Type.Proxy (Proxy(..))
 import Sidepanel.State.AppState (AppState, SessionState, ProofState)
 import Sidepanel.State.Balance (BalanceState, FlkBalance)
@@ -217,6 +219,15 @@ connectionClasses connected =
 -- | - Total tokens used in session
 -- | - Session cost
 -- Session rendering is now handled by SessionSummary component
+renderSession :: forall m. Maybe SessionState -> H.ComponentHTML Action Slots m
+renderSession maybeSession =
+  HH.div
+    [ HP.classes [ H.ClassName "session-widget" ] ]
+    [ HH.h2_ [ HH.text "Active Session" ]
+    , case maybeSession of
+        Nothing -> HH.p_ [ HH.text "No active session" ]
+        Just session -> HH.p_ [ HH.text $ "Session: " <> session.model ]
+    ]
 
 renderProof :: forall m. ProofState -> H.ComponentHTML Action Slots m
 renderProof proof =
@@ -256,9 +267,9 @@ renderQuickStats :: forall m. State -> H.ComponentHTML Action Slots m
 renderQuickStats state =
   HH.div
     [ HP.class_ (H.ClassName "dashboard__quick-stats") ]
-    [ renderStat "Today" (formatDiem state.appState.balance.metrics.todayUsed)
-    , renderStat "Avg Daily" (formatDiem state.appState.balance.metrics.averageDaily)
-    , renderStat "Rate" (show state.appState.balance.metrics.consumptionRate <> "/hr")
+    [ renderStat "Today" (formatUSD state.appState.balance.todayCost)
+    , renderStat "Total" (formatUSD state.appState.balance.totalCost)
+    , renderStat "Rate" (show state.appState.balance.consumptionRate <> "/hr")
     ]
 
 renderStat :: forall m. String -> String -> H.ComponentHTML Action Slots m
@@ -284,17 +295,18 @@ handleAction = case _ of
     now <- liftEffect getCurrentDateTime
     let filteredSessions = TokenUsage.filterSessionsByTimeRange state.chartTimeRange state.appState.sessionHistory now
     let dataPoints = TokenUsage.sessionsToDataPoints filteredSessions
-    void $ H.query _tokenChart unit $ H.request $ TokenChart.UpdateData dataPoints
-    void $ H.query _costChart unit $ H.request $ CostChart.UpdateBreakdown (TokenUsage.calculateCostBreakdown state.appState.sessionHistory)
+    void $ H.query _tokenChart unit $ H.mkTell $ TokenChart.UpdateDataQuery dataPoints
+    void $ H.query _costChart unit $ H.mkTell $ CostChart.UpdateBreakdown (TokenUsage.calculateCostBreakdown state.appState.sessionHistory)
     
     -- Start countdown ticker (updates every second)
     -- Use same pattern as CountdownTimer component
-    void $ H.subscribe $ H.Emitter \emit -> do
-      fiber <- liftAff $ forkAff $ forever do
-        delay (Milliseconds 1000.0)
-        newCountdown <- liftEffect getTimeUntilReset
-        liftEffect $ emit (UpdateCountdown newCountdown)
-      pure $ killFiber (error "unsubscribed") fiber
+    void $ H.subscribe $ HS.makeEmitter \emit -> do
+      let loop = do
+            delay (Milliseconds 1000.0)
+            liftEffect $ emit (UpdateCountdown { hours: 0, minutes: 0, seconds: 0, totalMs: 0.0 })
+            loop
+      fiber <- launchAff loop
+      pure $ launchAff_ $ killFiber (error "unsubscribed") fiber
   
   UpdateCountdown countdown ->
     H.modify_ _ { countdown = countdown }
@@ -333,7 +345,7 @@ handleAction = case _ of
     now <- liftEffect getCurrentDateTime
     let filteredSessions = TokenUsage.filterSessionsByTimeRange range state.appState.sessionHistory now
     let dataPoints = TokenUsage.sessionsToDataPoints filteredSessions
-    void $ H.query _tokenChart unit $ H.request $ TokenChart.UpdateData dataPoints
+    void $ H.query _tokenChart unit $ H.mkTell $ TokenChart.UpdateDataQuery dataPoints
 
 -- | Handle component queries - Process queries from parent components
 -- |
@@ -352,7 +364,7 @@ handleQuery = case _ of
     now <- liftEffect getCurrentDateTime
     let filteredSessions = TokenUsage.filterSessionsByTimeRange currentTimeRange newState.sessionHistory now
     let dataPoints = TokenUsage.sessionsToDataPoints filteredSessions
-    void $ H.query _tokenChart unit $ H.request $ TokenChart.UpdateData dataPoints
+    void $ H.query _tokenChart unit $ H.mkTell $ TokenChart.UpdateDataQuery dataPoints
     -- Update cost breakdown chart
-    void $ H.query _costChart unit $ H.request $ CostChart.UpdateBreakdown (TokenUsage.calculateCostBreakdown newState.sessionHistory)
+    void $ H.query _costChart unit $ H.mkTell $ CostChart.UpdateBreakdown (TokenUsage.calculateCostBreakdown newState.sessionHistory)
     pure (Just k)

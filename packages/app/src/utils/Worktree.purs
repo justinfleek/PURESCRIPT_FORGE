@@ -1,8 +1,7 @@
 -- | Worktree state tracking for sandbox creation
 -- | Migrated from: forge-dev/packages/app/src/utils/worktree.ts (74 lines)
 module Sidepanel.Utils.Worktree
-  ( Worktree
-  , WorktreeState(..)
+  ( WorktreeState(..)
   , get
   , pending
   , ready
@@ -12,12 +11,16 @@ module Sidepanel.Utils.Worktree
 
 import Prelude
 
+import Data.Array as Array
+import Data.Either (Either(..))
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.String as String
+import Data.String.CodeUnits as SCU
 import Effect (Effect)
 import Effect.Aff (Aff, makeAff)
+import Effect.Class (liftEffect)
 import Effect.Ref (Ref)
 import Effect.Ref as Ref
 
@@ -39,11 +42,15 @@ type Deferred a =
   , resolve :: a -> Effect Unit
   }
 
+-- | Reverse a string using CodeUnits
+reverseString :: String -> String
+reverseString s = SCU.fromCharArray (Array.reverse (SCU.toCharArray s))
+
 -- | Normalize directory path (remove trailing slashes)
 normalize :: String -> String
-normalize dir = 
-  let stripped = String.dropWhile (_ == '/') $ String.reverse dir
-  in String.reverse stripped
+normalize dir =
+  let stripped = SCU.dropWhile (_ == '/') $ reverseString dir
+  in reverseString stripped
 
 -- | Get current worktree state
 get :: String -> Effect (Maybe WorktreeState)
@@ -61,13 +68,13 @@ pending directory = do
     Just Pending -> pure unit
     Just Ready -> pure unit
     Just (Failed _) -> pure unit
-    Nothing -> Ref.modify (Map.insert key Pending) stateMap
+    Nothing -> Ref.modify_ (Map.insert key Pending) stateMap
 
 -- | Mark worktree as ready
 ready :: String -> Effect Unit
 ready directory = do
   let key = normalize directory
-  Ref.modify (Map.insert key Ready) stateMap
+  Ref.modify_ (Map.insert key Ready) stateMap
   resolveWaiter key Ready
 
 -- | Mark worktree as failed
@@ -75,7 +82,7 @@ failed :: String -> String -> Effect Unit
 failed directory message = do
   let key = normalize directory
       state = Failed message
-  Ref.modify (Map.insert key state) stateMap
+  Ref.modify_ (Map.insert key state) stateMap
   resolveWaiter key state
 
 -- | Resolve any waiting promises
@@ -85,7 +92,7 @@ resolveWaiter key state = do
   case Map.lookup key waiters of
     Nothing -> pure unit
     Just waiter -> do
-      Ref.modify (Map.delete key) waitersMap
+      Ref.modify_ (Map.delete key) waitersMap
       waiter.resolve state
 
 -- | Wait for worktree to reach a final state
@@ -105,7 +112,7 @@ wait directory = do
         Nothing -> do
           -- Create new deferred
           deferred <- makeDeferred
-          liftEffect $ Ref.modify (Map.insert key deferred) waitersMap
+          liftEffect $ Ref.modify_ (Map.insert key deferred) waitersMap
           deferred.promise
 
 -- | Create a deferred promise
@@ -126,9 +133,3 @@ makeDeferred = makeAff \callback -> do
   callback (Right deferred)
   pure mempty
 
--- | Lift Effect to Aff
-foreign import liftEffect :: forall a. Effect a -> Aff a
-
--- | Right constructor for Either
-foreign import data Right :: forall a b. b -> Either a b
-foreign import data Either :: Type -> Type -> Type

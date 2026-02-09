@@ -1,6 +1,6 @@
 -- | Global SDK context - manages global Forge client and event stream
 -- | Migrated from: forge-dev/packages/app/src/context/global-sdk.tsx
-module App.Context.GlobalSDK
+module Sidepanel.Context.GlobalSDK
   ( GlobalSDKContext
   , EventPayload(..)
   , QueuedEvent

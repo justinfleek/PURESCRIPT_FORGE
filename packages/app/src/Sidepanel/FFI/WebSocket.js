@@ -1,19 +1,18 @@
 // WebSocket FFI implementation
-"use strict";
 
-exports.create = function(url) {
+export const create = function(url) {
   return function() {
     return new WebSocket(url);
   };
 };
 
-exports.readyState = function(ws) {
+export const readyState = function(ws) {
   return function() {
     return ws.readyState;
   };
 };
 
-exports.send = function(ws) {
+export const send = function(ws) {
   return function(message) {
     return function() {
       try {
@@ -26,13 +25,13 @@ exports.send = function(ws) {
   };
 };
 
-exports.close = function(ws) {
+export const close = function(ws) {
   return function() {
     ws.close();
   };
 };
 
-exports.closeWith = function(ws) {
+export const closeWith = function(ws) {
   return function(code) {
     return function(reason) {
       return function() {
@@ -42,7 +41,7 @@ exports.closeWith = function(ws) {
   };
 };
 
-exports.onOpen = function(ws) {
+export const onOpen = function(ws) {
   return function(handler) {
     return function() {
       ws.onopen = function() {
@@ -52,7 +51,7 @@ exports.onOpen = function(ws) {
   };
 };
 
-exports.onClose = function(ws) {
+export const onClose = function(ws) {
   return function(handler) {
     return function() {
       ws.onclose = function(event) {
@@ -62,7 +61,7 @@ exports.onClose = function(ws) {
   };
 };
 
-exports.onError = function(ws) {
+export const onError = function(ws) {
   return function(handler) {
     return function() {
       ws.onerror = function(event) {
@@ -72,7 +71,7 @@ exports.onError = function(ws) {
   };
 };
 
-exports.onMessage = function(ws) {
+export const onMessage = function(ws) {
   return function(handler) {
     return function() {
       ws.onmessage = function(event) {

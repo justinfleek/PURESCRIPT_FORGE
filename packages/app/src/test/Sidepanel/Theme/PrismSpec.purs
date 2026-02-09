@@ -3,99 +3,126 @@
 module Test.Sidepanel.Theme.PrismSpec where
 
 import Prelude
-import Test.Spec (describe, it)
-import Test.Spec.Assertions (shouldEqual, shouldBeTrue)
-import Test.QuickCheck (quickCheck, (<?>))
+import Test.Spec (Spec, describe, it)
+import Test.Spec.Assertions (shouldEqual, shouldSatisfy)
+import Test.QuickCheck (quickCheck)
+import Effect.Class (liftEffect)
+import Data.String.CodeUnits (length, take) as SCU
 import Sidepanel.Theme.Prism
   ( generateHolographicTheme
   , generateFleekTheme
   , fleekColors
   , MonitorType(..)
-  , Base16Colors
   )
 
+-- | Check if a string is a valid 7-character hex color (#RRGGBB)
+isValidHexColor :: String -> Boolean
+isValidHexColor s = SCU.length s == 7 && SCU.take 1 s == "#"
+
 -- | Test Fleek colors
-testFleekColors :: forall m. Monad m => m Unit
-testFleekColors = do
+testFleekColors :: Spec Unit
+testFleekColors =
   describe "Fleek Colors" do
     it "defines Fleek blue" do
       fleekColors.fleekBlue `shouldEqual` "#0090ff"
-    
+
     it "defines Fleek green" do
       fleekColors.fleekGreen `shouldEqual` "#32e48e"
-    
+
     it "defines Fleek yellow" do
       fleekColors.fleekYellow `shouldEqual` "#ffe629"
-    
+
     it "defines Fleek orange" do
       fleekColors.fleekOrange `shouldEqual` "#f76b15"
 
 -- | Test Holographic theme generation
-testHolographicTheme :: forall m. Monad m => m Unit
-testHolographicTheme = do
+testHolographicTheme :: Spec Unit
+testHolographicTheme =
   describe "Holographic Theme Generation" do
     it "generates theme for OLED monitor" do
       let theme = generateHolographicTheme OLED
-      theme.base00 `shouldEqual` theme.base00 -- Placeholder - would verify color values
-    
+      isValidHexColor theme.base00 `shouldSatisfy` identity
+      isValidHexColor theme.base05 `shouldSatisfy` identity
+      isValidHexColor theme.base0A `shouldSatisfy` identity
+
     it "generates theme for LCD monitor" do
       let theme = generateHolographicTheme LCD
-      theme.base00 `shouldEqual` theme.base00 -- Placeholder - would verify color values
-    
-    it "generates all Base16 colors" do
+      isValidHexColor theme.base00 `shouldSatisfy` identity
+      isValidHexColor theme.base05 `shouldSatisfy` identity
+      isValidHexColor theme.base0A `shouldSatisfy` identity
+
+    it "generates all Base16 colors as valid hex" do
       let theme = generateHolographicTheme OLED
-      -- Would verify all 16 colors are present and valid
-      theme.base00 `shouldEqual` theme.base00
-      theme.base01 `shouldEqual` theme.base01
-      theme.base02 `shouldEqual` theme.base02
-      theme.base03 `shouldEqual` theme.base03
-      theme.base04 `shouldEqual` theme.base04
-      theme.base05 `shouldEqual` theme.base05
-      theme.base06 `shouldEqual` theme.base06
-      theme.base07 `shouldEqual` theme.base07
-      theme.base08 `shouldEqual` theme.base08
-      theme.base09 `shouldEqual` theme.base09
-      theme.base0A `shouldEqual` theme.base0A
-      theme.base0B `shouldEqual` theme.base0B
-      theme.base0C `shouldEqual` theme.base0C
-      theme.base0D `shouldEqual` theme.base0D
-      theme.base0E `shouldEqual` theme.base0E
-      theme.base0F `shouldEqual` theme.base0F
+      isValidHexColor theme.base00 `shouldSatisfy` identity
+      isValidHexColor theme.base01 `shouldSatisfy` identity
+      isValidHexColor theme.base02 `shouldSatisfy` identity
+      isValidHexColor theme.base03 `shouldSatisfy` identity
+      isValidHexColor theme.base04 `shouldSatisfy` identity
+      isValidHexColor theme.base05 `shouldSatisfy` identity
+      isValidHexColor theme.base06 `shouldSatisfy` identity
+      isValidHexColor theme.base07 `shouldSatisfy` identity
+      isValidHexColor theme.base08 `shouldSatisfy` identity
+      isValidHexColor theme.base09 `shouldSatisfy` identity
+      isValidHexColor theme.base0A `shouldSatisfy` identity
+      isValidHexColor theme.base0B `shouldSatisfy` identity
+      isValidHexColor theme.base0C `shouldSatisfy` identity
+      isValidHexColor theme.base0D `shouldSatisfy` identity
+      isValidHexColor theme.base0E `shouldSatisfy` identity
+      isValidHexColor theme.base0F `shouldSatisfy` identity
 
 -- | Test Fleek theme generation
-testFleekTheme :: forall m. Monad m => m Unit
-testFleekTheme = do
+testFleekTheme :: Spec Unit
+testFleekTheme =
   describe "Fleek Theme Generation" do
     it "generates theme for OLED monitor" do
       let theme = generateFleekTheme OLED
-      theme.base00 `shouldEqual` theme.base00 -- Placeholder - would verify color values
-    
+      isValidHexColor theme.base00 `shouldSatisfy` identity
+      isValidHexColor theme.base05 `shouldSatisfy` identity
+
     it "generates theme for LCD monitor" do
       let theme = generateFleekTheme LCD
-      theme.base00 `shouldEqual` theme.base00 -- Placeholder - would verify color values
-    
-    it "generates all Base16 colors" do
-      let theme = generateFleekTheme OLED
-      -- Would verify all 16 colors are present and valid
-      theme.base00 `shouldEqual` theme.base00
+      isValidHexColor theme.base00 `shouldSatisfy` identity
+      isValidHexColor theme.base05 `shouldSatisfy` identity
 
--- | Property: Theme colors are always valid hex colors
-prop_themeColorsValid :: Base16Colors -> Boolean
-prop_themeColorsValid theme = true -- Placeholder - would validate hex color format
+    it "generates all Base16 colors as valid hex" do
+      let theme = generateFleekTheme OLED
+      isValidHexColor theme.base00 `shouldSatisfy` identity
+      isValidHexColor theme.base05 `shouldSatisfy` identity
+      isValidHexColor theme.base0A `shouldSatisfy` identity
+      isValidHexColor theme.base0F `shouldSatisfy` identity
+
+-- | Property: All generated theme colors are valid hex format
+prop_themeColorsValidHex :: Boolean -> Boolean
+prop_themeColorsValidHex useOled =
+  let monitorType = if useOled then OLED else LCD
+      theme = generateHolographicTheme monitorType
+  in isValidHexColor theme.base00
+     && isValidHexColor theme.base05
+     && isValidHexColor theme.base08
+     && isValidHexColor theme.base0A
+     && isValidHexColor theme.base0D
+     && isValidHexColor theme.base0F
 
 -- | Property: Theme generation is deterministic
-prop_themeGenerationDeterministic :: MonitorType -> Boolean
-prop_themeGenerationDeterministic monitorType = 
-  let theme1 = generateHolographicTheme monitorType
-      theme2 = generateHolographicTheme monitorType
-  in theme1.base00 == theme2.base00 -- Would verify all colors match
+prop_themeGenerationDeterministic :: Boolean -> Boolean
+prop_themeGenerationDeterministic useOled =
+  let monitorType = if useOled then OLED else LCD
+      t1 = generateHolographicTheme monitorType
+      t2 = generateHolographicTheme monitorType
+      f1 = generateFleekTheme monitorType
+      f2 = generateFleekTheme monitorType
+  in t1.base00 == t2.base00
+     && t1.base05 == t2.base05
+     && t1.base0A == t2.base0A
+     && f1.base00 == f2.base00
+     && f1.base05 == f2.base05
 
 -- | Property tests
-testProperties :: forall m. Monad m => m Unit
-testProperties = do
+testProperties :: Spec Unit
+testProperties =
   describe "Property Tests" do
     it "theme colors are always valid hex colors" do
-      quickCheck prop_themeColorsValid
-    
+      liftEffect $ quickCheck prop_themeColorsValidHex
+
     it "theme generation is deterministic" do
-      quickCheck prop_themeGenerationDeterministic
+      liftEffect $ quickCheck prop_themeGenerationDeterministic

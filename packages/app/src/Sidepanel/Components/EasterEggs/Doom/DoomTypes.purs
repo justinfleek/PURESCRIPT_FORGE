@@ -9,6 +9,7 @@ Types for Doom game integration via js-dos.
 module Sidepanel.Components.EasterEggs.Doom.DoomTypes where
 
 import Prelude
+import Data.Maybe (Maybe(..))
 
 -- | Doom game state
 type DoomState =

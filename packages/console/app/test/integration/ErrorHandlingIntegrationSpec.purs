@@ -28,7 +28,7 @@ import Console.App.Routes.Omega.Util.Handler.Types
   , RetryOptions
   , mkRetryOptions
   )
-import Console.Core.Util.Price (MicroCents)
+import Forge.Console.Core.Util.Price (MicroCents)
 
 -- | Mock OmegaData for testing
 type MockOmegaData = { models :: Object.Object (Array ModelInfo), providers :: Object.Object ProviderData }

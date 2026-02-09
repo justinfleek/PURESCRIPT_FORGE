@@ -4,10 +4,21 @@ module Sidepanel.Api.Types where
 
 import Prelude
 import Data.DateTime (DateTime)
-import Argonaut.Core (Json)
+import Data.Maybe (Maybe(..))
+import Data.Argonaut.Core (Json)
+import Data.Array as Array
+import Data.Argonaut.Encode (class EncodeJson, encodeJson, (:=), (:=?))
+import Data.Argonaut.Decode (class DecodeJson, decodeJson, (.:), (.:?))
+import Data.Argonaut.Core as AC
+import Data.Argonaut.Decode.Error (JsonDecodeError(TypeMismatch))
+import Data.DateTime.Instant (unInstant, fromDateTime)
+import Data.Either (Either(..))
+import Data.Time.Duration (Milliseconds(..))
+import Data.Number as Number
+import Data.Traversable (traverse)
+import Data.Tuple (Tuple)
+import Foreign.Object as FO
 import Sidepanel.FFI.DateTime (fromTimestamp, fromISOString, toISOString)
-import Data.Number (fromString as Number.fromString)
-import Argonaut.Decode.Error (JsonDecodeError(..), TypeMismatch(..))
 
 -- | JSON-RPC 2.0 Request
 type JsonRpcRequest =
@@ -35,7 +46,7 @@ type JsonRpcResult = Json
 type JsonRpcError =
   { code :: Int
   , message :: String
-  , data :: Maybe (Record String)
+  , errorData :: Maybe String
   }
 
 -- | Server message types
@@ -150,64 +161,60 @@ data ClientMessage
   | RequestProof String
 
 -- | Argonaut codecs for ServerMessage and payload types
-import Argonaut.Encode (class EncodeJson, encodeJson, (:=), (:=?))
-import Argonaut.Decode (class DecodeJson, decodeJson, (.:), (.:?))
-import Argonaut.Core as AC
-import Data.DateTime.Instant (unInstant, fromDateTime)
-import Data.Time.Duration (Milliseconds(..))
 
--- | EncodeJson instance for DateTime (as ISO 8601 string)
-instance EncodeJson DateTime where
-  encodeJson dt = AC.fromString $ toISOString dt
+-- | Encode DateTime as ISO 8601 string (standalone function, not orphan instance)
+encodeDateTime :: DateTime -> Json
+encodeDateTime dt = AC.fromString $ toISOString dt
 
--- | DecodeJson instance for DateTime (from ISO 8601 string or timestamp)
-instance DecodeJson DateTime where
-  decodeJson json = 
+-- | Decode DateTime from ISO 8601 string or timestamp (standalone function, not orphan instance)
+decodeDateTime :: Json -> Either JsonDecodeError DateTime
+decodeDateTime json =
     -- Try parsing as number (milliseconds since epoch) first
     case decodeJson json :: Either JsonDecodeError Number of
       Right num -> Right $ fromTimestamp num
-      Left _ -> 
+      Left _ ->
         -- Try parsing as ISO 8601 string
         case decodeJson json :: Either JsonDecodeError String of
-          Right str -> 
+          Right str ->
             -- Try parsing as numeric string first (for backward compatibility)
             case Number.fromString str of
               Just num -> Right $ fromTimestamp num
-              Nothing -> 
+              Nothing ->
                 -- Parse as ISO 8601 string using FFI
                 Right $ fromISOString str
           Left err -> Left err
 
--- | EncodeJson instance for BalanceUpdatePayload
-instance EncodeJson BalanceUpdatePayload where
-  encodeJson payload = AC.fromObject $ AC.fromFoldable
+-- | Standalone encoder for BalanceUpdatePayload (type alias cannot have typeclass instances)
+encodeBalanceUpdatePayload :: BalanceUpdatePayload -> Json
+encodeBalanceUpdatePayload payload = AC.fromObject $ FO.fromFoldable $ Array.catMaybes
     [ "diem" :=? payload.diem
     , "flk" :=? payload.flk
     , "usd" :=? payload.usd
-    , "effective" := payload.effective
-    , "consumptionRate" := payload.consumptionRate
+    , Just ("effective" := payload.effective)
+    , Just ("consumptionRate" := payload.consumptionRate)
     , "timeToDepletion" :=? payload.timeToDepletion
-    , "todayUsed" := payload.todayUsed
-    , "timestamp" := payload.timestamp
+    , Just ("todayUsed" := payload.todayUsed)
+    , Just ("timestamp" := encodeDateTime payload.timestamp)
     ]
 
--- | DecodeJson instance for BalanceUpdatePayload
-instance DecodeJson BalanceUpdatePayload where
-  decodeJson json = do
+-- | Standalone decoder for BalanceUpdatePayload (type alias cannot have typeclass instances)
+decodeBalanceUpdatePayload :: Json -> Either JsonDecodeError BalanceUpdatePayload
+decodeBalanceUpdatePayload json = do
     obj <- decodeJson json
-    diem <- obj .:? "diem"  -- Optional
-    flk <- obj .:? "flk"    -- Optional
-    usd <- obj .:? "usd"    -- Optional
+    diem <- obj .:? "diem"
+    flk <- obj .:? "flk"
+    usd <- obj .:? "usd"
     effective <- obj .: "effective"
     consumptionRate <- obj .: "consumptionRate"
     timeToDepletion <- obj .:? "timeToDepletion"
     todayUsed <- obj .: "todayUsed"
-    timestamp <- obj .: "timestamp"
+    timestampJson <- obj .: "timestamp"
+    timestamp <- decodeDateTime timestampJson
     pure { diem, flk, usd, effective, consumptionRate, timeToDepletion, todayUsed, timestamp }
 
--- | EncodeJson instance for SessionUpdatePayload
-instance EncodeJson SessionUpdatePayload where
-  encodeJson payload = AC.fromObject $ AC.fromFoldable
+-- | Standalone encoder for SessionUpdatePayload
+encodeSessionUpdatePayload :: SessionUpdatePayload -> Json
+encodeSessionUpdatePayload payload = AC.fromObject $ FO.fromFoldable
     [ "id" := payload.id
     , "model" := payload.model
     , "promptTokens" := payload.promptTokens
@@ -217,9 +224,9 @@ instance EncodeJson SessionUpdatePayload where
     , "messageCount" := payload.messageCount
     ]
 
--- | DecodeJson instance for SessionUpdatePayload
-instance DecodeJson SessionUpdatePayload where
-  decodeJson json = do
+-- | Standalone decoder for SessionUpdatePayload
+decodeSessionUpdatePayload :: Json -> Either JsonDecodeError SessionUpdatePayload
+decodeSessionUpdatePayload json = do
     obj <- decodeJson json
     id <- obj .: "id"
     model <- obj .: "model"
@@ -230,173 +237,181 @@ instance DecodeJson SessionUpdatePayload where
     messageCount <- obj .: "messageCount"
     pure { id, model, promptTokens, completionTokens, totalTokens, cost, messageCount }
 
--- | EncodeJson instance for PositionPayload
-instance EncodeJson PositionPayload where
-  encodeJson payload = AC.fromObject $ AC.fromFoldable
+-- | Standalone encoder for PositionPayload
+encodePositionPayload :: PositionPayload -> Json
+encodePositionPayload payload = AC.fromObject $ FO.fromFoldable
     [ "line" := payload.line
     , "character" := payload.character
     ]
 
--- | DecodeJson instance for PositionPayload
-instance DecodeJson PositionPayload where
-  decodeJson json = do
+-- | Standalone decoder for PositionPayload
+decodePositionPayload :: Json -> Either JsonDecodeError PositionPayload
+decodePositionPayload json = do
     obj <- decodeJson json
     line <- obj .: "line"
     character <- obj .: "character"
     pure { line, character }
 
--- | EncodeJson instance for RangePayload
-instance EncodeJson RangePayload where
-  encodeJson payload = AC.fromObject $ AC.fromFoldable
-    [ "start" := payload.start
-    , "end" := payload.end
+-- | Standalone encoder for RangePayload
+encodeRangePayload :: RangePayload -> Json
+encodeRangePayload payload = AC.fromObject $ FO.fromFoldable
+    [ "start" := encodePositionPayload payload.start
+    , "end" := encodePositionPayload payload.end
     ]
 
--- | DecodeJson instance for RangePayload
-instance DecodeJson RangePayload where
-  decodeJson json = do
+-- | Standalone decoder for RangePayload
+decodeRangePayload :: Json -> Either JsonDecodeError RangePayload
+decodeRangePayload json = do
     obj <- decodeJson json
-    start <- obj .: "start"
-    end <- obj .: "end"
+    startJson <- obj .: "start"
+    start <- decodePositionPayload startJson
+    endJson <- obj .: "end"
+    end <- decodePositionPayload endJson
     pure { start, end }
 
--- | EncodeJson instance for GoalPayload
-instance EncodeJson GoalPayload where
-  encodeJson payload = AC.fromObject $ AC.fromFoldable
+-- | Standalone encoder for GoalPayload
+encodeGoalPayload :: GoalPayload -> Json
+encodeGoalPayload payload = AC.fromObject $ FO.fromFoldable
     [ "id" := payload.id
     , "type" := payload.type_
     , "context" := payload.context
     ]
 
--- | DecodeJson instance for GoalPayload
-instance DecodeJson GoalPayload where
-  decodeJson json = do
+-- | Standalone decoder for GoalPayload
+decodeGoalPayload :: Json -> Either JsonDecodeError GoalPayload
+decodeGoalPayload json = do
     obj <- decodeJson json
     id <- obj .: "id"
     type_ <- obj .: "type"
     context <- obj .: "context"
     pure { id, type_, context }
 
--- | EncodeJson instance for DiagnosticPayload
-instance EncodeJson DiagnosticPayload where
-  encodeJson payload = AC.fromObject $ AC.fromFoldable
+-- | Standalone encoder for DiagnosticPayload
+encodeDiagnosticPayload :: DiagnosticPayload -> Json
+encodeDiagnosticPayload payload = AC.fromObject $ FO.fromFoldable
     [ "severity" := payload.severity
     , "message" := payload.message
-    , "range" := payload.range
+    , "range" := encodeRangePayload payload.range
     ]
 
--- | DecodeJson instance for DiagnosticPayload
-instance DecodeJson DiagnosticPayload where
-  decodeJson json = do
+-- | Standalone decoder for DiagnosticPayload
+decodeDiagnosticPayload :: Json -> Either JsonDecodeError DiagnosticPayload
+decodeDiagnosticPayload json = do
     obj <- decodeJson json
     severity <- obj .: "severity"
     message <- obj .: "message"
-    range <- obj .: "range"
+    rangeJson <- obj .: "range"
+    range <- decodeRangePayload rangeJson
     pure { severity, message, range }
 
--- | EncodeJson instance for TacticPayload
-instance EncodeJson TacticPayload where
-  encodeJson payload = AC.fromObject $ AC.fromFoldable
+-- | Standalone encoder for TacticPayload
+encodeTacticPayload :: TacticPayload -> Json
+encodeTacticPayload payload = AC.fromObject $ FO.fromFoldable
     [ "name" := payload.name
     , "description" := payload.description
     , "confidence" := payload.confidence
     ]
 
--- | DecodeJson instance for TacticPayload
-instance DecodeJson TacticPayload where
-  decodeJson json = do
+-- | Standalone decoder for TacticPayload
+decodeTacticPayload :: Json -> Either JsonDecodeError TacticPayload
+decodeTacticPayload json = do
     obj <- decodeJson json
     name <- obj .: "name"
     description <- obj .: "description"
     confidence <- obj .: "confidence"
     pure { name, description, confidence }
 
--- | EncodeJson instance for ProofUpdatePayload
-instance EncodeJson ProofUpdatePayload where
-  encodeJson payload = AC.fromObject $ AC.fromFoldable
-    [ "goals" := payload.goals
-    , "diagnostics" := payload.diagnostics
-    , "tactics" := payload.tactics
+-- | Standalone encoder for ProofUpdatePayload
+encodeProofUpdatePayload :: ProofUpdatePayload -> Json
+encodeProofUpdatePayload payload = AC.fromObject $ FO.fromFoldable
+    [ "goals" := map encodeGoalPayload payload.goals
+    , "diagnostics" := map encodeDiagnosticPayload payload.diagnostics
+    , "tactics" := map encodeTacticPayload payload.tactics
     ]
 
--- | DecodeJson instance for ProofUpdatePayload
-instance DecodeJson ProofUpdatePayload where
-  decodeJson json = do
+-- | Standalone decoder for ProofUpdatePayload
+decodeProofUpdatePayload :: Json -> Either JsonDecodeError ProofUpdatePayload
+decodeProofUpdatePayload json = do
     obj <- decodeJson json
-    goals <- obj .: "goals"
-    diagnostics <- obj .: "diagnostics"
-    tactics <- obj .: "tactics"
+    goalsJson <- obj .: "goals"
+    goals <- traverse decodeGoalPayload goalsJson
+    diagnosticsJson <- obj .: "diagnostics"
+    diagnostics <- traverse decodeDiagnosticPayload diagnosticsJson
+    tacticsJson <- obj .: "tactics"
+    tactics <- traverse decodeTacticPayload tacticsJson
     pure { goals, diagnostics, tactics }
 
--- | EncodeJson instance for SnapshotPayload
-instance EncodeJson SnapshotPayload where
-  encodeJson payload = AC.fromObject $ AC.fromFoldable
+-- | Standalone encoder for SnapshotPayload
+encodeSnapshotPayload :: SnapshotPayload -> Json
+encodeSnapshotPayload payload = AC.fromObject $ FO.fromFoldable
     [ "id" := payload.id
-    , "timestamp" := payload.timestamp
+    , "timestamp" := encodeDateTime payload.timestamp
     , "description" := payload.description
     , "stateHash" := payload.stateHash
     ]
 
--- | DecodeJson instance for SnapshotPayload
-instance DecodeJson SnapshotPayload where
-  decodeJson json = do
+-- | Standalone decoder for SnapshotPayload
+decodeSnapshotPayload :: Json -> Either JsonDecodeError SnapshotPayload
+decodeSnapshotPayload json = do
     obj <- decodeJson json
     id <- obj .: "id"
-    timestamp <- obj .: "timestamp"
+    timestampJson <- obj .: "timestamp"
+    timestamp <- decodeDateTime timestampJson
     description <- obj .: "description"
     stateHash <- obj .: "stateHash"
     pure { id, timestamp, description, stateHash }
 
--- | EncodeJson instance for ConnectionStatusPayload
-instance EncodeJson ConnectionStatusPayload where
-  encodeJson payload = AC.fromObject $ AC.fromFoldable
+-- | Standalone encoder for ConnectionStatusPayload
+encodeConnectionStatusPayload :: ConnectionStatusPayload -> Json
+encodeConnectionStatusPayload payload = AC.fromObject $ FO.fromFoldable
     [ "connected" := payload.connected
-    , "timestamp" := payload.timestamp
+    , "timestamp" := encodeDateTime payload.timestamp
     ]
 
--- | DecodeJson instance for ConnectionStatusPayload
-instance DecodeJson ConnectionStatusPayload where
-  decodeJson json = do
+-- | Standalone decoder for ConnectionStatusPayload
+decodeConnectionStatusPayload :: Json -> Either JsonDecodeError ConnectionStatusPayload
+decodeConnectionStatusPayload json = do
     obj <- decodeJson json
     connected <- obj .: "connected"
-    timestamp <- obj .: "timestamp"
+    timestampJson <- obj .: "timestamp"
+    timestamp <- decodeDateTime timestampJson
     pure { connected, timestamp }
 
--- | EncodeJson instance for NotificationAction
-instance EncodeJson NotificationAction where
-  encodeJson payload = AC.fromObject $ AC.fromFoldable
+-- | Standalone encoder for NotificationAction
+encodeNotificationAction :: NotificationAction -> Json
+encodeNotificationAction payload = AC.fromObject $ FO.fromFoldable
     [ "label" := payload.label
     , "actionId" := payload.actionId
     , "primary" := payload.primary
     ]
 
--- | DecodeJson instance for NotificationAction
-instance DecodeJson NotificationAction where
-  decodeJson json = do
+-- | Standalone decoder for NotificationAction
+decodeNotificationAction :: Json -> Either JsonDecodeError NotificationAction
+decodeNotificationAction json = do
     obj <- decodeJson json
     label <- obj .: "label"
     actionId <- obj .: "actionId"
     primary <- obj .: "primary"
     pure { label, actionId, primary }
 
--- | EncodeJson instance for NotificationPayload
-instance EncodeJson NotificationPayload where
-  encodeJson payload = AC.fromObject $ AC.fromFoldable
-    [ "id" := payload.id
-    , "type" := payload.type_
-    , "level" := payload.level
-    , "title" := payload.title
+-- | Standalone encoder for NotificationPayload
+encodeNotificationPayload :: NotificationPayload -> Json
+encodeNotificationPayload payload = AC.fromObject $ FO.fromFoldable $ Array.catMaybes
+    [ Just ("id" := payload.id)
+    , Just ("type" := payload.type_)
+    , Just ("level" := payload.level)
+    , Just ("title" := payload.title)
     , "message" :=? payload.message
-    , "createdAt" := payload.createdAt
+    , Just ("createdAt" := payload.createdAt)
     , "duration" :=? payload.duration
-    , "actions" := payload.actions
-    , "dismissible" := payload.dismissible
-    , "persistent" := payload.persistent
+    , Just ("actions" := map encodeNotificationAction payload.actions)
+    , Just ("dismissible" := payload.dismissible)
+    , Just ("persistent" := payload.persistent)
     ]
 
--- | DecodeJson instance for NotificationPayload
-instance DecodeJson NotificationPayload where
-  decodeJson json = do
+-- | Standalone decoder for NotificationPayload
+decodeNotificationPayload :: Json -> Either JsonDecodeError NotificationPayload
+decodeNotificationPayload json = do
     obj <- decodeJson json
     id <- obj .: "id"
     type_ <- obj .: "type"
@@ -405,85 +420,93 @@ instance DecodeJson NotificationPayload where
     message <- obj .:? "message"
     createdAt <- obj .: "createdAt"
     duration <- obj .:? "duration"
-    actions <- obj .: "actions"
+    actionsJson <- obj .: "actions"
+    actions <- traverse decodeNotificationAction actionsJson
     dismissible <- obj .: "dismissible"
     persistent <- obj .: "persistent"
     pure { id, type_, level, title, message, createdAt, duration, actions, dismissible, persistent }
 
--- | EncodeJson instance for JsonRpcError
-instance EncodeJson JsonRpcError where
-  encodeJson err = AC.fromObject $ AC.fromFoldable
-    [ "code" := err.code
-    , "message" := err.message
-    , "data" :=? err.data
+-- | Standalone encoder for JsonRpcError
+encodeJsonRpcError :: JsonRpcError -> Json
+encodeJsonRpcError err = AC.fromObject $ FO.fromFoldable $ Array.catMaybes
+    [ Just ("code" := err.code)
+    , Just ("message" := err.message)
+    , "data" :=? err.errorData
     ]
 
--- | DecodeJson instance for JsonRpcError
-instance DecodeJson JsonRpcError where
-  decodeJson json = do
+-- | Standalone decoder for JsonRpcError
+decodeJsonRpcError :: Json -> Either JsonDecodeError JsonRpcError
+decodeJsonRpcError json = do
     obj <- decodeJson json
     code <- obj .: "code"
     message <- obj .: "message"
-    data <- obj .:? "data"
-    pure { code, message, data }
+    data_ <- obj .:? "data"
+    pure { code: code, message: message, errorData: data_ }
 
--- | EncodeJson instance for ServerMessage
+-- | EncodeJson instance for ServerMessage (data type, valid for typeclass instances)
 instance EncodeJson ServerMessage where
   encodeJson = case _ of
-    BalanceUpdate payload -> AC.fromObject $ AC.fromFoldable
+    BalanceUpdate payload -> AC.fromObject $ FO.fromFoldable
       [ "type" := AC.fromString "balance.update"
-      , "payload" := encodeJson payload
+      , "payload" := encodeBalanceUpdatePayload payload
       ]
-    SessionUpdate payload -> AC.fromObject $ AC.fromFoldable
+    SessionUpdate payload -> AC.fromObject $ FO.fromFoldable
       [ "type" := AC.fromString "session.update"
-      , "payload" := encodeJson payload
+      , "payload" := encodeSessionUpdatePayload payload
       ]
-    ProofUpdate payload -> AC.fromObject $ AC.fromFoldable
+    ProofUpdate payload -> AC.fromObject $ FO.fromFoldable
       [ "type" := AC.fromString "proof.update"
-      , "payload" := encodeJson payload
+      , "payload" := encodeProofUpdatePayload payload
       ]
-    SnapshotCreated payload -> AC.fromObject $ AC.fromFoldable
+    SnapshotCreated payload -> AC.fromObject $ FO.fromFoldable
       [ "type" := AC.fromString "snapshot.created"
-      , "payload" := encodeJson payload
+      , "payload" := encodeSnapshotPayload payload
       ]
-    ConnectionStatus payload -> AC.fromObject $ AC.fromFoldable
+    ConnectionStatus payload -> AC.fromObject $ FO.fromFoldable
       [ "type" := AC.fromString "connection.status"
-      , "payload" := encodeJson payload
+      , "payload" := encodeConnectionStatusPayload payload
       ]
-    Notification payload -> AC.fromObject $ AC.fromFoldable
+    Notification payload -> AC.fromObject $ FO.fromFoldable
       [ "type" := AC.fromString "notification"
-      , "payload" := encodeJson payload
+      , "payload" := encodeNotificationPayload payload
       ]
-    Error err -> AC.fromObject $ AC.fromFoldable
+    Error err -> AC.fromObject $ FO.fromFoldable
       [ "type" := AC.fromString "error"
-      , "error" := encodeJson err
+      , "error" := encodeJsonRpcError err
       ]
 
--- | DecodeJson instance for ServerMessage
+-- | DecodeJson instance for ServerMessage (data type, valid for typeclass instances)
 instance DecodeJson ServerMessage where
   decodeJson json = do
     obj <- decodeJson json
     type_ <- obj .: "type"
     case type_ of
       "balance.update" -> do
-        payload <- obj .: "payload"
+        payloadJson <- obj .: "payload"
+        payload <- decodeBalanceUpdatePayload payloadJson
         pure $ BalanceUpdate payload
       "session.update" -> do
-        payload <- obj .: "payload"
+        payloadJson <- obj .: "payload"
+        payload <- decodeSessionUpdatePayload payloadJson
         pure $ SessionUpdate payload
       "proof.update" -> do
-        payload <- obj .: "payload"
+        payloadJson <- obj .: "payload"
+        payload <- decodeProofUpdatePayload payloadJson
         pure $ ProofUpdate payload
       "snapshot.created" -> do
-        payload <- obj .: "payload"
+        payloadJson <- obj .: "payload"
+        payload <- decodeSnapshotPayload payloadJson
         pure $ SnapshotCreated payload
       "connection.status" -> do
-        payload <- obj .: "payload"
+        payloadJson <- obj .: "payload"
+        payload <- decodeConnectionStatusPayload payloadJson
         pure $ ConnectionStatus payload
       "notification" -> do
-        payload <- obj .: "payload"
+        payloadJson <- obj .: "payload"
+        payload <- decodeNotificationPayload payloadJson
         pure $ Notification payload
       "error" -> do
-        err <- obj .: "error"
+        errJson <- obj .: "error"
+        err <- decodeJsonRpcError errJson
         pure $ Error err
       _ -> Left $ TypeMismatch "ServerMessage"

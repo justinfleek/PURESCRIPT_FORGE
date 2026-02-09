@@ -1,5 +1,5 @@
 // | Copy text to clipboard
-exports.copyToClipboard = function(text) {
+export const copyToClipboard = function(text) {
   return function() {
     // Try modern clipboard API first
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -9,7 +9,7 @@ exports.copyToClipboard = function(text) {
       });
       return;
     }
-    
+
     // Fallback for older browsers
     fallbackCopy(text);
   };
@@ -23,18 +23,18 @@ function fallbackCopy(text) {
   textarea.style.pointerEvents = "none";
   document.body.appendChild(textarea);
   textarea.select();
-  
+
   try {
     document.execCommand("copy");
   } catch (err) {
     // Ignore errors
   }
-  
+
   document.body.removeChild(textarea);
 }
 
 // | Get selected text from window
-exports.getSelection = function() {
+export const getSelection = function() {
   return function() {
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed) {
@@ -46,7 +46,7 @@ exports.getSelection = function() {
 
 // | Read text from clipboard using Clipboard API
 // | Returns a Promise that resolves with clipboard text content
-exports.readFromClipboardImpl = function() {
+export const readFromClipboardImpl = function() {
   if (navigator.clipboard && navigator.clipboard.readText) {
     return navigator.clipboard.readText();
   }

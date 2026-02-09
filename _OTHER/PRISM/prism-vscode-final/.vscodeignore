@@ -1,7 +1,0 @@
-.git/**
-node_modules/**
-*.vsix
-generate-icon.js
-BUILD.sh
-BUILD.bat
-.vscodeignore

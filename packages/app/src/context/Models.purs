@@ -1,6 +1,6 @@
 -- | Models context - manages AI model selection and visibility
 -- | Migrated from: forge-dev/packages/app/src/context/models.tsx
-module App.Context.Models
+module Sidepanel.Context.Models
   ( ModelKey
   , Visibility(..)
   , UserModel
@@ -16,7 +16,8 @@ module App.Context.Models
 
 import Prelude
 
-import Data.Array (filter, findIndex, length, snoc, take, (:))
+import Data.Array (filter, findIndex, length, snoc, take)
+import Data.Array as Array
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -69,12 +70,10 @@ modelKeyStr key = key.providerID <> ":" <> key.modelID
 isVisible :: ModelsStore -> ModelKey -> Boolean -> Boolean
 isVisible store model isLatest =
   let
-    key = modelKeyStr model
-    userPref = store.user
-      # filter (\u -> u.providerID == model.providerID && u.modelID == model.modelID)
-      # (\arr -> case arr of
-          [] -> Nothing
-          (x : _) -> Just x.visibility)
+    matching = filter (\u -> u.providerID == model.providerID && u.modelID == model.modelID) store.user
+    userPref = case Array.head matching of
+      Nothing -> Nothing
+      Just x -> Just x.visibility
   in
     case userPref of
       Just Hide -> false
@@ -98,21 +97,11 @@ setVisibility store model visible =
   where
     updateAt :: forall a. Int -> (a -> a) -> Array a -> Array a
     updateAt index f arr =
-      case splitAt index arr of
-        { before, after } ->
-          case after of
-            [] -> arr
-            (x : rest) -> before <> (f x : rest)
-    
-    splitAt :: forall a. Int -> Array a -> { before :: Array a, after :: Array a }
-    splitAt n arr = { before: take n arr, after: drop n arr }
-    
-    drop :: forall a. Int -> Array a -> Array a
-    drop n arr = 
-      if n <= 0 then arr
-      else case arr of
-        [] -> []
-        (_ : rest) -> drop (n - 1) rest
+      let before = take index arr
+          after = Array.drop index arr
+      in case Array.uncons after of
+          Nothing -> arr
+          Just { head: x, tail: rest } -> before <> Array.cons (f x) rest
 
 -- | Push model to recent list
 pushRecent :: ModelsStore -> ModelKey -> ModelsStore
@@ -121,7 +110,7 @@ pushRecent store model =
     -- Remove existing if present
     filtered = filter (\m -> not (m.providerID == model.providerID && m.modelID == model.modelID)) store.recent
     -- Add to front
-    newRecent = model : filtered
+    newRecent = Array.cons model filtered
     -- Keep max 5
     trimmed = take 5 newRecent
   in

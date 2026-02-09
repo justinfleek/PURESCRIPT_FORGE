@@ -10,8 +10,14 @@
 module Sidepanel.Pages.Session
   ( SessionPage
   , SessionPageState
+  , UIState
+  , StoreState
+  , TreeState
+  , HTMLElement
   , SessionReviewTab
+  , SessionReviewTabProps
   , DiffStyle(..)
+  , FileDiff
   ) where
 
 import Prelude
@@ -22,20 +28,21 @@ import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set (Set)
+import Data.String as String
 import Effect (Effect)
 import Effect.Aff (Aff)
 
-import Sidepanel.Context.Layout (LayoutContext)
-import Sidepanel.Context.Local (LocalContext)
-import Sidepanel.Context.File (FileContext, FileSelection, SelectedLineRange)
-import Sidepanel.Context.Sync (SyncContext)
-import Sidepanel.Context.Terminal (TerminalContext, LocalPTY)
+import Sidepanel.Context.Layout (LayoutStore)
+import Sidepanel.Context.Local (LocalState)
+import Sidepanel.Context.File (FileStore, FileSelection, SelectedLineRange)
+import Sidepanel.Context.Sync (SyncState)
+import Sidepanel.Context.Terminal (TerminalStore, LocalPTY)
 import Sidepanel.Context.SDK (SDKContext)
-import Sidepanel.Context.Prompt (PromptContext)
-import Sidepanel.Context.Comments (CommentsContext, LineComment)
-import Sidepanel.Context.Permission (PermissionContext)
-import Sidepanel.Context.Command (CommandContext)
-import Sidepanel.Context.Language (LanguageContext)
+import Sidepanel.Context.Prompt (PromptStore)
+import Sidepanel.Context.Comments (CommentsStore, LineComment)
+import Sidepanel.Context.Permission (PermissionStore)
+import Sidepanel.Context.Command (CommandOption)
+import Sidepanel.Context.Language (Locale)
 
 -- | Diff display style
 data DiffStyle = Unified | Split
@@ -161,7 +168,7 @@ sessionKey params = params.dir <> (case params.id of
   Nothing -> "")
 
 -- | Get current permission request for session
-getPermissionRequest :: SyncContext -> String -> Maybe PermissionRequest
+getPermissionRequest :: SyncState -> String -> Maybe PermissionRequest
 getPermissionRequest sync sessionID =
   -- sync.data.permission[sessionID]?.[0] where !tool
   Nothing
@@ -173,7 +180,7 @@ handlePermissionDecision sdk request response = do
   pure unit
 
 -- | Get session messages
-getMessages :: SyncContext -> String -> Array Message
+getMessages :: SyncState -> String -> Array Message
 getMessages sync sessionID =
   -- sync.data.message[sessionID] ?? []
   []
@@ -211,33 +218,33 @@ navigateMessageByOffset offset state messages =
          pure state { store = state.store { messageId = Just msg.id } }
 
 -- | Open tab in view
-openTab :: LayoutContext -> String -> String -> Effect Unit
+openTab :: LayoutStore -> String -> String -> Effect Unit
 openTab layout sessionKey tabValue = do
   -- layout.tabs(sessionKey).open(tabValue)
   pure unit
 
 -- | Normalize tab value (resolve file:// URLs)
-normalizeTab :: FileContext -> String -> String
+normalizeTab :: FileStore -> String -> String
 normalizeTab file tab =
   if String.take 7 tab == "file://"
   then tab  -- file.tab(tab) - resolve to actual path
   else tab
 
 -- | Add selection to context
-addSelectionToContext :: PromptContext -> FileContext -> String -> FileSelection -> Effect Unit
+addSelectionToContext :: PromptStore -> FileStore -> String -> FileSelection -> Effect Unit
 addSelectionToContext prompt file path selection = do
   let preview = getSelectionPreview file path selection
   -- prompt.context.add({ type: "file", path, selection, preview })
   pure unit
 
 -- | Get preview text for selection
-getSelectionPreview :: FileContext -> String -> FileSelection -> Maybe String
+getSelectionPreview :: FileStore -> String -> FileSelection -> Maybe String
 getSelectionPreview file path selection =
   -- Get file content, extract lines from selection
   Nothing
 
 -- | Add comment to context
-addCommentToContext :: PromptContext -> CommentsContext -> 
+addCommentToContext :: PromptStore -> CommentsStore -> 
                        { file :: String, selection :: SelectedLineRange, comment :: String, preview :: Maybe String, origin :: Maybe String } -> 
                        Effect Unit
 addCommentToContext prompt comments input = do
@@ -245,7 +252,7 @@ addCommentToContext prompt comments input = do
   pure unit
 
 -- | Handle undo (revert to previous message)
-handleUndo :: SDKContext -> SyncContext -> PromptContext -> String -> SessionInfo -> Array UserMessage -> Aff Unit
+handleUndo :: SDKContext -> SyncState -> PromptStore -> String -> SessionInfo -> Array UserMessage -> Aff Unit
 handleUndo sdk sync prompt sessionID info messages = do
   -- Abort if busy
   -- Find last user message before revert point
@@ -254,14 +261,14 @@ handleUndo sdk sync prompt sessionID info messages = do
   pure unit
 
 -- | Handle redo (unrevert or move forward)
-handleRedo :: SDKContext -> SyncContext -> String -> SessionInfo -> Array UserMessage -> Aff Unit
+handleRedo :: SDKContext -> SyncState -> String -> SessionInfo -> Array UserMessage -> Aff Unit
 handleRedo sdk sync sessionID info messages = do
   -- If no next message: full unrevert
   -- Otherwise: partial redo to next message
   pure unit
 
 -- | Handle compact (summarize session)
-handleCompact :: SDKContext -> LocalContext -> LanguageContext -> String -> Aff Unit
+handleCompact :: SDKContext -> LocalState -> Locale -> String -> Aff Unit
 handleCompact sdk local language sessionID = do
   -- Get current model
   -- Call session.summarize
@@ -274,7 +281,7 @@ handleFork sessionID = do
   pure unit
 
 -- | Handle share session
-handleShare :: SDKContext -> LanguageContext -> String -> Aff Unit
+handleShare :: SDKContext -> Locale -> String -> Aff Unit
 handleShare sdk language sessionID = do
   -- Call session.share
   -- Copy URL to clipboard
@@ -282,14 +289,14 @@ handleShare sdk language sessionID = do
   pure unit
 
 -- | Handle unshare session
-handleUnshare :: SDKContext -> LanguageContext -> String -> Aff Unit
+handleUnshare :: SDKContext -> Locale -> String -> Aff Unit
 handleUnshare sdk language sessionID = do
   -- Call session.unshare
   -- Show toast
   pure unit
 
 -- | Register session commands
-registerSessionCommands :: CommandContext -> LanguageContext -> String -> Maybe String -> SessionPageState -> Array _
+registerSessionCommands :: Array CommandOption -> Locale -> String -> Maybe String -> SessionPageState -> Array CommandOption
 registerSessionCommands command language dir maybeId state =
   -- Returns array of CommandOption for:
   -- - session.new

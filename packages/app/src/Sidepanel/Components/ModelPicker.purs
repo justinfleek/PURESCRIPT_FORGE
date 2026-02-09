@@ -73,8 +73,8 @@ data Action
 -- | Outputs
 data Output
   = ModelSelected String
-  = ClosePicker
-  = OpenComparisonView String String
+  | ClosePicker
+  | OpenComparisonView String String
 
 -- | Component
 component :: forall q m. MonadAff m => H.Component q Input Output m
@@ -174,7 +174,7 @@ parseSizeFilter = case _ of
 parseSpeedFilter :: String -> Maybe SpeedTier
 parseSpeedFilter = case _ of
   "slow" -> Just Slow
-  "medium" -> Just Medium
+  "medium" -> Just MediumSpeed
   "fast" -> Just Fast
   "veryfast" -> Just VeryFast
   _ -> Nothing
@@ -205,7 +205,7 @@ renderAllModels state =
       [ HH.h3_ [ HH.text "ALL MODELS" ]
       , HH.div
           [ HP.class_ (H.ClassName "model-groups") ]
-          (Array.map renderSizeGroup grouped)
+          (map renderSizeGroup grouped)
       ]
 
 type SizeGroup = { size :: ModelSize, models :: Array Model }

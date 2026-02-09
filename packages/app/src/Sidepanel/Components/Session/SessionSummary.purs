@@ -33,10 +33,12 @@ import Sidepanel.State.AppState (SessionState)
 import Sidepanel.Utils.Currency (formatUSD)
 import Sidepanel.Utils.Time (formatDuration)
 import Sidepanel.FFI.DateTime (getCurrentDateTime)
-import Effect.Aff.Class (class MonadAff, liftAff)
+import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
-import Effect.Aff (Milliseconds(..), delay, forever, forkAff, killFiber, error)
+import Effect.Aff (Milliseconds(..), delay, forkAff, killFiber, error, launchAff, launchAff_)
+import Data.Functor (void)
 import Halogen as H
+import Halogen.Subscription as HS
 
 -- | Component input
 type Input =
@@ -98,12 +100,14 @@ handleAction = case _ of
         pure unit
 
 -- | Ticker that fires every second to update duration
-durationTickerEmitter :: forall m. MonadAff m => H.Emitter m Action
-durationTickerEmitter = H.Emitter \emit -> do
-  fiber <- forkAff $ forever do
-    delay (Milliseconds 1000.0)
-    liftEffect $ emit UpdateDuration
-  pure $ killFiber (error "unsubscribed") fiber
+durationTickerEmitter :: HS.Emitter Action
+durationTickerEmitter = HS.makeEmitter \emit -> do
+  let loop = do
+        delay (Milliseconds 1000.0)
+        liftEffect $ emit UpdateDuration
+        loop
+  fiber <- launchAff loop
+  pure $ launchAff_ $ killFiber (error "unsubscribed") fiber
 
 handleQuery :: forall m a. MonadAff m => Query a -> H.HalogenM State Action () Void m (Maybe a)
 handleQuery = case _ of

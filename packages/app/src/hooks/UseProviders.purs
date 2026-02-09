@@ -2,15 +2,16 @@
 -- | Migrated from forge-dev/packages/app/src/hooks/use-providers.ts
 module Forge.App.Hooks.UseProviders
   ( ProviderInfo
+  , ModelInfo
   , ProvidersState
   , popularProviders
   , useProviders
   ) where
 
 import Prelude
+
+import Data.Array (filter, elem, null)
 import Data.Maybe (Maybe(..))
-import Data.Array (filter, elem)
-import Effect (Effect)
 
 -- | Popular provider IDs
 popularProviders :: Array String
@@ -70,9 +71,7 @@ isPaid provider
   | otherwise = hasAnyPaidModel provider.models
 
 hasAnyPaidModel :: Array ModelInfo -> Boolean
-hasAnyPaidModel models = case filter hasCost models of
-  [] -> false
-  _ -> true
+hasAnyPaidModel models = not (null (filter hasCost models))
   where
   hasCost m = case m.cost of
     Just c | c.input > 0.0 -> true

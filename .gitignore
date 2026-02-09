@@ -1,3 +1,32 @@
+.DS_Store
+node_modules
+.worktrees
+.sst
+.env
+.idea
+.vscode
+*~
+playground
+tmp
+dist
+ts-dist
+.turbo
+**/.serena
+.serena/
+/result
+refs
+Session.vim
+forge.json
+a.out
+target
+.scripts
+.direnv/
+
+# Local dev files
+forge-dev
+logs/
+*.bun-build
+
 # PureScript
 .spago/
 output/
@@ -10,11 +39,11 @@ dist-newstyle/
 # Lean4
 .lake/build/
 
-# Node
-node_modules/
-
 # Nix
 result
 
-# Build artifacts
-dist/
+# Reference archive
+_archive/
+
+# Embedded repos
+**/.lake/packages/

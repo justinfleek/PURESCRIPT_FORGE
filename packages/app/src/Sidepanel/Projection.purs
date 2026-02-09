@@ -36,10 +36,10 @@ import Data.DateTime (DateTime)
 import Data.Maybe (Maybe(..))
 import Data.Array as Array
 import Data.Int as Int
+import Data.Int (round)
 import Data.String as String
 import Sidepanel.State.BalanceMetrics (BalanceSnapshot)
 import Sidepanel.FFI.DateTime (toTimestamp, fromTimestamp)
-import Math (max)
 
 -- | Depletion prediction - Projection of when balance will deplete
 -- |
@@ -249,7 +249,7 @@ generateScenarios currentBalance currentRate resetTime currentTime =
       , { name: "Heavy usage", factor: 1.5 }
       ]
   in
-    Array.map (\{ name, factor } ->
+    map (\{ name, factor } ->
       { name
       , rate: currentRate * factor
       , prediction: calculateTimeToDepletion currentBalance (currentRate * factor) resetTime currentTime

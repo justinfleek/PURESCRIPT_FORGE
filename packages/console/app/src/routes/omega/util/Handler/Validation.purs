@@ -17,7 +17,7 @@ import Data.Either (Either(..))
 import Foreign.Object as Object
 import Console.App.Routes.Omega.Util.Error (OmegaError(..), ModelError, CreditsError, MonthlyLimitError, UserLimitError, SubscriptionError)
 import Console.App.Routes.Omega.Util.Handler.Types (ModelInfo, AuthInfo, BillingSource(..))
-import Console.Core.Util.Price (centsToMicroCents)
+import Forge.Console.Core.Util.Price (centsToMicroCents)
 
 -- | Free workspaces that don't require billing
 freeWorkspaces :: Array String

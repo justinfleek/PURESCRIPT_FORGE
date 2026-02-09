@@ -1,6 +1,6 @@
 -- | Notification context - manages app notifications
 -- | Migrated from: forge-dev/packages/app/src/context/notification.tsx
-module App.Context.Notification
+module Sidepanel.Context.Notification
   ( Notification(..)
   , NotificationType(..)
   , NotificationStore
@@ -13,11 +13,13 @@ module App.Context.Notification
   , markProjectViewed
   , maxNotifications
   , notificationTtlMs
+  , ErrorDetails
   ) where
 
 import Prelude
 
-import Data.Array (filter, snoc)
+import Data.Array (filter, snoc, length, drop)
+import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Foreign.Object (Object)
 import Foreign.Object as Object
@@ -73,24 +75,11 @@ pruneNotifications now list =
   let
     cutoff = now - notificationTtlMs
     pruned = filter (\n -> n.time >= cutoff) list
-    len = arrayLength pruned
+    len = length pruned
   in
     if len <= maxNotifications
     then pruned
     else drop (len - maxNotifications) pruned
-  where
-    arrayLength :: forall a. Array a -> Int
-    arrayLength arr = go 0 arr
-      where
-        go acc [] = acc
-        go acc (_ : rest) = go (acc + 1) rest
-    
-    drop :: forall a. Int -> Array a -> Array a
-    drop n arr =
-      if n <= 0 then arr
-      else case arr of
-        [] -> []
-        (_ : rest) -> drop (n - 1) rest
 
 -- | Append a notification
 appendNotification :: Number -> Notification -> NotificationStore -> NotificationStore

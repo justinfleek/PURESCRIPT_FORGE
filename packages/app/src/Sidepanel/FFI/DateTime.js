@@ -1,11 +1,10 @@
 // DateTime FFI Implementation
 // UTC midnight calculation for countdown timer
-"use strict";
 
 // | Calculate milliseconds until next UTC midnight
-exports.calculateMsUntilMidnightUTC = function(nowMs) {
+export const calculateMsUntilMidnightUTC = function(nowMs) {
   const now = new Date(nowMs);
-  
+
   // Create midnight UTC for tomorrow
   const tomorrow = new Date(Date.UTC(
     now.getUTCFullYear(),
@@ -13,29 +12,29 @@ exports.calculateMsUntilMidnightUTC = function(nowMs) {
     now.getUTCDate() + 1,  // Tomorrow
     0, 0, 0, 0             // 00:00:00.000 UTC
   ));
-  
+
   // Return milliseconds UNTIL midnight (difference)
   return tomorrow.getTime() - nowMs;
 };
 
 // | Get current time in milliseconds
-exports.getCurrentTimeMs = function() {
+export const getCurrentTimeMs = function() {
   return Date.now();
 };
 
 // | Get current DateTime
-exports.getCurrentDateTime = function() {
+export const getCurrentDateTime = function() {
   const now = new Date();
-  return exports.fromTimestamp(now.getTime());
+  return fromTimestamp(now.getTime());
 };
 
 // | Convert timestamp (milliseconds) to DateTime
-exports.fromTimestamp = function(timestampMs) {
+export const fromTimestamp = function(timestampMs) {
   const date = new Date(timestampMs);
   // PureScript DateTime uses Data.Date.Month which is 1-indexed (January = 1)
   // JavaScript Date.getUTCMonth() is 0-indexed (January = 0)
   const month = date.getUTCMonth() + 1;
-  
+
   return {
     date: {
       year: date.getUTCFullYear(),
@@ -53,18 +52,18 @@ exports.fromTimestamp = function(timestampMs) {
 
 // | Parse ISO 8601 DateTime string to DateTime
 // | Returns error timestamp if parsing fails
-exports.fromISOString = function(isoString) {
+export const fromISOString = function(isoString) {
   const date = new Date(isoString);
   // If parsing failed, return epoch 0 (deterministic error value)
   if (isNaN(date.getTime())) {
-    return exports.fromTimestamp(0.0);
+    return fromTimestamp(0.0);
   }
-  return exports.fromTimestamp(date.getTime());
+  return fromTimestamp(date.getTime());
 };
 
 // | Format DateTime as ISO 8601 string
 // | Converts PureScript DateTime structure to JavaScript Date, then formats as ISO string
-exports.toISOString = function(dt) {
+export const toISOString = function(dt) {
   // Extract components from PureScript DateTime structure
   const year = dt.date.year;
   const month = dt.date.month - 1; // JavaScript months are 0-indexed
@@ -73,17 +72,17 @@ exports.toISOString = function(dt) {
   const minute = dt.time.minute;
   const second = dt.time.second;
   const millisecond = dt.time.millisecond;
-  
+
   // Create JavaScript Date in UTC
   const date = new Date(Date.UTC(year, month, day, hour, minute, second, millisecond));
-  
+
   // Format as ISO 8601 string
   return date.toISOString();
 };
 
 // | Convert DateTime to timestamp (milliseconds)
 // | Converts PureScript DateTime structure to JavaScript Date, then returns milliseconds
-exports.toTimestamp = function(dt) {
+export const toTimestamp = function(dt) {
   // Extract components from PureScript DateTime structure
   const year = dt.date.year;
   const month = dt.date.month - 1; // JavaScript months are 0-indexed
@@ -92,10 +91,10 @@ exports.toTimestamp = function(dt) {
   const minute = dt.time.minute;
   const second = dt.time.second;
   const millisecond = dt.time.millisecond;
-  
+
   // Create JavaScript Date in UTC
   const date = new Date(Date.UTC(year, month, day, hour, minute, second, millisecond));
-  
+
   // Return milliseconds since epoch
   return date.getTime();
 };

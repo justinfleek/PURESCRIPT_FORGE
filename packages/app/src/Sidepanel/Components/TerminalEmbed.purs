@@ -36,7 +36,8 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Halogen.HTML.Events as HE
-import Effect.Aff (Aff, launchAff_)
+import Halogen.Subscription as HS
+import Effect.Aff (Aff)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect (Effect)
@@ -44,7 +45,9 @@ import Data.Maybe (Maybe(..))
 import Data.Array (snoc)
 import Data.Either (Either(..))
 import Data.String as String
-import Effect.Now (nowMillis)
+import Effect.Now (now)
+import Data.DateTime.Instant (unInstant)
+import Data.Newtype (unwrap)
 import Sidepanel.FFI.XTerm as XTerm
 import Sidepanel.WebSocket.Client as WS
 import Sidepanel.Api.Bridge as Bridge
@@ -80,6 +83,12 @@ data Action
   | WriteOutput String
   | Resize Int Int
 
+-- | Component queries (external API)
+data Query a
+  = QueryWriteOutput String a
+  | QueryClear a
+  | QueryFocus a
+
 -- | Component output
 data Output
   = TerminalReady
@@ -87,7 +96,7 @@ data Output
   | TerminalError String
 
 -- | Terminal Embed component
-component :: forall q m. MonadAff m => H.Component q Input Output m
+component :: forall m. MonadAff m => H.Component Query Input Output m
 component =
   H.mkComponent
     { initialState: \input -> initialState { wsClient = input.wsClient }
@@ -141,7 +150,7 @@ render state =
               ]
           ]
       , HH.div
-          [ HP.id_ state.terminalState.elementId
+          [ HP.id state.terminalState.elementId
           , HP.class_ (H.ClassName "terminal-container")
           ]
           []
@@ -157,7 +166,8 @@ handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Out
 handleAction = case _ of
   Initialize -> do
     -- Generate unique element ID using timestamp
-    timestamp <- liftEffect nowMillis
+    instant <- liftEffect now
+    let timestamp = unwrap (unInstant instant)
     let elementId = "terminal-" <> show timestamp
     H.modify_ \s -> s { terminalState { elementId = elementId } }
     handleAction MountTerminal
@@ -182,33 +192,47 @@ handleAction = case _ of
     -- Open terminal in DOM element
     liftEffect $ XTerm.open terminal state.terminalState.elementId
     
-    -- Set up input handler - handle user input
-    -- Note: onData callback runs in Effect, so we use launchAff_ to handle async operations
-    liftEffect $ XTerm.onData terminal \input -> do
-      -- Launch async handler for command execution
-      void $ launchAff_ do
-        -- Get current state
-        state <- H.get
-        
+    -- Set up input handler via Halogen subscription
+    -- onData runs in Effect, so we use an emitter to dispatch Actions
+    void $ H.subscribe $ HS.makeEmitter \emit -> do
+      XTerm.onData terminal \input -> do
+        emit (HandleInput input)
+      pure (pure unit)
+    
+    -- Update state
+    H.modify_ \s ->
+      s { terminalState =
+            { terminal: Just terminal
+            , elementId: s.terminalState.elementId
+            , connected: true
+            , output: []
+            , inputBuffer: ""
+            }
+        }
+    
+    H.raise TerminalReady
+  
+  HandleInput input -> do
+    state <- H.get
+    case state.terminalState.terminal of
+      Just terminal -> do
         -- Handle Enter key (execute command)
         if input == "\r" || input == "\n" then do
           let command = String.trim state.terminalState.inputBuffer
           if String.length command > 0 then do
+            liftEffect $ XTerm.write terminal input
             case state.wsClient of
               Just client -> do
-                -- Execute command via bridge server
-                result <- Bridge.executeTerminalCommand client
+                result <- H.liftAff $ Bridge.executeTerminalCommand client
                   { command: command
                   , cwd: Nothing
                   , sessionId: Nothing
                   }
                 case result of
                   Right response -> do
-                    -- Write output to terminal
                     case response.output of
                       Just output -> liftEffect $ XTerm.writeln terminal output
                       Nothing -> liftEffect $ XTerm.writeln terminal ("Command completed with exit code: " <> show response.exitCode)
-                    -- Clear input buffer and raise event
                     H.modify_ \s -> s { terminalState { inputBuffer = "" } }
                     H.raise (CommandExecuted command)
                   Left err -> do
@@ -218,35 +242,14 @@ handleAction = case _ of
                 liftEffect $ XTerm.writeln terminal "Not connected to bridge server"
                 H.modify_ \s -> s { terminalState { inputBuffer = "" } }
           else do
-            -- Empty command - just clear buffer
+            liftEffect $ XTerm.write terminal input
             H.modify_ \s -> s { terminalState { inputBuffer = "" } }
         else do
-          -- Regular input - append to buffer
-          H.modify_ \s -> s { terminalState { inputBuffer = s.terminalState.inputBuffer <> input } }
-    
-    -- Update state
-    H.modify_ \s ->
-      { s
-      | terminalState =
-          { terminal: Just terminal
-          , elementId: s.terminalState.elementId
-          , connected: true
-          , output: []
-          , inputBuffer: ""
-          }
-      }
-    
-    H.raise TerminalReady
-  
-  HandleInput input -> do
-    state <- H.get
-    case state.terminalState.terminal of
-      Just terminal -> do
-        liftEffect $ XTerm.write terminal input
-        H.modify_ \s ->
-          { s
-          | terminalState { inputBuffer = s.terminalState.inputBuffer <> input }
-          }
+          -- Regular input - echo and append to buffer
+          liftEffect $ XTerm.write terminal input
+          H.modify_ \s ->
+            s { terminalState = s.terminalState { inputBuffer = s.terminalState.inputBuffer <> input }
+              }
       Nothing ->
         pure unit
   
@@ -271,9 +274,8 @@ handleAction = case _ of
       Just terminal -> do
         liftEffect $ XTerm.writeln terminal text
         H.modify_ \s ->
-          { s
-          | terminalState { output = snoc s.terminalState.output text }
-          }
+          s { terminalState = s.terminalState { output = snoc s.terminalState.output text }
+            }
       Nothing ->
         pure unit
   
@@ -288,15 +290,15 @@ handleAction = case _ of
 -- | Handle component queries
 handleQuery :: forall m a. MonadAff m => Query a -> H.HalogenM State Action () Output m (Maybe a)
 handleQuery = case _ of
-  WriteOutput text a -> do
+  QueryWriteOutput text a -> do
     handleAction (WriteOutput text)
     pure (Just a)
-  
-  Clear a -> do
+
+  QueryClear a -> do
     handleAction ClearTerminal
     pure (Just a)
-  
-  Focus a -> do
+
+  QueryFocus a -> do
     state <- H.get
     case state.terminalState.terminal of
       Just terminal -> do

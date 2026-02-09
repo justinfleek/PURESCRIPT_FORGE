@@ -5,33 +5,36 @@
 module Test.Sidepanel.TestFixtures where
 
 import Prelude
-import Data.DateTime (DateTime, Date, Time, adjust)
-import Data.Date (exactDate)
-import Data.Time (hour, minute, second, millisecond)
-import Data.Time.Component (Hour, Minute, Second, Millisecond)
+import Data.DateTime (DateTime(..))
+import Data.Date (canonicalDate)
+import Data.Time (Time(..))
 import Data.Enum (toEnum)
-import Data.Maybe (fromJust)
+import Data.Maybe (Maybe(..), fromJust)
 import Partial.Unsafe (unsafePartial)
 
 -- | Create a test DateTime for January 1, 2024 at 12:00:00 UTC
 testDateTime :: DateTime
 testDateTime = unsafePartial $ fromJust $ do
-  date <- exactDate 2024 bottom bottom
-  hour <- toEnum 12 :: Maybe Hour
-  minute <- toEnum 0 :: Maybe Minute
-  second <- toEnum 0 :: Maybe Second
-  millisecond <- toEnum 0 :: Maybe Millisecond
-  pure $ DateTime date (Time hour minute second millisecond)
+  y <- toEnum 2024
+  mo <- toEnum 1
+  d <- toEnum 1
+  h <- toEnum 12
+  mi <- toEnum 0
+  s <- toEnum 0
+  ms <- toEnum 0
+  pure $ DateTime (canonicalDate y mo d) (Time h mi s ms)
 
 -- | Create a test DateTime for a specific date/time
 createTestDateTime :: Int -> Int -> Int -> Int -> Int -> Int -> Int -> DateTime
 createTestDateTime year month day h m s ms = unsafePartial $ fromJust $ do
-  date <- exactDate year month day
-  hour <- toEnum h :: Maybe Hour
-  minute <- toEnum m :: Maybe Minute
-  second <- toEnum s :: Maybe Second
-  millisecond <- toEnum ms :: Maybe Millisecond
-  pure $ DateTime date (Time hour minute second millisecond)
+  y <- toEnum year
+  mo <- toEnum month
+  d <- toEnum day
+  hr <- toEnum h
+  mi <- toEnum m
+  sc <- toEnum s
+  msc <- toEnum ms
+  pure $ DateTime (canonicalDate y mo d) (Time hr mi sc msc)
 
 -- | Default test session state
 defaultTestSession :: { id :: String, model :: String, promptTokens :: Int, completionTokens :: Int, totalTokens :: Int, cost :: Number, messageCount :: Int, startedAt :: DateTime }

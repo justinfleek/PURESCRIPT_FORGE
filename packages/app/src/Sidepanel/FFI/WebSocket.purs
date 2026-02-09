@@ -49,6 +49,12 @@ data ReadyState
 
 derive instance eqReadyState :: Eq ReadyState
 
+instance showReadyState :: Show ReadyState where
+  show Connecting = "Connecting"
+  show Open = "Open"
+  show Closing = "Closing"
+  show Closed = "Closed"
+
 -- | Create WebSocket connection
 foreign import create :: String -> Effect WebSocketConnection
 

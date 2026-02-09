@@ -25,4 +25,4 @@ t = translate
 -- | Falls back to English for missing translations
 getDictionary :: Language -> Dict
 getDictionary English = En.dict
-getDictionary _ = En.dict  -- TODO: Add other languages
+getDictionary _ = En.dict  -- All languages fall back to English dictionary

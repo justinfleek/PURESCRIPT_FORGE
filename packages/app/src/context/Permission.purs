@@ -1,6 +1,6 @@
 -- | Permission context - manages auto-accept permissions
 -- | Migrated from: forge-dev/packages/app/src/context/permission.tsx
-module App.Context.Permission
+module Sidepanel.Context.Permission
   ( PermissionRequest
   , PermissionResponse(..)
   , PermissionStore

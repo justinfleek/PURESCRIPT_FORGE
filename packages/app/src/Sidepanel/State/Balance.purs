@@ -40,7 +40,7 @@ module Sidepanel.State.Balance where
 
 import Prelude
 import Data.DateTime (DateTime)
-import Data.Maybe (Maybe)
+import Data.Maybe (Maybe(..))
 import Data.Map as Map
 import Data.Array as Array
 import Sidepanel.State.BalanceMetrics as BalanceMetrics
@@ -78,6 +78,14 @@ data BalanceAmount
   | Unlimited              -- Unlimited usage
 
 derive instance eqBalanceAmount :: Eq BalanceAmount
+
+instance showBalanceAmount :: Show BalanceAmount where
+  show (DiemBalance n) = "DiemBalance " <> show n
+  show (FlkBalance n) = "FlkBalance " <> show n
+  show (UsdBalance n) = "UsdBalance " <> show n
+  show (CreditBalance n) = "CreditBalance " <> show n
+  show (TokenBalance n) = "TokenBalance " <> show n
+  show Unlimited = "Unlimited"
 
 -- | Token usage metrics
 type TokenUsage =
@@ -149,6 +157,12 @@ data AlertLevel = Normal | Warning | Critical | Depleted
 
 derive instance eqAlertLevel :: Eq AlertLevel
 derive instance ordAlertLevel :: Ord AlertLevel
+
+instance showAlertLevel :: Show AlertLevel where
+  show Normal = "Normal"
+  show Warning = "Warning"
+  show Critical = "Critical"
+  show Depleted = "Depleted"
 
 -- | Initial balance state
 initialBalanceState :: BalanceState

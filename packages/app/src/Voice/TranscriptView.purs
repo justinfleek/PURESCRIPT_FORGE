@@ -38,7 +38,6 @@ component = H.mkComponent
   , eval: H.mkEval H.defaultEval
   }
   where
-  render :: Props -> H.ComponentHTML () () m
   render props =
     HH.div
       [ HP.class_ (H.ClassName "flex flex-col gap-4 p-4 h-full overflow-y-auto") ]
@@ -47,17 +46,14 @@ component = H.mkComponent
           else renderMessages props.messages
       ]
 
-  renderEmpty :: H.ComponentHTML () () m
   renderEmpty =
     HH.div
       [ HP.class_ (H.ClassName "text-center text-muted-foreground py-8") ]
       [ HH.text "No messages yet. Start speaking to begin the conversation." ]
 
-  renderMessages :: Array TranscriptMessage -> H.ComponentHTML () () m
   renderMessages messages =
     HH.div_ (map renderMessage messages)
 
-  renderMessage :: TranscriptMessage -> H.ComponentHTML () () m
   renderMessage msg =
     HH.div
       [ HP.class_ (H.ClassName $ "flex gap-3 " <> alignment msg.role) ]
@@ -73,19 +69,15 @@ component = H.mkComponent
           ]
       ]
 
-  alignment :: MessageRole -> String
   alignment User = "justify-end"
   alignment Assistant = "justify-start"
 
-  bubbleStyle :: MessageRole -> String
   bubbleStyle User = "bg-primary text-primary-foreground"
   bubbleStyle Assistant = "bg-muted"
 
-  roleLabel :: MessageRole -> String
   roleLabel User = "You"
   roleLabel Assistant = "Assistant"
 
-  renderAudio :: Maybe String -> H.ComponentHTML () () m
   renderAudio Nothing = HH.text ""
   renderAudio (Just url) =
     HH.audio

@@ -48,15 +48,15 @@ module Sidepanel.State.Reducer where
 import Prelude
 import Data.Array as Array
 import Data.DateTime (DateTime(..))
-import Data.Date (Date, canonicalDate)
-import Data.Time (Time, midnight)
-import Data.Date.Component (Year(..), Month(..), Day(..))
+import Data.Date (Date)
+import Data.Time (Time(..))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
-import Sidepanel.State.AppState (AppState, SessionState, AlertLevel(..), Panel, Theme, Alert, Message)
-import Sidepanel.State.Balance (BalanceState, VeniceBalance, FlkBalance, TokenUsage, calculateAlertLevel, BalanceSnapshot)
+import Sidepanel.State.AppState (AppState, SessionState, Panel, Theme, Alert, Message)
+import Sidepanel.State.Balance (BalanceState, VeniceBalance, FlkBalance, TokenUsage, AlertLevel(..), calculateAlertLevel, BalanceSnapshot)
 import Sidepanel.State.Actions (Action(..), BalanceUpdate, SessionUpdate, UsageRecord, AlertData, SessionMetadataUpdate)
 import Sidepanel.State.UndoRedo as UndoRedo
+import Sidepanel.State.RateLimit (updateFromHeaders, applyBackoff)
 import Sidepanel.State.BalanceMetrics as BalanceMetrics
 import Sidepanel.State.Sessions as Sessions
 import Sidepanel.FFI.DateTime (getCurrentDateTime, toTimestamp)
@@ -154,7 +154,7 @@ reduceWithoutHistory state = case _ of
         Just ts -> ts
         Nothing -> case state.balance.lastUpdated of
           Just dt -> dt
-          Nothing -> DateTime (canonicalDate (Year 2026) (Month 1) (Day 1)) midnight  -- Fallback
+          Nothing -> DateTime (bottom :: Date) (bottom :: Time)  -- Fallback epoch
     in
       state { balance = updateBalance state.balance update currentTime }
   
@@ -170,7 +170,7 @@ reduceWithoutHistory state = case _ of
       -- Get current time for update
       currentTime = case state.rateLimit.lastUpdated of
         Just dt -> dt
-        Nothing -> DateTime (canonicalDate (Year 2026) (Month 1) (Day 1)) midnight  -- Fallback, would use getCurrentDateTime in real app
+        Nothing -> DateTime (bottom :: Date) (bottom :: Time)  -- Fallback epoch
     in
       state { rateLimit = updateFromHeaders state.rateLimit headers currentTime }
   
@@ -339,7 +339,7 @@ reduceWithoutHistory state = case _ of
           , totalTokens: 0
           , cost: 0.0
           , messageCount: 0
-          , startedAt: DateTime (canonicalDate (Year 2026) (Month 1) (Day 1)) midnight
+          , startedAt: DateTime (bottom :: Date) (bottom :: Time)
           }
       
       -- Create branch metadata
@@ -402,7 +402,7 @@ reduceWithoutHistory state = case _ of
       
       -- Append to target messages
       updatedTargetMessages = case targetMessages of
-        Just msgs -> Array.append msgs messagesToMerge
+        Just msgs -> append msgs messagesToMerge
         Nothing -> messagesToMerge
       
       -- Update target session messages
@@ -809,8 +809,8 @@ createSessionFromUpdate update maybeStartedAt =
         -- Better solution: Make startedAt non-optional in SessionUpdate
         Nothing -> 
           let
-            defaultDate = canonicalDate (Year 1970) (Month bottom) (Day 1)
-            defaultTime = midnight
+            defaultDate = (bottom :: Date)
+            defaultTime = (bottom :: Time)
           in DateTime defaultDate defaultTime
   }
 

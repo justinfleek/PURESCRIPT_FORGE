@@ -1,6 +1,6 @@
 -- | Language context - manages i18n localization
 -- | Migrated from: forge-dev/packages/app/src/context/language.tsx
-module App.Context.Language
+module Sidepanel.Context.Language
   ( Locale(..)
   , allLocales
   , detectLocale

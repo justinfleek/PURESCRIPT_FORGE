@@ -11,12 +11,14 @@ module Sidepanel.Components.EasterEggs.Tetris.TetrisLogic where
 import Prelude
 
 import Data.Array as Array
+import Data.Int (toNumber)
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Ord (abs)
 import Data.Traversable (traverse)
 import Effect.Random (randomInt)
 import Sidepanel.Components.EasterEggs.Tetris.TetrisTypes
   ( GameState
-  , GameAction
+  , GameAction(..)
   , GameEvent
   , Piece
   , PieceType(..)
@@ -64,14 +66,16 @@ tryRotatePiece state = case state.currentPiece of
       state { currentPiece = Just newPiece }
     else
       -- Try wall kicks (shift left/right if rotation fails)
-      let kickedLeft = newPiece { position = { x: piece.position.x - 1, y: piece.position.y } }
-      let kickedRight = newPiece { position = { x: piece.position.x + 1, y: piece.position.y } }
-      if isValidPosition state.grid kickedLeft then
-        state { currentPiece = Just kickedLeft }
-      else if isValidPosition state.grid kickedRight then
-        state { currentPiece = Just kickedRight }
-      else
-        state
+      let
+        kickedLeft = newPiece { position = { x: piece.position.x - 1, y: piece.position.y } }
+        kickedRight = newPiece { position = { x: piece.position.x + 1, y: piece.position.y } }
+      in
+        if isValidPosition state.grid kickedLeft then
+          state { currentPiece = Just kickedLeft }
+        else if isValidPosition state.grid kickedRight then
+          state { currentPiece = Just kickedRight }
+        else
+          state
 
 -- | Hard drop piece to bottom
 hardDropPiece :: GameState -> GameState
@@ -103,24 +107,24 @@ isValidPosition grid piece = do
   let pos = piece.position
   
   -- Check each cell of piece shape
-  Array.allWithIndex shape \rowIdx row ->
-    Array.allWithIndex row \colIdx cell ->
-      if cell == 1 then do
-        let gridX = pos.x + colIdx
-        let gridY = pos.y + rowIdx
-        
-        -- Check bounds
-        if gridX < 0 || gridX >= gridWidth || gridY < 0 || gridY >= gridHeight then
-          false
-        else do
-          -- Check collision with existing blocks
-          case Array.index grid gridY of
-            Nothing -> false
-            Just row -> case Array.index row gridX of
-              Nothing -> false
-              Just cellState -> cellState == Empty
-      else
-        true
+  let checkRow rowIdx row =
+        let checkCell colIdx cell =
+              if cell == 1 then
+                let gridX = pos.x + colIdx
+                    gridY = pos.y + rowIdx
+                in if gridX < 0 || gridX >= gridWidth || gridY < 0 || gridY >= gridHeight then
+                  false
+                else
+                  -- Check collision with existing blocks
+                  case Array.index grid gridY of
+                    Nothing -> false
+                    Just gridRow -> case Array.index gridRow gridX of
+                      Nothing -> false
+                      Just cellState -> cellState == Empty
+              else
+                true
+        in Array.all identity (Array.mapWithIndex (\ci c -> checkCell ci c) row)
+  Array.all identity (Array.mapWithIndex (\ri r -> checkRow ri r) shape)
 
 -- | Lock piece to grid
 lockPiece :: GameState -> Piece -> GameState
@@ -135,8 +139,8 @@ lockPiece state piece = do
   -- Spawn next piece
   let nextPiece = spawnPiece state.nextPiece (newScore + state.linesCleared + linesCleared)
   let isGameOver = case nextPiece.currentPiece of
-    Just p -> not (isValidPosition cleared.grid p)
-    Nothing -> true
+        Just p -> not (isValidPosition cleared.grid p)
+        Nothing -> true
 
   { grid: cleared.grid
   , currentPiece: nextPiece.currentPiece
@@ -158,10 +162,10 @@ placePieceOnGrid grid piece = do
   let shape = piece.shape
   let pos = piece.position
   
-  Array.mapWithIndex grid \rowIdx row ->
-    Array.mapWithIndex row \colIdx cell ->
+  Array.mapWithIndex (\rowIdx row ->
+    Array.mapWithIndex (\colIdx cell ->
       let shapeRowIdx = rowIdx - pos.y
-      let shapeColIdx = colIdx - pos.x
+          shapeColIdx = colIdx - pos.x
       in if shapeRowIdx >= 0 && shapeRowIdx < 4 && shapeColIdx >= 0 && shapeColIdx < 4 then
         case Array.index shape shapeRowIdx of
           Nothing -> cell
@@ -170,11 +174,13 @@ placePieceOnGrid grid piece = do
             Just shapeCell -> if shapeCell == 1 then Filled piece.type_ else cell
       else
         cell
+    ) row
+  ) grid
 
 -- | Clear completed lines
 clearLines :: Array (Array CellState) -> { grid :: Array (Array CellState), linesToClear :: Array Int }
 clearLines grid = do
-  let linesToClear = Array.findIndices isLineFull grid
+  let linesToClear = Array.catMaybes $ Array.mapWithIndex (\i row -> if isLineFull row then Just i else Nothing) grid
   let clearedGrid = Array.foldl removeLine grid linesToClear
   { grid: clearedGrid, linesToClear: linesToClear }
 
@@ -192,14 +198,14 @@ removeLine grid lineIdx = do
 
 -- | Calculate score
 calculateScore :: Int -> Int -> Int -> Int
-calculateScore currentScore lines level = do
+calculateScore currentScore lines level =
   let baseScore = case lines of
-    1 -> 100
-    2 -> 300
-    3 -> 500
-    4 -> 800
-    _ -> 0
-  currentScore + (baseScore * level)
+        1 -> 100
+        2 -> 300
+        3 -> 500
+        4 -> 800
+        _ -> 0
+  in currentScore + (baseScore * level)
 
 -- | Calculate level from lines cleared
 calculateLevel :: Int -> Int
@@ -207,10 +213,10 @@ calculateLevel linesCleared = (linesCleared / 10) + 1
 
 -- | Calculate drop timer based on level
 calculateDropTimer :: Int -> Number
-calculateDropTimer level = do
+calculateDropTimer level =
   let baseTimer = 1000.0
-  let levelSpeed = Number.fromInt level * 50.0
-  max 50.0 (baseTimer - levelSpeed)  -- Minimum 50ms
+      levelSpeed = toNumber level * 50.0
+  in max 50.0 (baseTimer - levelSpeed)  -- Minimum 50ms
 
 -- | Hold current piece: swap with held piece or store if none held
 holdPiece :: GameState -> GameState
@@ -262,15 +268,15 @@ updateGame currentTime state = do
     let timeSinceLastDrop = currentTime - state.lastDropTime
     if timeSinceLastDrop >= state.dropTimer then
       let movedState = applyAction state MoveDown
-      case movedState.currentPiece of
+      in case movedState.currentPiece of
         Nothing -> movedState  -- Piece was locked
-        Just piece -> do
+        Just piece ->
           -- Check if piece can still move down
           let testPiece = piece { position = { x: piece.position.x, y: piece.position.y + 1 } }
-          if isValidPosition movedState.grid testPiece then
+          in if isValidPosition movedState.grid testPiece then
             movedState { lastDropTime = currentTime }
           else
             -- Lock piece
-            lockPiece movedState piece { lastDropTime = currentTime }
+            (lockPiece movedState piece) { lastDropTime = currentTime }
     else
       state

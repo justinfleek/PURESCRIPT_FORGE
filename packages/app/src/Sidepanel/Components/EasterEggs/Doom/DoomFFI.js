@@ -1,5 +1,3 @@
-"use strict";
-
 /**
  * Doom integration FFI via js-dos
  * js-dos is a DOS emulator that can run Doom in the browser
@@ -11,7 +9,7 @@ let emulator = null;
 /**
  * Initialize js-dos
  */
-exports.initDosbox = function () {
+export const initDosbox = function () {
   return function () {
     return new Promise((resolve, reject) => {
       try {
@@ -42,7 +40,7 @@ exports.initDosbox = function () {
 /**
  * Create DOSBox emulator instance
  */
-exports.createEmulator = function (canvasId) {
+export const createEmulator = function (canvasId) {
   return function () {
     return new Promise((resolve) => {
       try {
@@ -50,19 +48,19 @@ exports.createEmulator = function (canvasId) {
           resolve({ tag: "Left", value: "DOSBox not initialized" });
           return;
         }
-        
+
         const canvas = document.getElementById(canvasId);
         if (!canvas) {
           resolve({ tag: "Left", value: "Canvas not found" });
           return;
         }
-        
+
         emulator = dosbox(canvas, {
           onerror: (error) => {
             console.error("DOSBox error:", error);
           },
         });
-        
+
         resolve({ tag: "Right", value: {} });
       } catch (error) {
         resolve({ tag: "Left", value: error.message });
@@ -74,7 +72,7 @@ exports.createEmulator = function (canvasId) {
 /**
  * Load WAD file and start Doom
  */
-exports.loadDoom = function (wadUrl) {
+export const loadDoom = function (wadUrl) {
   return function () {
     return new Promise((resolve) => {
       try {
@@ -82,7 +80,7 @@ exports.loadDoom = function (wadUrl) {
           resolve({ tag: "Left", value: "Emulator not created" });
           return;
         }
-        
+
         // Load Doom shareware WAD
         // In production, would load user-provided WAD or shareware version
         emulator.run("https://js-dos.com/games/doom.zip", {
@@ -107,14 +105,14 @@ exports.loadDoom = function (wadUrl) {
 /**
  * Send keyboard input to emulator
  */
-exports.sendKey = function (key) {
+export const sendKey = function (key) {
   return function (pressed) {
     return function () {
       try {
         if (!emulator) {
           return;
         }
-        
+
         // Map key to DOSBox key code
         const keyCode = mapKeyToCode(key);
         if (keyCode) {
@@ -150,14 +148,14 @@ function mapKeyToCode(key) {
     "ArrowLeft": 203,
     "ArrowRight": 205,
   };
-  
+
   return keyMap[key] || null;
 }
 
 /**
  * Pause/resume emulator
  */
-exports.pauseEmulator = function () {
+export const pauseEmulator = function () {
   return function () {
     try {
       if (emulator) {
@@ -169,7 +167,7 @@ exports.pauseEmulator = function () {
   };
 };
 
-exports.resumeEmulator = function () {
+export const resumeEmulator = function () {
   return function () {
     try {
       if (emulator) {
@@ -184,7 +182,7 @@ exports.resumeEmulator = function () {
 /**
  * Stop emulator
  */
-exports.stopEmulator = function () {
+export const stopEmulator = function () {
   return function () {
     try {
       if (emulator) {
@@ -200,7 +198,7 @@ exports.stopEmulator = function () {
 /**
  * Save game state
  */
-exports.saveState = function () {
+export const saveState = function () {
   return function () {
     return new Promise((resolve) => {
       try {
@@ -208,7 +206,7 @@ exports.saveState = function () {
           resolve({ tag: "Left", value: "Emulator not running" });
           return;
         }
-        
+
         // js-dos doesn't directly support save states
         // Would need to use DOS save/load game feature
         resolve({ tag: "Right", value: "F6" });  // Doom quick save key
@@ -222,7 +220,7 @@ exports.saveState = function () {
 /**
  * Load game state
  */
-exports.loadState = function () {
+export const loadState = function () {
   return function () {
     return new Promise((resolve) => {
       try {
@@ -230,7 +228,7 @@ exports.loadState = function () {
           resolve({ tag: "Left", value: "Emulator not running" });
           return;
         }
-        
+
         // Send F9 for quick load
         resolve({ tag: "Right", value: "F9" });
       } catch (error) {
@@ -243,7 +241,7 @@ exports.loadState = function () {
 /**
  * Set volume
  */
-exports.setVolume = function (volume) {
+export const setVolume = function (volume) {
   return function () {
     try {
       if (emulator) {

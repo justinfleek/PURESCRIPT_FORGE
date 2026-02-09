@@ -11,6 +11,7 @@ module Sidepanel.Components.EasterEggs.Tetris.TetrisTypes where
 import Prelude
 
 import Data.Array as Array
+import Data.Maybe (Maybe(..))
 
 -- | Game grid dimensions
 gridWidth :: Int

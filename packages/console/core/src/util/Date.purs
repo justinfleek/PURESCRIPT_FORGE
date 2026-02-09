@@ -21,6 +21,7 @@ import Data.Date as Date
 import Data.Time (Time(..))
 import Data.Time as Time
 import Data.Time.Duration (Milliseconds(..), Seconds(..), Days(..))
+import Data.DateTime.Instant (fromDateTime, unInstant)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Enum (fromEnum, toEnum)
 import Data.Int (floor, toNumber)
@@ -66,19 +67,14 @@ getWeekBounds dt =
     end = DateTime.DateTime nextMondayDate midnight
   in { start, end }
 
--- | Subtract days from a date (simplified)
+-- | Subtract days from a date
 subtractDays :: Int -> Date -> Date
-subtractDays n date = 
-  -- Simplified: just return the date for now
-  -- Full implementation would use Date.adjust
-  date
+subtractDays n date = addDays (negate n) date
 
--- | Add days to a date (simplified)
+-- | Add days to a date
 addDays :: Int -> Date -> Date
-addDays n date = 
-  -- Simplified: just return the date for now
-  -- Full implementation would use Date.adjust
-  date
+addDays n date =
+  fromMaybe date (Date.adjust (Days (toNumber n)) date)
 
 -- | Convert milliseconds to seconds
 millisToSeconds :: Milliseconds -> Seconds
@@ -88,8 +84,9 @@ millisToSeconds (Milliseconds ms) = Seconds (ms / 1000.0)
 secondsToMillis :: Seconds -> Milliseconds
 secondsToMillis (Seconds s) = Milliseconds (s * 1000.0)
 
--- | Calculate difference in seconds between two DateTimes
+-- | Calculate difference in seconds between two DateTimes (dt1 - dt2)
 diffSeconds :: DateTime -> DateTime -> Seconds
-diffSeconds dt1 dt2 = 
-  -- Simplified placeholder
-  Seconds 0.0
+diffSeconds dt1 dt2 =
+  let Milliseconds ms1 = unInstant (fromDateTime dt1)
+      Milliseconds ms2 = unInstant (fromDateTime dt2)
+  in Seconds ((ms1 - ms2) / 1000.0)

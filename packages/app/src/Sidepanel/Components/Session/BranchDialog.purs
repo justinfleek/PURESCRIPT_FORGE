@@ -34,9 +34,7 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Halogen.HTML.Events as HE
-import Effect.Class (liftEffect)
 import Effect.Aff.Class (class MonadAff)
-import Web.Event.Event (preventDefault)
 
 -- | Component input
 type Input =
@@ -93,7 +91,6 @@ render state =
       ]
       [ HH.div
           [ HP.class_ (H.ClassName "branch-dialog")
-          , HE.onClick \e -> liftEffect $ preventDefault e
           ]
           [ -- Header
             HH.div
@@ -113,7 +110,7 @@ render state =
                   [ HH.text "Description (optional)" ]
               , HH.input
                   [ HP.type_ HP.InputText
-                  , HP.id_ "branch-description"
+                  , HP.id "branch-description"
                   , HP.class_ (H.ClassName "branch-dialog__input")
                   , HP.placeholder "e.g., 'Try with hooks instead'"
                   , HP.value state.description

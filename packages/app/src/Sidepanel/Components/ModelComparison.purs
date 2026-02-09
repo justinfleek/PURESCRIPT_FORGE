@@ -69,7 +69,7 @@ data Action
 -- | Outputs
 data Output
   = ModelSelected String
-  = CloseComparison
+  | CloseComparison
 
 -- | Component
 component :: forall q m. MonadAff m => H.Component q Input Output m

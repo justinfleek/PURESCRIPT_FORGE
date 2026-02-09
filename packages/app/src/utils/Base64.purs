@@ -6,7 +6,9 @@ module Sidepanel.Utils.Base64
 
 import Prelude
 
+import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
+import Effect (Effect)
 import Effect.Exception (try)
 import Effect.Unsafe (unsafePerformEffect)
 
@@ -26,7 +28,3 @@ decode64 maybeValue = case maybeValue of
 -- | Uses @forge-ai/util/encode.base64Decode
 foreign import base64DecodeImpl :: String -> Effect String
 
--- Placeholder Effect import
-foreign import data Effect :: Type -> Type
-foreign import data Left :: Type -> Type
-foreign import data Right :: Type -> Type

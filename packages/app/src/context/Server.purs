@@ -1,6 +1,6 @@
 -- | Server context - manages server connections
 -- | Migrated from: forge-dev/packages/app/src/context/server.tsx
-module App.Context.Server
+module Sidepanel.Context.Server
   ( ServerState
   , StoredProject
   , normalizeServerUrl

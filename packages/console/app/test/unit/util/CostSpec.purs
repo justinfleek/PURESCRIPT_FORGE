@@ -16,7 +16,7 @@ import Console.App.Routes.Omega.Util.Handler.Types
   , CostInfo
   )
 import Console.App.Routes.Omega.Util.Provider.Provider (UsageInfo)
-import Console.Core.Util.Price (MicroCents, centsToMicroCents)
+import Forge.Console.Core.Util.Price (MicroCents, centsToMicroCents)
 
 -- | Create mock ModelInfo with standard cost
 mkMockModelInfo :: ModelInfo

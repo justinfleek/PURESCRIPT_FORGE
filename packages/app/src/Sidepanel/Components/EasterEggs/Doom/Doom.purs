@@ -10,7 +10,9 @@ module Sidepanel.Components.EasterEggs.Doom.Doom where
 
 import Prelude
 
+import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
+import Effect (Effect)
 import Effect.Class (liftEffect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Aff (Aff)
@@ -20,7 +22,8 @@ import Halogen.HTML.Properties as HP
 import Halogen.HTML.Events as HE
 import Sidepanel.Components.EasterEggs.Doom.DoomTypes
   ( DoomState
-  , DoomAction(..)
+  , DoomAction
+  , DoomControls
   , initialDoomState
   , defaultControls
   )
@@ -53,9 +56,6 @@ data Output
   | DoomStopped
   | StateSaved
   | StateLoaded
-
--- | Import DoomControls
-import Sidepanel.Components.EasterEggs.Doom.DoomTypes (DoomControls)
 
 -- | Component input
 type Input = Unit
@@ -141,22 +141,22 @@ handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Out
 handleAction = case _ of
   Initialize -> do
     -- Initialize js-dos
-    initResult <- initDosbox
+    initResult <- H.liftAff initDosbox
     case initResult of
       Left err -> pure unit  -- Would show error
       Right _ -> do
         -- Create emulator
-        createResult <- createEmulator "doom-canvas"
+        createResult <- H.liftAff $ createEmulator "doom-canvas"
         case createResult of
           Left err -> pure unit
           Right _ -> do
             H.modify_ _ { isInitialized = true }
             -- Auto-load Doom shareware
             handleAction (LoadWAD "https://js-dos.com/games/doom.zip")
-  
+
   LoadWAD wadUrl -> do
     state <- H.get
-    loadResult <- loadDoom wadUrl
+    loadResult <- H.liftAff $ loadDoom wadUrl
     case loadResult of
       Left err -> pure unit  -- Would show error
       Right _ -> do
@@ -210,7 +210,7 @@ handleAction = case _ of
     state <- H.get
     if state.doomState.isRunning then
       do
-        saveResult <- saveState
+        saveResult <- H.liftAff saveState
         case saveResult of
           Left err -> pure unit
           Right _ -> do
@@ -222,7 +222,7 @@ handleAction = case _ of
     state <- H.get
     if state.doomState.isRunning then
       do
-        loadResult <- loadState
+        loadResult <- H.liftAff loadState
         case loadResult of
           Left err -> pure unit
           Right _ -> do

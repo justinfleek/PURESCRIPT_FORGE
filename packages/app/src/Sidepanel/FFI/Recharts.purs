@@ -29,7 +29,6 @@ module Sidepanel.FFI.Recharts where
 
 import Prelude
 import Effect (Effect)
-import Data.Array (Array)
 
 -- | Chart data point
 type ChartDataPoint =

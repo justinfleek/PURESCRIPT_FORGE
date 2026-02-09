@@ -3,10 +3,8 @@
 module Test.Sidepanel.WebSocket.ClientSpec where
 
 import Prelude
-import Test.Spec (describe, it)
-import Test.Spec.Assertions (shouldEqual, shouldBeTrue)
-import Test.QuickCheck (quickCheck, (<?>))
-import Effect (Effect)
+import Test.Spec (Spec, describe, it, pending)
+import Test.Spec.Assertions (shouldEqual)
 import Effect.Class (liftEffect)
 import Effect.Aff (Aff)
 import Data.Either (Either(..), isRight, isLeft)
@@ -23,73 +21,55 @@ import Sidepanel.WebSocket.Client
   )
 
 -- | Test client creation
-testClientCreation :: forall m. Monad m => m Unit
+testClientCreation :: Spec Unit
 testClientCreation = do
   describe "Client Creation" do
     it "creates client with default config" do
-      client <- liftEffect $ createClient defaultConfig
-      true `shouldBeTrue` -- Client created
-    
+      -- Test passes if createClient does not throw
+      _client <- liftEffect $ createClient defaultConfig
+      unit `shouldEqual` unit
+
     it "creates client with custom config" do
       let config = defaultConfig { url = "ws://custom:8080/ws", maxReconnectAttempts = 5 }
-      client <- liftEffect $ createClient config
-      true `shouldBeTrue` -- Client created
+      _client <- liftEffect $ createClient config
+      unit `shouldEqual` unit
 
 -- | Test connection
-testConnection :: forall m. Monad m => m Unit
+testConnection :: Spec Unit
 testConnection = do
   describe "Connection" do
-    it "connects to server" do
-      -- Would test connection with mock server
-      true `shouldBeTrue` -- Placeholder
-    
-    it "disconnects from server" do
-      -- Would test disconnection
-      true `shouldBeTrue` -- Placeholder
-    
-    it "handles connection errors" do
-      -- Would test error handling
-      true `shouldBeTrue` -- Placeholder
-    
-    it "reconnects on disconnect" do
-      -- Would test reconnection logic
-      true `shouldBeTrue` -- Placeholder
+    pending "connects to server (requires mock WebSocket server)"
+    pending "disconnects from server (requires mock WebSocket server)"
+    pending "handles connection errors (requires mock WebSocket server)"
+    pending "reconnects on disconnect (requires mock WebSocket server)"
 
 -- | Test request/response
-testRequestResponse :: forall m. Monad m => m Unit
+testRequestResponse :: Spec Unit
 testRequestResponse = do
   describe "Request/Response" do
-    it "sends request and receives response" do
-      -- Would test request/response cycle
-      true `shouldBeTrue` -- Placeholder
-    
-    it "handles request timeout" do
-      -- Would test timeout handling
-      true `shouldBeTrue` -- Placeholder
-    
-    it "queues messages when disconnected" do
-      -- Would test message queuing
-      true `shouldBeTrue` -- Placeholder
+    pending "sends request and receives response (requires mock server)"
+    pending "handles request timeout (requires mock server)"
+    pending "queues messages when disconnected (requires mock server)"
 
 -- | Test subscriptions
-testSubscriptions :: forall m. Monad m => m Unit
+testSubscriptions :: Spec Unit
 testSubscriptions = do
   describe "Subscriptions" do
-    it "subscribes to server messages" do
-      -- Would test subscription
-      true `shouldBeTrue` -- Placeholder
-    
-    it "unsubscribes from server messages" do
-      -- Would test unsubscription
-      true `shouldBeTrue` -- Placeholder
+    pending "subscribes to server messages (requires mock server)"
+    pending "unsubscribes from server messages (requires mock server)"
 
--- | Property: Client state transitions are valid
-prop_clientStateTransitions :: ConnectionState -> Boolean
-prop_clientStateTransitions state = true -- Placeholder
-
--- | Property tests
-testProperties :: forall m. Monad m => m Unit
+-- | Property: Client state transitions are valid and distinguishable via Eq
+-- | Note: ConnectionState doesn't have an Arbitrary instance (it's a local data type
+-- | and quickcheck can't generate Reconnecting Int or Error String variants).
+-- | Instead, test specific known states directly.
+testProperties :: Spec Unit
 testProperties = do
   describe "Property Tests" do
-    it "client state transitions are valid" do
-      quickCheck prop_clientStateTransitions
+    it "client state transitions are valid and distinguishable" do
+      -- Test each state is distinguishable via Eq
+      (Disconnected == Disconnected) `shouldEqual` true
+      (Connecting == Connecting) `shouldEqual` true
+      (Connected == Connected) `shouldEqual` true
+      (Disconnected == Connected) `shouldEqual` false
+      (Connecting == Disconnected) `shouldEqual` false
+      (Connected == Connecting) `shouldEqual` false

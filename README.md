@@ -1,181 +1,134 @@
-# PURESCRIPT_FORGE Workspace
+<p align="center">
+  <a href="https://forge.ai">
+    <picture>
+      <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
+      <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
+      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="Forge logo">
+    </picture>
+  </a>
+</p>
+<p align="center">The open source AI coding agent.</p>
+<p align="center">
+  <a href="https://forge.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
+  <a href="https://www.npmjs.com/package/forge-ai"><img alt="npm" src="https://img.shields.io/npm/v/forge-ai?style=flat-square" /></a>
+  <a href="https://github.com/forge-ai/forge/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/forge-ai/forge/publish.yml?style=flat-square&branch=dev" /></a>
+</p>
 
-This workspace contains projects following strict development standards for type safety, correctness, and maintainability.
+<p align="center">
+  <a href="README.md">English</a> |
+  <a href="README.zh.md">简体中文</a> |
+  <a href="README.zht.md">繁體中文</a> |
+  <a href="README.ko.md">한국어</a> |
+  <a href="README.de.md">Deutsch</a> |
+  <a href="README.es.md">Español</a> |
+  <a href="README.fr.md">Français</a> |
+  <a href="README.it.md">Italiano</a> |
+  <a href="README.da.md">Dansk</a> |
+  <a href="README.ja.md">日本語</a> |
+  <a href="README.pl.md">Polski</a> |
+  <a href="README.ru.md">Русский</a> |
+  <a href="README.ar.md">العربية</a> |
+  <a href="README.no.md">Norsk</a> |
+  <a href="README.br.md">Português (Brasil)</a> |
+  <a href="README.th.md">ไทย</a>
+</p>
 
-**Rules are implemented as proven code in PureScript/Haskell/Lean4, not just documentation.**
+[![Forge Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://forge.ai)
 
-## Projects
+---
 
-- **COMPASS**: PureScript/Haskell/Lean4 implementations (main codebase)
-- **NEXUS**: Agent orchestration system with gVisor sandboxing
-- **PRISM**: Formally verified color system with Lean4 proofs
-- **packages/**: Migrated packages (console, app, ui, util, enterprise, plugin)
-- **opencode-sidepanel-specs**: 99 comprehensive spec files (PureScript/Halogen sidepanel)
-
-**Migration Status:** ~94% complete (850+ files migrated from TypeScript to PureScript/Haskell/Lean4)
-
-## Rules Implementation
-
-Rules are implemented in three languages with proofs:
-
-- **PureScript** (`src/rules-ps/`): Application logic
-- **Haskell** (`src/rules-hs/`): Performance-critical modules
-- **Lean4** (`src/rules-lean/`): Proofs of correctness
-
-### Building Rules
-
-```bash
-# Enter dev shell (requires Nix)
-nix develop
-
-# Build all rule implementations
-nix build .#rules-ps
-nix build .#rules-hs
-nix build .#rules-lean
-
-# Verify all rules
-nix run .#check-rules
-```
-
-### Proof Verification
-
-The Lean4 proofs ensure:
-- Task completion is verified (`taskCompleteIffAllVerified`)
-- Type safety is maintained (`explicitDefaultTypeSafe`, `noTypeEscapes`)
-- Banned constructs are unrepresentable
-
-## Spec Integration
-
-### Spec Loader
-
-Loads all 99 specification files completely (no grep, no partial reads):
+### Installation
 
 ```bash
-nix run .#spec-loader -- opencode-sidepanel-specs
-# Verifies all 99 specs are present
+# YOLO
+curl -fsSL https://forge.ai/install | bash
+
+# Package managers
+npm i -g forge-ai@latest        # or bun/pnpm/yarn
+scoop install forge             # Windows
+choco install forge             # Windows
+brew install forge-ai/tap/forge # macOS and Linux (recommended, always up to date)
+brew install forge              # macOS and Linux (official brew formula, updated less)
+paru -S forge-bin               # Arch Linux
+mise use -g forge               # Any OS
+nix run nixpkgs#forge           # or github:forge-ai/forge for latest dev branch
 ```
 
-### Sidepanel Implementation
+> [!TIP]
+> Remove versions older than 0.1.x before installing.
 
-PureScript/Halogen sidepanel (per specs 40-49):
-- `src/sidepanel-ps/`: PureScript implementation
-  - AppM monad, State management, Reducer
-  - Router with Routing.Duplex
-  - Dashboard component
-  - Utilities (Time, Currency, Keyboard)
-  - API types (JSON-RPC 2.0)
-  - Theme system with PRISM colors
-- Uses PRISM color system for theming
-- Integrates with opencode-dev
+### Desktop App (BETA)
 
-**Status:** See `STATE_OF_PROJECT.md` for complete progress tracking.
+Forge is also available as a desktop application. Download directly from the [releases page](https://github.com/forge-ai/forge/releases) or [forge.ai/download](https://forge.ai/download).
 
-### PRISM Color System
-
-Formally verified color science:
-- `PRISM/prism-color-core/haskell/`: Haskell implementation
-- `PRISM/prism-color-core/lean4/`: Lean4 proofs
-- WCAG accessibility guaranteed
-
-## Development Standards
-
-This workspace uses Cursor rules and skills to enforce development standards:
-
-### Rules (`.cursor/rules/`)
-
-Rules reference proven implementations:
-- **core-principles.mdc**: Accuracy > Speed, Code is Truth (see `Rules.Core`)
-- **type-system.mdc**: Types describe, code is truth (see `Rules.TypeSafety`)
-- **file-reading-protocol.mdc**: Complete reads only (see `Rules.FileReading`)
-
-### Skills (`.cursor/skills/`)
-
-- **deterministic-coder**: MANDATORY for ALL code modifications
-- **exploratory-architect**: MANDATORY for ALL architecture design tasks
-- **expert-researcher**: For research and analysis tasks
-
-## Getting Started
-
-### Quick Start
-
-1. **Set up environment** (see `docs/SETUP.md` for details):
-   ```bash
-   # WSL2 + Nix (recommended for Windows)
-   wsl --install
-   # Then in WSL2:
-   sh <(curl -L https://nixos.org/nix/install) --daemon
-   ```
-
-2. **Enter dev shell**:
-   ```bash
-   nix develop
-   ```
-
-3. **Build all packages**:
-   ```bash
-   nix build .#all-packages
-   ```
-
-4. **Verify everything**:
-   ```bash
-   # Linux/WSL2
-   bash scripts/verify.sh
-   
-   # Windows PowerShell
-   powershell scripts/verify.ps1
-   
-   # Or use Nix apps
-   nix run .#verify-all
-   ```
-
-### Verification
+| Platform              | Download                              |
+| --------------------- | ------------------------------------- |
+| macOS (Apple Silicon) | `forge-desktop-darwin-aarch64.dmg` |
+| macOS (Intel)         | `forge-desktop-darwin-x64.dmg`     |
+| Windows               | `forge-desktop-windows-x64.exe`    |
+| Linux                 | `.deb`, `.rpm`, or AppImage           |
 
 ```bash
-# Check flake
-nix flake check
-
-# Build implementations
-nix build .#rules-ps
-nix build .#rules-hs
-nix build .#rules-lean
-nix build .#prism-color-core-hs
-nix build .#prism-color-core-lean
-nix build .#sidepanel-ps
-nix build .#spec-loader-hs
-
-# Run tests
-nix run .#test-all
-
-# Verify proofs
-nix run .#check-rules
-
-# Verify specs
-nix run .#spec-loader -- opencode-sidepanel-specs
+# macOS (Homebrew)
+brew install --cask forge-desktop
+# Windows (Scoop)
+scoop bucket add extras; scoop install extras/forge-desktop
 ```
 
-## Migration Goals
+#### Installation Directory
 
-The `opencode-dev` project will be migrated to match `trtllm-serve-main` standards:
-- Type safety (PureScript/Haskell/Lean4 where applicable)
-- Nix-based reproducible builds
-- Strict type checking
-- Complete file reading protocol
-- No banned constructs
-- Comprehensive documentation
-- **Proven correctness** (Lean4 proofs)
-- **Spec-driven development** (all 99 specs implemented)
+The install script respects the following priority order for the installation path:
 
-## Verification
+1. `$FORGE_INSTALL_DIR` - Custom installation directory
+2. `$XDG_BIN_DIR` - XDG Base Directory Specification compliant path
+3. `$HOME/bin` - Standard user binary directory (if exists or can be created)
+4. `$HOME/.forge/bin` - Default fallback
 
-Before any task completion, verify:
-- [ ] All files read completely
-- [ ] Dependency graph traced
-- [ ] All instances fixed across codebase
-- [ ] No banned constructs
-- [ ] Types explicit
-- [ ] Type checks pass
-- [ ] Tests pass
-- [ ] **Proofs check** (Lean4)
-- [ ] **Specs verified** (all 99 present)
-- [ ] Documentation updated
-- [ ] Workspace clean
+```bash
+# Examples
+FORGE_INSTALL_DIR=/usr/local/bin curl -fsSL https://forge.ai/install | bash
+XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://forge.ai/install | bash
+```
+
+### Agents
+
+Forge includes two built-in agents you can switch between with the `Tab` key.
+
+- **build** - Default, full access agent for development work
+- **plan** - Read-only agent for analysis and code exploration
+  - Denies file edits by default
+  - Asks permission before running bash commands
+  - Ideal for exploring unfamiliar codebases or planning changes
+
+Also, included is a **general** subagent for complex searches and multistep tasks.
+This is used internally and can be invoked using `@general` in messages.
+
+Learn more about [agents](https://forge.ai/docs/agents).
+
+### Documentation
+
+For more info on how to configure Forge [**head over to our docs**](https://forge.ai/docs).
+
+### Contributing
+
+If you're interested in contributing to Forge, please read our [contributing docs](./CONTRIBUTING.md) before submitting a pull request.
+
+### Building on Forge
+
+If you are working on a project that's related to Forge and is using "forge" as a part of its name; for example, "forge-dashboard" or "forge-mobile", please add a note to your README to clarify that it is not built by the Forge team and is not affiliated with us in any way.
+
+### FAQ
+
+#### How is this different from Claude Code?
+
+It's very similar to Claude Code in terms of capability. Here are the key differences:
+
+- 100% open source
+- Not coupled to any provider. Although we recommend the models we provide through [Forge Core](https://forge.ai/core); Forge can be used with Claude, OpenAI, Google or even local models. As models evolve the gaps between them will close and pricing will drop so being provider-agnostic is important.
+- Out of the box LSP support
+- A focus on TUI. Forge is built by neovim users and the creators of [terminal.shop](https://terminal.shop); we are going to push the limits of what's possible in the terminal.
+- A client/server architecture. This for example can allow Forge to run on your computer, while you can drive it remotely from a mobile app. Meaning that the TUI frontend is just one of the possible clients.
+
+---
+
+**Join our community** [Discord](https://discord.gg/forge) | [X.com](https://x.com/forge)

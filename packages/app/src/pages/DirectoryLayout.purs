@@ -12,9 +12,9 @@ import Effect (Effect)
 import Effect.Aff (Aff)
 
 import Sidepanel.Context.SDK (SDKContext)
-import Sidepanel.Context.Sync (SyncContext)
-import Sidepanel.Context.Local (LocalContext)
-import Sidepanel.Context.Language (LanguageContext)
+import Sidepanel.Context.Sync (SyncState)
+import Sidepanel.Context.Local (LocalState)
+import Sidepanel.Context.Language (Locale)
 import Sidepanel.Utils.Base64 (decode64)
 
 -- | Props for DirectoryLayout
@@ -50,13 +50,13 @@ type QuestionRejectInput =
 getDirectory :: DirectoryParams -> String
 getDirectory params = case params.dir of
   Nothing -> ""
-  Just encoded -> case decode64 encoded of
+  Just encoded -> case decode64 (Just encoded) of
     Nothing -> ""
     Just decoded -> decoded
 
 -- | Handle invalid directory URL
 -- | Shows error toast and navigates to home
-handleInvalidDirectory :: LanguageContext -> Effect Unit
+handleInvalidDirectory :: Locale -> Effect Unit
 handleInvalidDirectory language = do
   -- showToast({
   --   variant: "error",
@@ -112,7 +112,7 @@ type DirectoryLayout = DirectoryLayoutProps -> Effect Unit
 
 -- | Effect to validate directory on param change
 -- | Shows error and redirects if directory decoding fails
-validateDirectoryEffect :: DirectoryParams -> LanguageContext -> Effect Unit
+validateDirectoryEffect :: DirectoryParams -> Locale -> Effect Unit
 validateDirectoryEffect params language = do
   case params.dir of
     Nothing -> pure unit  -- No dir param, skip validation

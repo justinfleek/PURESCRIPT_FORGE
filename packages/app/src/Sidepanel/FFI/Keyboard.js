@@ -1,5 +1,5 @@
 // | Set up keyboard shortcut handler
-exports.setupKeyboardShortcuts = function(copyHandler, addToChatHandler) {
+export const setupKeyboardShortcuts = function(copyHandler, addToChatHandler) {
   return function() {
     const handler = function(event) {
       // Ctrl+C or Cmd+C - Copy
@@ -10,7 +10,7 @@ exports.setupKeyboardShortcuts = function(copyHandler, addToChatHandler) {
           copyHandler();
         }
       }
-      
+
       // Ctrl+Enter or Cmd+Enter - Add to chat
       if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
         const selection = window.getSelection();
@@ -20,9 +20,9 @@ exports.setupKeyboardShortcuts = function(copyHandler, addToChatHandler) {
         }
       }
     };
-    
+
     document.addEventListener("keydown", handler);
-    
+
     // Return cleanup function
     return function() {
       document.removeEventListener("keydown", handler);

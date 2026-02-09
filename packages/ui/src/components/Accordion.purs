@@ -33,8 +33,10 @@ import Prelude
 import Data.Array as Array
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Int (floor)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
+import Effect.Random (random)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
@@ -137,7 +139,7 @@ initialState :: Input -> State
 initialState input =
   { openItems: fromMaybe input.defaultValue input.value
   , input
-  , baseId: "accordion"  -- TODO: Generate unique ID
+  , baseId: "accordion"
   }
 
 -- ═══════════════════════════════════════════════════════════════════════════════
@@ -224,7 +226,10 @@ classAttr (Just cls) = [ HP.class_ (HH.ClassName cls) ]
 
 handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Output m Unit
 handleAction = case _ of
-  Initialize -> pure unit
+  Initialize -> do
+    n <- liftEffect random
+    let suffix = show (floor (n * 1000000.0))
+    H.modify_ _ { baseId = "accordion-" <> suffix }
 
   Receive newInput -> do
     -- Handle controlled value

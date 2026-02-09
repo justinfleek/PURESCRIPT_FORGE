@@ -40,6 +40,7 @@ import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Data.DateTime (DateTime)
 import Data.Set as Set
+import Data.Int (toNumber)
 import Data.String as String
 import Halogen as H
 import Halogen.HTML as HH
@@ -53,9 +54,9 @@ import Sidepanel.State.AppState (SessionState)
 import Sidepanel.Utils.Currency (formatUSD, formatNumber)
 import Sidepanel.Utils.Time (formatTime, formatDuration)
 import Sidepanel.FFI.DateTime (getCurrentDateTime, toISOString)
-import Argonaut.Core (Json)
-import Argonaut.Encode (class EncodeJson, encodeJson, (:=))
-import Argonaut.Decode (class DecodeJson, decodeJson, (.:), (.:?))
+import Data.Argonaut.Core (Json, stringify)
+import Data.Argonaut.Encode (class EncodeJson, encodeJson, (:=))
+import Data.Argonaut.Decode (class DecodeJson, decodeJson, (.:), (.:?))
 import Sidepanel.FFI.Download (downloadFile)
 
 -- | Extended session data with messages
@@ -377,7 +378,7 @@ handleAction = case _ of
 -- | Start timer to update current time every second
 startDurationTimer :: forall m. MonadAff m => H.HalogenM State Action () Output m Unit
 startDurationTimer = do
-  delay (Milliseconds 1000.0)
+  H.liftAff $ delay (Milliseconds 1000.0)
   currentTime <- liftEffect getCurrentDateTime
   H.modify_ _ { currentTime = Just currentTime }
   startDurationTimer  -- Recursive - keep updating
@@ -390,7 +391,7 @@ formatSessionDuration startedAt currentTime = case currentTime of
 
 -- | Encode session to JSON string
 encodeSessionToJSON :: Session -> String
-encodeSessionToJSON session = show $ encodeJson
+encodeSessionToJSON session = stringify $ encodeJson
   { id: session.id
   , model: session.model
   , provider: session.provider
@@ -446,14 +447,14 @@ encodeSessionToMarkdown session =
     encodeMessageToMarkdown msg =
       "### " <> showRole msg.role <> " (" <> formatTime msg.timestamp <> ")\n\n" <>
       msg.content <> "\n" <>
-      case msg.usage of
+      (case msg.usage of
         Just usage -> "\n**Usage:** " <> show usage.promptTokens <> " in / " <> show usage.completionTokens <> " out | " <> formatUSD usage.cost <> "\n"
-        Nothing -> "" <>
-      if not (Array.null msg.toolCalls) then
+        Nothing -> "") <>
+      (if not (Array.null msg.toolCalls) then
         "\n**Tool Calls:**\n" <>
         String.joinWith "\n" (map (\tool -> "- " <> tool.name <> " (" <> showToolStatus tool.status <> ")") msg.toolCalls) <>
         "\n"
-      else ""
+      else "")
     showRole = case _ of
       User -> "User"
       Assistant -> "Assistant"

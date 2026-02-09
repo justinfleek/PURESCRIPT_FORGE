@@ -92,7 +92,7 @@ processKey detector event = do
   if matchesKonamiCode newSequence then do
     detector.callback
     pure true
-  else
+  else do
     -- Check if sequence is still valid (prefix of Konami code)
     let prefix = Array.take (Array.length newSequence) konamiSequence
     if newSequence == prefix then

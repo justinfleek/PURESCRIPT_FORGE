@@ -32,16 +32,26 @@ module Sidepanel.Components.Search.SearchView where
 
 import Prelude
 import Data.Array as Array
+import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.String as String
 import Data.DateTime (DateTime)
-import Halogen as H
-import Halogen.HTML as HH
-import Halogen.HTML.Properties as HP
-import Halogen.HTML.Events as HE
+import Effect (Effect)
 import Effect.Class (liftEffect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Aff (Aff, delay, Milliseconds(..))
+import Halogen as H
+import Halogen.HTML as HH
+import Halogen.Subscription as HS
+import Halogen.HTML.Properties as HP
+import Halogen.HTML.Events as HE
+import Web.Event.Event (EventType(..))
+import Web.Event.EventTarget (addEventListener, eventListener, removeEventListener)
+import Web.HTML (window)
+import Web.HTML.Window (document)
+import Web.HTML.HTMLDocument (toDocument)
+import Web.DOM.Document (toEventTarget)
+import Web.UIEvent.KeyboardEvent (KeyboardEvent, fromEvent, key)
 import Sidepanel.WebSocket.Client as WS
 import Sidepanel.Api.Bridge as Bridge
 import Data.Map as Map
@@ -116,23 +126,23 @@ type State =
 -- | Component actions
 data Action
   = Initialize
-  = Receive Input
-  = SetQuery String
-  = SelectResult Int
-  = SetTypeFilter (Maybe SearchResultType)
-  = SetDateFilter (Maybe DateFilter)
-  = SetModelFilter (Maybe String)
-  = SetRoleFilter (Maybe String)
-  = Close
-  = PerformSearch
-  = NavigateUp
-  = NavigateDown
-  = OpenSelected
+  | Receive Input
+  | SetQuery String
+  | SelectResult Int
+  | SetTypeFilter (Maybe SearchResultType)
+  | SetDateFilter (Maybe DateFilter)
+  | SetModelFilter (Maybe String)
+  | SetRoleFilter (Maybe String)
+  | Close
+  | PerformSearch
+  | NavigateUp
+  | NavigateDown
+  | OpenSelected
 
 -- | Component output
 data Output
   = ResultSelected SearchResult
-  = SearchClosed
+  | SearchClosed
 
 -- | Component factory
 component :: forall q m. MonadAff m => H.Component q Input Output m
@@ -168,7 +178,6 @@ render state =
       ]
       [ HH.div
           [ HP.class_ (H.ClassName "search-view")
-          , HE.onClick \_ -> pure unit  -- Prevent click from bubbling to overlay
           ]
           [ renderHeader
           , renderSearchInput state
@@ -379,7 +388,8 @@ handleAction = case _ of
       { visible = input.visible
       , wsClient = input.wsClient
       }
-    if input.visible && not String.null (H.gets _.query) then
+    currentState <- H.get
+    if input.visible && not (String.null currentState.query) then
       handleAction PerformSearch
     else
       pure unit
@@ -388,7 +398,7 @@ handleAction = case _ of
     H.modify_ _ { query = query, selectedIndex = 0 }
     -- Debounce search
     void $ H.fork do
-      delay (Milliseconds 300.0)
+      H.liftAff $ delay (Milliseconds 300.0)
       handleAction PerformSearch
   
   SelectResult index -> do
@@ -474,11 +484,11 @@ performLocalSearch query wsClient = do
             }
       
       -- Call Bridge API
-      result <- liftEffect $ Bridge.performSearch client bridgeRequest
+      result <- H.liftAff $ Bridge.performSearch client bridgeRequest
       case result of
         Right response -> do
           -- Convert Bridge.SearchResultBridge to SearchResult
-          pure $ Array.map convertBridgeResult response.results
+          pure $ map convertBridgeResult response.results
         Left _ -> pure []
     Nothing -> pure []
 
@@ -530,31 +540,25 @@ parseResultType = case _ of
   _ -> SessionResult  -- Default
 
 -- | Keyboard event emitter for search navigation
-keyboardEventEmitter :: forall m. MonadAff m => H.Emitter m Action
-keyboardEventEmitter = H.Emitter \emit -> do
-  doc <- liftEffect $ document =<< window
-  let target = toEventTarget doc
-  
-  keydownListener <- liftEffect $ eventListener \e -> do
+keyboardEventEmitter :: HS.Emitter Action
+keyboardEventEmitter = HS.makeEmitter \emit -> do
+  htmlDoc <- document =<< window
+  let target = toEventTarget (toDocument htmlDoc)
+
+  keydownListener <- eventListener \e -> do
     case fromEvent e of
       Just ke -> do
         case key ke of
-          "ArrowUp" -> liftEffect $ emit NavigateUp
-          "ArrowDown" -> liftEffect $ emit NavigateDown
-          "Enter" -> liftEffect $ emit OpenSelected
-          "Escape" -> liftEffect $ emit Close
+          "ArrowUp" -> emit NavigateUp
+          "ArrowDown" -> emit NavigateDown
+          "Enter" -> emit OpenSelected
+          "Escape" -> emit Close
           _ -> pure unit
       Nothing -> pure unit
-  
-  liftEffect $ addEventListener (EventType "keydown") keydownListener false target
-  
+
+  addEventListener (EventType "keydown") keydownListener false target
+
   -- Return cleanup function
   pure $ removeEventListener (EventType "keydown") keydownListener false target
 
--- | Prevent default event (using Web.Event.Event)
-preventDefaultEvent :: forall e. e -> Effect Unit
-preventDefaultEvent e = preventDefault e
-
--- | Stop event propagation (using Web.Event.Event)
-stopPropagationEvent :: forall e. e -> Effect Unit
-stopPropagationEvent e = stopPropagation e
+-- Note: preventDefault and stopPropagation available via Web.Event.Event if needed

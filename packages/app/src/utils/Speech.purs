@@ -124,7 +124,7 @@ createSpeechRecognition opts callbacks = do
       let next = appendSegment committed segment
       when (next /= committed) do
         Ref.write next committedTextRef
-        Ref.modify (_ { committed = next }) stateRef
+        Ref.modify_ (_ { committed = next }) stateRef
         case callbacks.onFinal of
           Just cb -> cb (trim segment)
           Nothing -> pure unit
@@ -142,7 +142,7 @@ createSpeechRecognition opts callbacks = do
         Ref.write "" pendingHypothesisRef
         Ref.write "" lastInterimSuffixRef
         Ref.write Nothing shrinkCandidateRef
-        Ref.modify (_ { interim = "" }) stateRef
+        Ref.modify_ (_ { interim = "" }) stateRef
         case callbacks.onInterim of
           Just cb -> cb ""
           Nothing -> pure unit
@@ -153,7 +153,7 @@ createSpeechRecognition opts callbacks = do
       Ref.write hypothesis pendingHypothesisRef
       Ref.write suffix lastInterimSuffixRef
       Ref.write Nothing shrinkCandidateRef
-      Ref.modify (_ { interim = suffix }) stateRef
+      Ref.modify_ (_ { interim = suffix }) stateRef
       
       case callbacks.onInterim of
         Just cb -> do
@@ -175,7 +175,7 @@ createSpeechRecognition opts callbacks = do
             Ref.write "" pendingHypothesisRef
             Ref.write "" lastInterimSuffixRef
             Ref.write Nothing shrinkCandidateRef
-            Ref.modify (_ { interim = "" }) stateRef
+            Ref.modify_ (_ { interim = "" }) stateRef
             case callbacks.onInterim of
               Just cb -> cb ""
               Nothing -> pure unit
@@ -198,7 +198,7 @@ createSpeechRecognition opts callbacks = do
             cancelPendingCommit
             Ref.write "" lastInterimSuffixRef
             Ref.write Nothing shrinkCandidateRef
-            Ref.modify (_ { interim = "" }) stateRef
+            Ref.modify_ (_ { interim = "" }) stateRef
             startRecognition recog
     , stop: do
         maybeRecog <- Ref.read recognitionRef
@@ -211,7 +211,7 @@ createSpeechRecognition opts callbacks = do
             cancelPendingCommit
             Ref.write "" lastInterimSuffixRef
             Ref.write Nothing shrinkCandidateRef
-            Ref.modify (_ { interim = "" }) stateRef
+            Ref.modify_ (_ { interim = "" }) stateRef
             case callbacks.onInterim of
               Just cb -> cb ""
               Nothing -> pure unit

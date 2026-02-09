@@ -3,6 +3,7 @@ module Test.Main where
 
 import Prelude
 import Effect (Effect)
+import Effect.Aff (launchAff_)
 import Test.Spec (Spec, describe)
 import Test.Spec.Reporter (consoleReporter)
 import Test.Spec.Runner (runSpec)
@@ -19,7 +20,7 @@ import Test.Sidepanel.State.AppStateSpec as AppStateSpec
 import Test.Sidepanel.FFI.WebSocketSpec as WebSocketFFISpec
 
 main :: Effect Unit
-main = runSpec [consoleReporter] do
+main = launchAff_ $ runSpec [consoleReporter] do
   describe "Sidepanel Tests" do
     ReducerSpec.spec
     CurrencySpec.spec

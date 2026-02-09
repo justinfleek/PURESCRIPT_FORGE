@@ -39,16 +39,20 @@ import Prelude
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
+import Halogen.HTML.Events as HE
 import Effect.Aff (Aff)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
 import Effect (Effect)
 import Data.Array (take, length)
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
+import Data.Time.Duration (Milliseconds(..))
+import Data.DateTime.Instant (unInstant)
 import Sidepanel.State.AppState (AppState)
 import Sidepanel.State.Balance (BalanceState)
 import Sidepanel.FFI.Recharts as Recharts
-import Effect.Now (nowMillis)
+import Effect.Now (now)
 
 -- | Token usage data point
 type TokenDataPoint =
@@ -69,7 +73,7 @@ type ChartConfig =
 
 -- | Component state
 type State =
-  { data :: Array TokenDataPoint
+  { dataPoints :: Array TokenDataPoint
   , config :: ChartConfig
   , chart :: Maybe Recharts.ChartInstance
   , elementId :: String
@@ -91,8 +95,8 @@ data Output
 -- |
 -- | **Purpose:** Allows parent components to update chart data.
 -- | **Queries:**
--- | - `UpdateData data`: Updates chart with new data points
-data Query a = UpdateData (Array TokenDataPoint) a
+-- | - `UpdateDataQuery data`: Updates chart with new data points
+data Query a = UpdateDataQuery (Array TokenDataPoint) a
 
 -- | Token Usage Chart component
 component :: forall m. MonadAff m => H.Component Query Unit Output m
@@ -109,7 +113,7 @@ component =
 
 initialState :: State
 initialState =
-  { data: []
+  { dataPoints: []
   , config:
       { width: 800
       , height: 400
@@ -130,10 +134,10 @@ render state =
         , HH.div
             [ HP.class_ (H.ClassName "chart-controls") ]
             [ HH.button
-                [ HP.onClick \_ -> ToggleCost ]
+                [ HE.onClick \_ -> ToggleCost ]
                 [ HH.text (if state.config.showCost then "Hide Cost" else "Show Cost") ]
             , HH.button
-                [ HP.onClick \_ -> ToggleBreakdown ]
+                [ HE.onClick \_ -> ToggleBreakdown ]
                 [ HH.text (if state.config.showBreakdown then "Hide Breakdown" else "Show Breakdown") ]
             ]
         ]
@@ -145,7 +149,7 @@ render state =
 renderChart :: forall m. State -> H.ComponentHTML Action () m
 renderChart state =
   HH.div
-    [ HP.id_ state.elementId
+    [ HP.id state.elementId
     , HP.class_ (H.ClassName "chart-container")
     ]
     []
@@ -154,8 +158,9 @@ handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Out
 handleAction = case _ of
   Initialize -> do
     -- Generate unique element ID
-    timestamp <- liftEffect nowMillis
-    let elementId = "token-usage-chart-" <> show timestamp
+    instant <- liftEffect now
+    let (Milliseconds ms) = unInstant instant
+    let elementId = "token-usage-chart-" <> show ms
     H.modify_ \s -> s { elementId = elementId }
     -- Initialize chart
     state <- H.get
@@ -165,14 +170,14 @@ handleAction = case _ of
       , showCost: state.config.showCost
       , showBreakdown: state.config.showBreakdown
       }
-      (map toChartDataPoint state.data)
+      (map toChartDataPoint state.dataPoints)
     H.modify_ \s -> s { chart = Just chart }
     H.raise ChartReady
   
-  UpdateData data -> do
-    let limitedData = take 100 data -- Limit to 100 points
+  UpdateData newData -> do
+    let limitedData = take 100 newData -- Limit to 100 points
     state <- H.get
-    H.modify_ \s -> s { data = limitedData }
+    H.modify_ \s -> s { dataPoints = limitedData }
     -- Update chart
     case state.chart of
       Just chart -> do
@@ -215,8 +220,8 @@ handleAction = case _ of
 -- | Handle component queries
 handleQuery :: forall m a. MonadAff m => Query a -> H.HalogenM State Action () Output m (Maybe a)
 handleQuery = case _ of
-  UpdateData data k -> do
-    handleAction (UpdateData data)
+  UpdateDataQuery newData k -> do
+    handleAction (UpdateData newData)
     pure (Just k)
 
 -- | Convert TokenDataPoint to ChartDataPoint

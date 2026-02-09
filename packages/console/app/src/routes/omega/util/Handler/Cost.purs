@@ -18,7 +18,7 @@ import Prelude
 import Data.Maybe (Maybe(..), fromMaybe)
 import Console.App.Routes.Omega.Util.Provider.Provider (UsageInfo)
 import Console.App.Routes.Omega.Util.Handler.Types (ModelInfo, CostInfo)
-import Console.Core.Util.Price (MicroCents, centsToMicroCents)
+import Forge.Console.Core.Util.Price (MicroCents, centsToMicroCents)
 
 -- | Cost breakdown for logging
 type CostBreakdown =

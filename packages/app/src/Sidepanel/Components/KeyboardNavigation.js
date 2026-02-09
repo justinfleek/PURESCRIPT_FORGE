@@ -1,5 +1,5 @@
 // | Prevent default event behavior
-exports.preventDefault = function(event) {
+export const preventDefault = function(event) {
   return function() {
     if (event && event.preventDefault) {
       event.preventDefault();
@@ -8,7 +8,7 @@ exports.preventDefault = function(event) {
 };
 
 // | Check if input element has focus
-exports.isInputFocused = function(event) {
+export const isInputFocused = function(event) {
   return function() {
     if (!event || !event.target) {
       return false;

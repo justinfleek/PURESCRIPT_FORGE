@@ -35,6 +35,7 @@ module Sidepanel.Components.Proof.ProofPanel where
 
 import Prelude
 import Data.Array as Array
+import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Set as Set
 import Halogen as H
@@ -89,7 +90,7 @@ type State =
 -- | Actions
 data Action
   = Initialize
-  | Receive ProofState
+  | Receive Input
   | ToggleGoalExpand Int
   | ApplyTactic String
   | RefreshGoals
@@ -338,13 +339,14 @@ handleAction :: forall m o. MonadAff m => Action -> H.HalogenM State Action () o
 handleAction = case _ of
   Initialize -> pure unit
 
-  Receive proofState ->
+  Receive input ->
     H.modify_ \s ->
-      s { connected = proofState.connected
-        , currentFile = proofState.currentFile
-        , goals = convertGoals proofState.goals
-        , diagnostics = proofState.diagnostics
-        , suggestions = convertTactics proofState.suggestedTactics
+      s { connected = input.proofState.connected
+        , currentFile = input.proofState.currentFile
+        , goals = convertGoals input.proofState.goals
+        , diagnostics = input.proofState.diagnostics
+        , suggestions = convertTactics input.proofState.suggestedTactics
+        , wsClient = input.wsClient
         }
 
   ToggleGoalExpand index ->
@@ -371,7 +373,7 @@ handleAction = case _ of
           Right response -> do
             if response.success then
               -- Refresh goals after successful tactic application
-              RefreshGoals
+              handleAction RefreshGoals
             else
               -- Show error message (would be displayed in UI)
               pure unit

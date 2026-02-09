@@ -33,7 +33,9 @@ import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (liftEffect)
-import Effect.Now (nowMillis)
+import Effect.Now (now)
+import Data.DateTime.Instant (unInstant)
+import Data.Time.Duration (Milliseconds(..))
 import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Sidepanel.FFI.Recharts as Recharts
@@ -87,7 +89,8 @@ handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Out
 handleAction = case _ of
   Initialize -> do
     -- Generate unique element ID
-    timestamp <- liftEffect nowMillis
+    instant <- liftEffect now
+    let (Milliseconds timestamp) = unInstant instant
     let elementId = "cost-breakdown-chart-" <> show timestamp
     H.modify_ \s -> s { elementId = elementId }
     -- Initialize chart
@@ -142,7 +145,7 @@ render state =
 renderChart :: forall m. State -> H.ComponentHTML Action () m
 renderChart state =
   HH.div
-    [ HP.id_ state.elementId
+    [ HP.id state.elementId
     , HP.class_ (H.ClassName "chart-container")
     ]
     []

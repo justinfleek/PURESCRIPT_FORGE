@@ -1,6 +1,6 @@
 -- | Layout scroll persistence utilities
 -- | Migrated from: forge-dev/packages/app/src/context/layout-scroll.ts
-module App.Context.LayoutScroll
+module Sidepanel.Context.LayoutScroll
   ( SessionScroll
   , ScrollMap
   , ScrollPersistence

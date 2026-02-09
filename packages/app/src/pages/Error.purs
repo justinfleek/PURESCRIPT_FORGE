@@ -13,22 +13,23 @@ module Sidepanel.Pages.Error
 import Prelude
 
 import Data.Array as Array
-import Data.Either (Either(..))
+import Data.Either (Either(..), hush)
 import Data.Foldable (foldl)
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.String as String
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff (Aff)
-import Foreign (Foreign)
+import Foreign (Foreign, readString, readNumber, readBoolean, readArray)
 import Foreign.Object (Object)
 import Foreign.Object as Object
+import Control.Monad.Except (runExcept)
 
 -- | Structured initialization error type
 -- | Matches TypeScript InitError interface
 type InitError =
   { name :: String
-  , data :: Object Foreign
+  , errData :: Object Foreign
   }
 
 -- | Props for the ErrorPage component
@@ -45,19 +46,16 @@ type ErrorPageState =
 -- | Type guard for InitError
 -- | Checks if a foreign value matches the InitError shape
 isInitError :: Foreign -> Boolean
-isInitError value = 
-  -- Implementation would use foreign type checking
-  -- In actual FFI, this checks: typeof error === "object" && "name" in error && "data" in error
-  false -- Placeholder - actual implementation via FFI
+isInitError value =
+  -- Check if the foreign value has both "name" and "data" properties
+  isJust (lookupString "name" (unsafeToObject value)) &&
+  Object.member "data" (unsafeToObject value)
 
 -- | Safely serialize a value to JSON, handling circular references and BigInt
 safeJson :: Foreign -> String
-safeJson value = 
-  -- Handles:
-  -- - BigInt conversion to string
-  -- - Circular reference detection via WeakSet
-  -- - Fallback to String() for non-serializable values
-  "[Object]" -- Placeholder - actual implementation via FFI
+safeJson value = safeJsonStringify value
+
+foreign import safeJsonStringify :: Foreign -> String
 
 -- | Translator function type (from useLanguage hook)
 type Translator = String -> Object String -> String
@@ -77,42 +75,42 @@ type Translator = String -> Object String -> String
 formatInitError :: InitError -> Translator -> String
 formatInitError err t = case err.name of
   "MCPFailed" ->
-    let name = fromMaybe "" $ lookupString "name" err.data
+    let name = fromMaybe "" $ lookupString "name" err.errData
     in t "error.chain.mcpFailed" (Object.singleton "name" name)
     
   "ProviderAuthError" ->
-    let providerID = fromMaybe "unknown" $ lookupString "providerID" err.data
-        message = fromMaybe "" $ lookupString "message" err.data
+    let providerID = fromMaybe "unknown" $ lookupString "providerID" err.errData
+        message = fromMaybe "" $ lookupString "message" err.errData
     in t "error.chain.providerAuthFailed" 
          (Object.fromFoldable [Tuple "provider" providerID, Tuple "message" message])
     
   "APIError" ->
-    formatAPIError err.data t
+    formatAPIError err.errData t
     
   "ProviderModelNotFoundError" ->
-    formatModelNotFoundError err.data t
+    formatModelNotFoundError err.errData t
     
   "ProviderInitError" ->
-    let providerID = fromMaybe "unknown" $ lookupString "providerID" err.data
+    let providerID = fromMaybe "unknown" $ lookupString "providerID" err.errData
     in t "error.chain.providerInitFailed" (Object.singleton "provider" providerID)
     
   "ConfigJsonError" ->
-    formatConfigJsonError err.data t
+    formatConfigJsonError err.errData t
     
   "ConfigDirectoryTypoError" ->
-    formatConfigDirectoryTypoError err.data t
+    formatConfigDirectoryTypoError err.errData t
     
   "ConfigFrontmatterError" ->
-    formatConfigFrontmatterError err.data t
+    formatConfigFrontmatterError err.errData t
     
   "ConfigInvalidError" ->
-    formatConfigInvalidError err.data t
+    formatConfigInvalidError err.errData t
     
   "UnknownError" ->
-    fromMaybe (safeJson (toForeign err.data)) $ lookupString "message" err.data
+    fromMaybe (safeJson (toForeign err.errData)) $ lookupString "message" err.errData
     
   _ ->
-    fromMaybe (safeJson (toForeign err.data)) $ lookupString "message" err.data
+    fromMaybe (safeJson (toForeign err.errData)) $ lookupString "message" err.errData
 
 -- | Format API error with status code, retry info, and response body
 formatAPIError :: Object Foreign -> Translator -> String
@@ -124,7 +122,7 @@ formatAPIError errData t =
       retryLine = lookupBoolean "isRetryable" errData <#> \retryable ->
                   t "error.chain.retryable" (Object.singleton "retryable" (show retryable))
       bodyLine = lookupString "responseBody" errData >>= \body ->
-                 if String.null body then Nothing
+                 if body == "" then Nothing
                  else Just $ t "error.chain.responseBody" (Object.singleton "body" body)
       lines = Array.catMaybes [Just message, statusLine, retryLine, bodyLine]
   in String.joinWith "\n" lines
@@ -187,8 +185,9 @@ formatConfigInvalidError errData t =
 -- | Format validation issues from config error
 formatValidationIssues :: Object Foreign -> Array String
 formatValidationIssues errData =
-  -- Would extract issues array and format each as "↳ message path.to.field"
-  [] -- Placeholder - actual implementation via FFI
+  case lookupStringArray "issues" errData of
+    Just issues -> map (\issue -> "  ↳ " <> issue) issues
+    Nothing -> []
 
 -- | Format the complete error chain with cause traversal
 -- | Handles:
@@ -211,23 +210,39 @@ formatError error t = formatErrorChain error t 0 Nothing
 
 -- | Helper: lookup string value from Foreign Object
 lookupString :: String -> Object Foreign -> Maybe String
-lookupString key obj = Nothing -- Placeholder - actual via FFI
+lookupString key obj = do
+  val <- Object.lookup key obj
+  hush (runExcept (readString val))
 
--- | Helper: lookup number value from Foreign Object  
+-- | Helper: lookup number value from Foreign Object
 lookupNumber :: String -> Object Foreign -> Maybe Number
-lookupNumber key obj = Nothing -- Placeholder - actual via FFI
+lookupNumber key obj = do
+  val <- Object.lookup key obj
+  hush (runExcept (readNumber val))
 
 -- | Helper: lookup boolean value from Foreign Object
 lookupBoolean :: String -> Object Foreign -> Maybe Boolean
-lookupBoolean key obj = Nothing -- Placeholder - actual via FFI
+lookupBoolean key obj = do
+  val <- Object.lookup key obj
+  hush (runExcept (readBoolean val))
 
 -- | Helper: lookup string array from Foreign Object
 lookupStringArray :: String -> Object Foreign -> Maybe (Array String)
-lookupStringArray key obj = Nothing -- Placeholder - actual via FFI
+lookupStringArray key obj = do
+  val <- Object.lookup key obj
+  arr <- hush (runExcept (readArray val))
+  let strings = Array.mapMaybe (\f -> hush (runExcept (readString f))) arr
+  if Array.length strings == Array.length arr
+    then Just strings
+    else Nothing
 
--- | Convert to Foreign (placeholder)
+-- | Convert to Foreign
 toForeign :: forall a. a -> Foreign
 toForeign = unsafeCoerce
+
+-- | Convert Foreign to Object Foreign (unsafe, for internal use)
+unsafeToObject :: Foreign -> Object Foreign
+unsafeToObject = unsafeCoerce
 
 -- | Unsafe coerce for FFI boundaries
 foreign import unsafeCoerce :: forall a b. a -> b

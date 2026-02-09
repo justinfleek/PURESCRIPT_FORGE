@@ -5,6 +5,10 @@ module Sidepanel.Utils.Prompt
   , PromptPart(..)
   , FileSelection
   , extractPromptFromParts
+  , TextPart
+  , FileAttachmentPart
+  , ImageAttachmentPart
+  , AgentPart
   ) where
 
 import Prelude
@@ -162,7 +166,7 @@ toRelative :: Maybe String -> String -> String
 toRelative maybeDir path = case maybeDir of
   Nothing -> path
   Just dir ->
-    let prefix = if String.takeRight 1 dir == "/" then dir else dir <> "/"
+    let prefix = if String.drop (String.length dir - 1) dir == "/" then dir else dir <> "/"
     in if String.take (String.length prefix) path == prefix
        then String.drop (String.length prefix) path
        else if String.take (String.length dir) path == dir
@@ -267,10 +271,10 @@ extractImages parts attachmentName =
 
 -- | Build prompt parts from text and inline references
 buildPromptFromInlines :: String -> Array InlineRef -> Prompt
-buildPromptFromInlines text inlines =
-  let state = Array.foldl processInline { position: 0, cursor: 0, result: [] } inlines
-      finalText = String.drop state.cursor text
-  in if String.null finalText
+buildPromptFromInlines fullText inlines =
+  let state = Array.foldl (processInline fullText) { position: 0, cursor: 0, result: [] } inlines
+      finalText = String.drop state.cursor fullText
+  in if finalText == ""
      then state.result
      else Array.snoc state.result (Text { type: "text", content: finalText, start: state.position, end: state.position + String.length finalText })
 
@@ -280,15 +284,16 @@ type BuildState =
   , result :: Prompt
   }
 
-processInline :: BuildState -> InlineRef -> BuildState
-processInline state inline =
-  let textBefore = String.slice state.cursor inline.start text
-      textPart = if String.null textBefore
+processInline :: String -> BuildState -> InlineRef -> BuildState
+processInline fullText state inline =
+  let len = if inline.start > state.cursor then inline.start - state.cursor else 0
+      textBefore = String.take len (String.drop state.cursor fullText)
+      textPart = if textBefore == ""
                  then []
                  else [Text { type: "text", content: textBefore, start: state.position, end: state.position + String.length textBefore }]
       newPosition = state.position + String.length textBefore
       inlinePart = case inline.refType of
-                     "file" -> [FileAttachment 
+                     "file" -> [FileAttachment
                        { type: "file"
                        , path: fromMaybe "" inline.path
                        , content: inline.value
@@ -308,7 +313,3 @@ processInline state inline =
      , cursor: inline.end
      , result: state.result <> textPart <> inlinePart
      }
-
--- Placeholder for text reference (not actual implementation)
-text :: String
-text = ""

@@ -22,7 +22,7 @@ import Console.App.Routes.Omega.Util.Handler.Types
   , BillingSource(..)
   )
 import Console.App.Routes.Omega.Util.Error (OmegaError(..))
-import Console.Core.Util.Price (MicroCents)
+import Forge.Console.Core.Util.Price (MicroCents)
 
 -- | Mock Date type for testing (FFI functions need integration tests)
 foreign import data MockDate :: Type

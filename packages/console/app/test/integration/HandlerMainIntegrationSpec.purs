@@ -29,7 +29,7 @@ import Console.App.Routes.Omega.Util.Handler.Types
   )
 import Console.App.Routes.Omega.Util.Error (OmegaError(..))
 import Console.App.FFI.SolidStart (APIEvent, Response)
-import Console.Core.Util.Price (MicroCents)
+import Forge.Console.Core.Util.Price (MicroCents)
 
 -- | Mock APIEvent for testing
 foreign import data MockAPIEvent :: Type

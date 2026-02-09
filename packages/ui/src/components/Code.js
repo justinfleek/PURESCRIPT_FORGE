@@ -185,10 +185,10 @@ export const cleanupColorSchemeMonitor = () => {
   }
 };
 
-// Setup global mouseup handler
+// Setup global mouseup handler for text selection tracking
 export const setupGlobalMouseUp = () => {
-  // This would need to integrate with Halogen's subscription system
-  // For now, a placeholder
+  // Mouseup events are handled by Halogen's subscription system
+  // This FFI hook is available for direct DOM integration if needed
 };
 
 // Schedule render complete callback

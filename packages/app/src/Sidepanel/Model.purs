@@ -48,7 +48,7 @@ data ModelType = General | Code | Reasoning | Math
 derive instance eqModelType :: Eq ModelType
 
 -- | Speed tier (relative speed rating)
-data SpeedTier = Slow | Medium | Fast | VeryFast
+data SpeedTier = Slow | MediumSpeed | Fast | VeryFast
 
 derive instance eqSpeedTier :: Eq SpeedTier
 
@@ -204,7 +204,7 @@ filterByType _ = identity  -- Would filter by type if models had type metadata
 
 -- | Filter models by speed - Filter models by speed tier
 -- |
--- | **Purpose:** Filters models by speed tier (Slow, Medium, Fast, VeryFast).
+-- | **Purpose:** Filters models by speed tier (Slow, MediumSpeed, Fast, VeryFast).
 filterBySpeed :: SpeedTier -> Array Model -> Array Model
 filterBySpeed speed = Array.filter (\m -> m.speed == speed)
 
@@ -266,7 +266,7 @@ compareModels m1 m2 =
 showSpeedTier :: SpeedTier -> String
 showSpeedTier = case _ of
   Slow -> "Slow"
-  Medium -> "Medium"
+  MediumSpeed -> "Medium"
   Fast -> "Fast"
   VeryFast -> "Very Fast"
 

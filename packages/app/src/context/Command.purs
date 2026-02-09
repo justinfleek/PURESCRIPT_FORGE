@@ -1,6 +1,6 @@
 -- | Command context - manages keybindings and command palette
 -- | Migrated from: forge-dev/packages/app/src/context/command.tsx
-module App.Context.Command
+module Sidepanel.Context.Command
   ( Keybind
   , KeybindConfig
   , CommandOption
@@ -15,7 +15,7 @@ module App.Context.Command
 
 import Prelude
 
-import Data.Array (filter, length, (:))
+import Data.Array (filter, length)
 import Data.Array as Array
 import Data.Foldable (any)
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -99,22 +99,23 @@ parseKeybind config =
         foldlParts { key: "", ctrl: false, meta: false, shift: false, alt: false } parts
     
     foldlParts :: Keybind -> Array String -> Keybind
-    foldlParts kb [] = kb
-    foldlParts kb (p : rest) =
-      let
-        kb' = case p of
-          "ctrl" -> kb { ctrl = true }
-          "control" -> kb { ctrl = true }
-          "meta" -> kb { meta = true }
-          "cmd" -> kb { meta = true }
-          "command" -> kb { meta = true }
-          "mod" -> if isMac then kb { meta = true } else kb { ctrl = true }
-          "alt" -> kb { alt = true }
-          "option" -> kb { alt = true }
-          "shift" -> kb { shift = true }
-          _ -> kb { key = p }
-      in
-        foldlParts kb' rest
+    foldlParts kb arr = case Array.uncons arr of
+      Nothing -> kb
+      Just { head: p, tail: rest } ->
+        let
+          kb' = case p of
+            "ctrl" -> kb { ctrl = true }
+            "control" -> kb { ctrl = true }
+            "meta" -> kb { meta = true }
+            "cmd" -> kb { meta = true }
+            "command" -> kb { meta = true }
+            "mod" -> if isMac then kb { meta = true } else kb { ctrl = true }
+            "alt" -> kb { alt = true }
+            "option" -> kb { alt = true }
+            "shift" -> kb { shift = true }
+            _ -> kb { key = p }
+        in
+          foldlParts kb' rest
 
 -- | Check if a keybind matches keyboard event properties
 matchKeybind :: Array Keybind -> { key :: String, ctrlKey :: Boolean, metaKey :: Boolean, shiftKey :: Boolean, altKey :: Boolean } -> Boolean

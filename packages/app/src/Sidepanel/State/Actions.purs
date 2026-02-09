@@ -43,7 +43,8 @@ module Sidepanel.State.Actions where
 import Prelude
 import Data.DateTime (DateTime)
 import Data.Maybe (Maybe)
-import Sidepanel.State.AppState (AlertLevel, Panel, Theme, Goal, Diagnostic, Tactic, SnapshotSummary, Message)
+import Sidepanel.State.AppState (Panel, Theme, Goal, Diagnostic, Tactic, SnapshotSummary, Message)
+import Sidepanel.State.Balance (AlertLevel)
 import Sidepanel.State.RateLimit (RateLimitHeaders)
 import Sidepanel.State.Sessions (SessionStatus)
 

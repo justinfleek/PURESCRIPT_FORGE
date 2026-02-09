@@ -31,6 +31,7 @@ module Sidepanel.Utils.Responsive where
 import Prelude
 import Effect (Effect)
 import Data.Maybe (Maybe(..))
+import Sidepanel.FFI.Window as Window
 
 -- | Layout mode
 data LayoutMode
@@ -59,8 +60,6 @@ defaultBreakpoints =
   , desktop: 1024.0
   , wide: 1440.0
   }
-
-import Sidepanel.FFI.Window as Window
 
 -- | Get current viewport width
 getViewportWidth :: Effect Number

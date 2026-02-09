@@ -20,16 +20,16 @@ import Halogen.HTML.Properties as HP
 import Halogen.HTML.Events as HE
 import Sidepanel.Components.EasterEggs.Pong.PongTypes
   ( GameState
-  , GameAction(..)
+  , GameAction
   , GameMode(..)
+  , Player
   , initialGameState
+  , gameWidth
+  , gameHeight
   )
+import Sidepanel.Components.EasterEggs.Pong.PongTypes as PongTypes
 import Sidepanel.Components.EasterEggs.Pong.PongLogic (updateGame, applyAction)
-import Sidepanel.Components.EasterEggs.Pong.PongRenderer
-  ( CanvasContext
-  , getCanvasContext
-  , renderGame
-  )
+import Sidepanel.Components.EasterEggs.Pong.PongRenderer (CanvasContext, getCanvasContext, renderGame)
 import Sidepanel.Components.EasterEggs.Tetris.TetrisFFI (getCurrentTime) as FFI
 
 -- | Component state
@@ -53,9 +53,6 @@ data Output
   = GameEnded (Maybe Player)
   | GamePaused
   | GameResumed
-
--- | Import Player
-import Sidepanel.Components.EasterEggs.Pong.PongTypes (Player)
 
 -- | Component input
 type Input = Unit
@@ -121,14 +118,14 @@ handleAction = case _ of
   HandleKeyPress key -> do
     state <- H.get
     case key of
-      "w" -> updateGameState (applyAction state.gameState MoveLeftPaddleUp)
-      "W" -> updateGameState (applyAction state.gameState MoveLeftPaddleUp)
-      "s" -> updateGameState (applyAction state.gameState MoveLeftPaddleDown)
-      "S" -> updateGameState (applyAction state.gameState MoveLeftPaddleDown)
-      "ArrowUp" -> updateGameState (applyAction state.gameState MoveRightPaddleUp)
-      "ArrowDown" -> updateGameState (applyAction state.gameState MoveRightPaddleDown)
-      "p" -> updateGameState (applyAction state.gameState Pause)
-      "P" -> updateGameState (applyAction state.gameState Pause)
+      "w" -> updateGameState (applyAction state.gameState PongTypes.MoveLeftPaddleUp)
+      "W" -> updateGameState (applyAction state.gameState PongTypes.MoveLeftPaddleUp)
+      "s" -> updateGameState (applyAction state.gameState PongTypes.MoveLeftPaddleDown)
+      "S" -> updateGameState (applyAction state.gameState PongTypes.MoveLeftPaddleDown)
+      "ArrowUp" -> updateGameState (applyAction state.gameState PongTypes.MoveRightPaddleUp)
+      "ArrowDown" -> updateGameState (applyAction state.gameState PongTypes.MoveRightPaddleDown)
+      "p" -> updateGameState (applyAction state.gameState PongTypes.Pause)
+      "P" -> updateGameState (applyAction state.gameState PongTypes.Pause)
       _ -> pure unit
     
     renderCurrentState
@@ -149,16 +146,17 @@ handleAction = case _ of
       
       renderCurrentState
       -- Continue loop (~60 FPS)
-      delay (Milliseconds 16.0)
+      H.liftAff $ delay (Milliseconds 16.0)
       handleAction GameLoop
   
   Pause -> do
-    updateGameState (applyAction (_.gameState <$> H.get) Pause)
+    state <- H.get
+    updateGameState (applyAction state.gameState PongTypes.Pause)
     H.raise GamePaused
   
   Resume -> do
     state <- H.get
-    updateGameState (applyAction state.gameState Resume)
+    updateGameState (applyAction state.gameState PongTypes.Resume)
     H.raise GameResumed
     startGameLoop
   
@@ -187,8 +185,3 @@ startGameLoop :: forall m. MonadAff m => H.HalogenM State Action () Output m Uni
 startGameLoop = do
   handleAction GameLoop
 
--- | Import game dimensions
-import Sidepanel.Components.EasterEggs.Pong.PongTypes (gameWidth, gameHeight)
-
--- | Import getCanvasContext from Pong renderer
-import Sidepanel.Components.EasterEggs.Pong.PongRenderer (getCanvasContext)

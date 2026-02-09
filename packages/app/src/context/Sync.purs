@@ -1,8 +1,10 @@
 -- | Sync context - manages session data synchronization
 -- | Migrated from: forge-dev/packages/app/src/context/sync.tsx
-module App.Context.Sync
+module Sidepanel.Context.Sync
   ( SyncState
   , Message
+  , MessageRole
+  , MessageTime
   , Part
   , Session
   , SessionHistory
@@ -11,10 +13,12 @@ module App.Context.Sync
   , getSession
   , hasMoreHistory
   , isHistoryLoading
+  , SessionTime
   ) where
 
 import Prelude
 
+import Data.Array as Array
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -98,34 +102,19 @@ getSession sessionID state =
   binarySearch sessionID state.sessions
   where
     binarySearch :: String -> Array Session -> Maybe Session
-    binarySearch target arr = go 0 (arrayLength arr - 1)
+    binarySearch target arr = go 0 (Array.length arr - 1)
       where
         go lo hi
           | lo > hi = Nothing
           | otherwise =
-              let mid = (lo + hi) / 2
-              in case arrayIndex mid arr of
+              let mid = lo + (hi - lo) / 2
+              in case Array.index arr mid of
                 Nothing -> Nothing
                 Just s ->
                   case compare s.id target of
                     LT -> go (mid + 1) hi
                     GT -> go lo (mid - 1)
                     EQ -> Just s
-    
-    arrayLength :: forall a. Array a -> Int
-    arrayLength = go 0
-      where
-        go acc [] = acc
-        go acc (_ : rest) = go (acc + 1) rest
-    
-    arrayIndex :: forall a. Int -> Array a -> Maybe a
-    arrayIndex n arr
-      | n < 0 = Nothing
-      | otherwise = go n arr
-      where
-        go _ [] = Nothing
-        go 0 (x : _) = Just x
-        go i (_ : rest) = go (i - 1) rest
 
 -- | Check if there's more history to load
 hasMoreHistory :: String -> String -> SyncState -> Boolean

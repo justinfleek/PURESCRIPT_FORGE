@@ -46,13 +46,21 @@ import Halogen.HTML.Properties as HP
 import Halogen.HTML.Events as HE
 import Effect.Aff (Aff)
 import Effect.Aff.Class (class MonadAff)
-import Data.Array (filter, take, length, mapWithIndex)
+import Data.Array (filter, take, length, mapWithIndex, index)
 import Data.Maybe (Maybe(..))
 import Data.String (toLower, contains, Pattern(..))
 import Data.Either (Either(..))
-import Sidepanel.Utils.Keyboard (KeyboardShortcut)
 import Sidepanel.WebSocket.Client as WS
 import Sidepanel.Api.Bridge as Bridge
+import Web.UIEvent.KeyboardEvent (KeyboardEvent, key)
+
+-- | Keyboard shortcut definition for command palette
+type KeyboardShortcut =
+  { key :: String
+  , ctrl :: Boolean
+  , shift :: Boolean
+  , alt :: Boolean
+  }
 
 -- | Command definition
 type Command =
@@ -90,6 +98,7 @@ data Action
   | SelectPrevious
   | ExecuteSelected
   | KeyPressed String
+  | NoOp
 
 -- | Component output
 data Output
@@ -98,7 +107,7 @@ data Output
   | PaletteClosed
 
 -- | Command Palette component
-component :: forall q m. MonadAff m => H.Component q Input Output m
+component :: forall m. MonadAff m => H.Component Query Input Output m
 component =
   H.mkComponent
     { initialState: \input -> initialState { wsClient = input.wsClient }
@@ -247,11 +256,11 @@ render state =
   if state.open then
     HH.div
       [ HP.class_ (H.ClassName "command-palette-overlay")
-      , HE.onClick \_ -> H.raise PaletteClosed
+      , HE.onClick \_ -> KeyPressed "Escape"
       ]
       [ HH.div
           [ HP.class_ (H.ClassName "command-palette")
-          , HE.onClick \e -> H.stopPropagation e
+          , HE.onClick \_ -> NoOp
           ]
           [ HH.input
               [ HP.class_ (H.ClassName "command-palette-input")
@@ -259,7 +268,7 @@ render state =
               , HP.placeholder "Type a command..."
               , HP.value state.query
               , HE.onValueInput UpdateQuery
-              , HE.onKeyDown \e -> KeyPressed e.key
+              , HE.onKeyDown \e -> KeyPressed (key e)
               ]
           , HH.div
               [ HP.class_ (H.ClassName "command-palette-results") ]
@@ -304,37 +313,33 @@ handleAction = case _ of
     -- Update commands with client access
     let updatedCommands = defaultCommands state.wsClient
     H.modify_ \s ->
-      { s
-      | commands = updatedCommands
-      , filteredCommands = updatedCommands
-      }
-  
+      s { commands = updatedCommands
+        , filteredCommands = updatedCommands
+        }
+
   UpdateQuery query -> do
     H.modify_ \s ->
-      { s
-      | query = query
-      , selectedIndex = 0
-      , filteredCommands = filterCommands query s.commands
-      , open = true
-      }
-  
+      s { query = query
+        , selectedIndex = 0
+        , filteredCommands = filterCommands query s.commands
+        , open = true
+        }
+
   SelectNext -> do
     state <- H.get
     let maxIndex = length state.filteredCommands - 1
     H.modify_ \s ->
-      { s
-      | selectedIndex = min (s.selectedIndex + 1) maxIndex
-      }
-  
+      s { selectedIndex = min (s.selectedIndex + 1) maxIndex
+        }
+
   SelectPrevious -> do
     H.modify_ \s ->
-      { s
-      | selectedIndex = max 0 (s.selectedIndex - 1)
-      }
+      s { selectedIndex = max 0 (s.selectedIndex - 1)
+        }
   
   ExecuteSelected -> do
     state <- H.get
-    case state.filteredCommands !! state.selectedIndex of
+    case index state.filteredCommands state.selectedIndex of
       Just command -> do
         H.liftAff command.handler
         H.raise (CommandExecuted command.id)
@@ -361,6 +366,8 @@ handleAction = case _ of
       "ArrowDown" -> handleAction SelectNext
       "ArrowUp" -> handleAction SelectPrevious
       _ -> pure unit
+
+  NoOp -> pure unit
 
 filterCommands :: String -> Array Command -> Array Command
 filterCommands query commands =
