@@ -1,51 +1,93 @@
-// Pino Logger FFI - Forward Declaration
-// Full implementation in bridge/ batch (Batch 7)
+// Pino logger FFI
 "use strict";
 
+// Helper: Explicit default value (replaces banned || pattern)
+function explicitDefault(value, defaultValue) {
+  if (value === undefined || value === null) {
+    return defaultValue;
+  }
+  return value;
+}
+
+var pino = require("pino");
+
+exports.create = function(options) {
+  return function() {
+    return pino({
+      name: options.name,
+      level: explicitDefault(options.level, "info"),
+    });
+  };
+};
+
 exports.info = function(logger) {
-  return function(message) {
+  return function(msg) {
     return function() {
-      if (logger && typeof logger.info === 'function') {
-        logger.info(message);
-      } else {
-        console.log('[INFO]', message);
-      }
+      logger.info(msg);
     };
   };
 };
 
-exports.error = function(logger) {
-  return function(message) {
-    return function() {
-      if (logger && typeof logger.error === 'function') {
-        logger.error(message);
-      } else {
-        console.error('[ERROR]', message);
-      }
+exports.infoFields = function(logger) {
+  return function(msg) {
+    return function(fields) {
+      return function() {
+        logger.info(JSON.parse(fields), msg);
+      };
     };
   };
 };
 
 exports.warn = function(logger) {
-  return function(message) {
+  return function(msg) {
     return function() {
-      if (logger && typeof logger.warn === 'function') {
-        logger.warn(message);
-      } else {
-        console.warn('[WARN]', message);
-      }
+      logger.warn(msg);
+    };
+  };
+};
+
+exports.warnFields = function(logger) {
+  return function(msg) {
+    return function(fields) {
+      return function() {
+        logger.warn(JSON.parse(fields), msg);
+      };
+    };
+  };
+};
+
+exports.error = function(logger) {
+  return function(msg) {
+    return function() {
+      logger.error(msg);
+    };
+  };
+};
+
+exports.errorFields = function(logger) {
+  return function(msg) {
+    return function(fields) {
+      return function() {
+        logger.error(JSON.parse(fields), msg);
+      };
     };
   };
 };
 
 exports.debug = function(logger) {
-  return function(message) {
+  return function(msg) {
     return function() {
-      if (logger && typeof logger.debug === 'function') {
-        logger.debug(message);
-      } else {
-        console.debug('[DEBUG]', message);
-      }
+      logger.debug(msg);
+    };
+  };
+};
+
+exports.debugFields = function(logger) {
+  return function(msg) {
+    return function(fields) {
+      return function() {
+        logger.debug(JSON.parse(fields), msg);
+      };
     };
   };
 };
